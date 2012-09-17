@@ -39,7 +39,7 @@ Compilation
 -----------
 Once you have installed RapydScript, compiling your application is as simple as running the following command:
 
-rapydscript <location of main file>
+	rapydscript <location of main file>
 
 This will generate a JavaScript file with the same name as your main file, in the same directory. Now all you have to do is reference it in your html page the same way as you would with a typical JavaScript file. If you're only using RapydScript for classes and functions, then you're all set. If you're using additional Python methods, such as 'range()', 'print()', 'list.append()', 'list.remove()', then you will want to link RapydScript's stdlib.js in your html page as well. There are two versions of this library, the normal one and jQuery-safe. Read the quirks section to understand the difference in more detail. The short answer is use jQuery-safe one if your page also includes any jQuery logic (even if RapydScript doesn't interact with it).
 
@@ -223,6 +223,26 @@ One last thing to note is the difference between 'print()' and 'console.log', pr
 	console.log(hash)	# Object
 
 
+Loops
+-----
+RapydScript's loops work like Python, not JavaScript. You can't, for example use 'for(i=0;i<max;i++)' syntax. You can, however, loop through arrays using 'for ... in' syntax without worrying about the extra irrelevant attributes regular JavaScript returns.
+
+	animals = ['cat', 'dog', 'mouse', 'horse']
+	for animal in animals:
+		print('I have a '+animal)
+		
+If you need to use the index in the loop as well, you can do so by using enumerate():
+
+	for pair in enumerate(animals):
+		print("index:"+pair[0], "animal:"+pair[1])
+
+Admittedly this is slightly more awkward than Python, which allows you to avoid the need of a temporary 'pair' variable. Perhaps future version of RapydScript could do the same, by doing a bit of extra pre-parsing. Like in Python, if you just want the index, you can use range:
+
+	for index in range(len(animals)):			# or range(animals.length)
+		print("animal "+index+" is a "+animals[index])
+		
+RapydScript does not yet support list comprehensions, this is anther reason I'm considering switching to CoffeeScript as a base.
+
 Classes
 -------
 This is where RapydScript really starts to shine. JavaScript is known for having really crappy class implementation (it's basically a hack on top of a normal function, most experienced users suggest using external libraries for creating those instead of creating them in pure JavaScript). Luckily RapydScript fixes that. Let's imagine we want a special text field that takes in a user color string and changes color based on it. Let's create such field via a class.
@@ -237,11 +257,14 @@ This is where RapydScript really starts to shine. JavaScript is known for having
 
 This class abuses DOM's tolerant behavior, where it will default to the original setting when the passed-in color is invalid (saving us the extra error-checking logic). To append this field to our page we can run the following code:
 
-	$('body').append(ColorfulTextField().widget)
+	textfield = ColorfulTextField()
+	$('body').append(textfield.widget)
 
-If you're used to JavaScript, the line above probably set off a few red flags in your head. In pure JavaScript, you can't create an object without using a 'new' operator. Don't worry, the above line will compile to the following:
+If you're used to JavaScript, the code above probably set off a few red flags in your head. In pure JavaScript, you can't create an object without using a 'new' operator. Don't worry, the above code will compile to the following:
 
-	$('body').append((new ColorfulTextField()).widget);
+	var textfield;
+	textfield = new ColorfulTextField()
+	$('body').append(textfield.widget);
 
 RapydScript will automatically handle appending the 'new' keyword for you, assuming you used 'class' to create the class for your object. This also holds when creating an object inside a list or returning it as well. You could easily do the following, for example:
 
@@ -272,9 +295,10 @@ An important distinction between Python and RapydScript is that RapydScript does
 	class Something(Parent):
 		def method(self, var):
 			Parent.method(self, var)
-			SomethingElse.method(self.var)
+			SomethingElse.method(self, var)
+			SomethingElse.anotherMethod(self)
 
-Notice that we never inherited from SomethingElse class, yet we can invoke its methods. Also note that the __init__ method is not used, this method is optional for inheriting classes. This brings us to the next point, the only real advantage of inheriting from another class (which you can't gain by calling the other classes method as shown above) is that the omitted methods are automatically copied from the parent. Admittedly, we might also care about instance() method, to have it work with the non-main parent, but we're already overwriting JavaScript's instanceof() method in stdlib, so feel free to tweak it further, if you have the need to. To summarize classes, assume they work the same way as in Python, plus a few bonus cases. The following, for example, are equivalent:
+Notice that the __init__ method is not used. Like in Python, this method is optional for classes. If you omit it, an empty constructor will automatically get created for you by RapydScript (or when inheriting, the parent's constructor will be used). Also notice that we never inherited from SomethingElse class, yet we can invoke its methods. This brings us to the next point, the only real advantage of inheriting from another class (which you can't gain by calling the other classes method as shown above) is that the omitted methods are automatically copied from the parent. Admittedly, we might also care about instance() method, to have it work with the non-main parent, but we're already overwriting JavaScript's instanceof() method in stdlib, so feel free to tweak it further, if you have the need to. To summarize classes, assume they work the same way as in Python, plus a few bonus cases. The following, for example, are equivalent:
 
 	class Aclass:
 		def __init__(self):
