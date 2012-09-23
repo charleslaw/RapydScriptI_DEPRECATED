@@ -247,7 +247,8 @@ Admittedly this is slightly more awkward than Python, which allows you to avoid 
 	for index in range(len(animals)):			# or range(animals.length)
 		print("animal "+index+" is a "+animals[index])
 		
-## List Comprehensions
+List Comprehensions
+-------------------
 RapydScript also supports list comprehensions, using Python syntax. Instead of the following, for example:
 
 	myArray = []
@@ -257,9 +258,9 @@ RapydScript also supports list comprehensions, using Python syntax. Instead of t
 
 You could write this:
 
-	myArray = [i*i for i in range(1,20) if i*i%3 == 0]
+	myArray = [i\*i for i in range(1,20) if i\*i%3 == 0]
 	
-Which is not only shorter, but easier to read too. There are a few gotchas you might want to be aware of. RapydScript implements list comprehensions via a combination of map() and filter() functions, which are now part of the stdlib. First, I have not tested RapydScript with more complex list comprehensions, and given its current implementation (regex), it's likely to break when you start nesting them (however, this in general is a bad idea anyway, when your list comprehensions start getting incomprehensibly long, you're better off with a loop anyway). Second, RapydScript takes the 'i*i' and 'i*i%3 == 0' portions and inserts them into the output verbatim. This means that Python-only syntax, such as 'i**2' might not get compiled correctly here, but ** is not supported by RapydScript anyway, and I couldn't think of another case, so this is a low-priority bug for now (also, the work-around is quite simple, define a function doing the same operation before-hand). Which brings me to my last point. To accomodate filter() and map() syntax, RapydScript wraps this logic in an additional function call. So 'i*i' becomes:
+Which is not only shorter, but easier to read too. There are a few gotchas you might want to be aware of. RapydScript implements list comprehensions via a combination of map() and filter() functions, which are now part of the stdlib. First, I have not tested RapydScript with more complex list comprehensions, and given its current implementation (regex), it's likely to break when you start nesting them (however, this in general is a bad idea anyway, when your list comprehensions start getting incomprehensibly long, you're better off with a loop anyway). Second, RapydScript takes the 'i\*i' and 'i\*i%3 == 0' portions and inserts them into the output verbatim. This means that Python-only syntax, such as 'i\**2' might not get compiled correctly here, but \** is not supported by RapydScript anyway, and I couldn't think of another case, so this is a low-priority bug for now (also, the work-around is quite simple, define a function doing the same operation before-hand). Which brings me to my last point. To accomodate filter() and map() syntax, RapydScript wraps this logic in an additional function call. So 'i\*i' becomes:
 
 	function (i) {
 		return i*i;

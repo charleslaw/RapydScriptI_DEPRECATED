@@ -8,7 +8,8 @@ if __name__ == "__main__":
 	base_dir, orig_file = os.path.split(sys.argv[1])
 	filename = orig_file.rsplit('.', 1)[0] # remove the extension
 
-	os.chdir(base_dir)
+	if base_dir:
+		os.chdir(base_dir)
 	with open(filename+'.tmp', 'w') as output:
 		handler = parse_file(orig_file, output)
 
