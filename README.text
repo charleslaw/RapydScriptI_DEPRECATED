@@ -69,7 +69,7 @@ Now all we need is to tie it into our page so that it's interactive. Let's add a
 	<input id="user-input" onblur="computeFactorial()"></input>
 	<div id="result"></div>
 
-**NOTE:** To complement RapydScript, I have also written RapydML (`<http://bitbucket.org/pyjeon/rapydml>`_), which is a pre-compiler for HTML (just like RapydScript is a pre-compiler for JavaScript). 
+**NOTE:** To complement RapydScript, I have also written RapydML (`http://bitbucket.org/pyjeon/rapydml`_), which is a pre-compiler for HTML (just like RapydScript is a pre-compiler for JavaScript). 
 
 Now let's implement computeFactorial() function in RapydScript:
 
