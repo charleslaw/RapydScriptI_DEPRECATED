@@ -7,23 +7,11 @@ function len(item) {
 }
 range = function(a, b, step){
     var A = [];
-    if (typeof b === "undefined") {
-		b = a;
-		a = 0;
-	}
 	A[0] = a;
 	step = step || 1;
-	while(a+step < b){
+	while(a+step <= b){
 		A[A.length] = a += step;
 	}
-	return A;
-};
-enumerate = function(item) {
-	var A = [];
-	for (var i = 0; i < item.length; i++) {
-		A[A.length] = [i, item[i]];
-	}
-	return A;
 };
 function reversed(arr) {
   var temp = new Array();
@@ -123,6 +111,58 @@ Array.prototype.extend = function(array2) { this.push.apply(array2); };
 Array.prototype.remove = function(item) { var index = this.indexOf(item); this.splice(index, 1); };
 Array.prototype.find = Array.prototype.indexOf;
 Array.prototype.copy = function() {return this.slice(0);};
+if (!Array.prototype.map) {
+  Array.prototype.map = function(callback, thisArg) {
+    var T, A, k;
+    if (this == null) {
+      throw new TypeError(" this is null or not defined");
+    }
+    var O = Object(this);
+    var len = O.length >>> 0;
+    if ({}.toString.call(callback) != "[object Function]") {
+      throw new TypeError(callback + " is not a function");
+    }
+    if (thisArg) {
+      T = thisArg;
+    }
+    A = new Array(len);
+    k = 0;
+    while(k < len) {
+      var kValue, mappedValue;
+      if (k in O) {
+        kValue = O[k];
+        mappedValue = callback.call(T, kValue, k, O);
+        A[k] = mappedValue;
+      }
+      k++;
+    }
+    return A;
+  };
+}
+function map(oper, arr) { return arr.map(oper); }
+if (!Array.prototype.filter){
+  Array.prototype.filter = function(fun)
+  {
+    "use strict";
+     if (this == null)
+      throw new TypeError();
+     var t = Object(this);
+    var len = t.length >>> 0;
+    if (typeof fun != "function")
+      throw new TypeError();
+     var res = [];
+    var thisp = arguments[1];
+    for (var i = 0; i < len; i++) {
+      if (i in t) {
+        var val = t[i];
+        if (fun.call(thisp, val, i, t))
+          res.push(val);
+      }
+    }
+    return res;
+  };
+}
+function filter(oper, arr) { return arr.filter(oper); }
 
 // dict (this is a bit of a hack for now, to avoid overwriting the Object)
 // the methods below must be used via dict.method(object) instead of object.method()

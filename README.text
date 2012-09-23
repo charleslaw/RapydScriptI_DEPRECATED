@@ -30,7 +30,7 @@ Current implementation of RapydScript relies on PyvaScript (this might change in
 
 You can use RapydScript from the same directory you unpack it to, or 'install' it, which will copy the files to your system path, making it accessible from anywhere. The following command will perform the installation:
 
-	wget http://bitbucket.org/pyjeon/rapydscript/get/tip.zip; unzip tip.zip; cd pyjeon-rapyd*; sudo python setup.py install; cd ..; rm tip.zip
+	wget http://bitbucket.org/pyjeon/rapydscript/get/tip.zip; unzip tip.zip; cd pyjeon-rapydscript*; sudo python setup.py install; cd ..; rm tip.zip
 
 If you're using OSX, you can probably use the same commands (let me know if that's not the case). If you're using Windows, just download the files I linked to in the above URLs and install them in a similar manner.
 
@@ -127,13 +127,17 @@ One important thing to note, here, however, is that RapydScript currently uses t
 
 Anonymous Functions
 -------------------
-Like JavaScript (and PyvaScript), RapydScript allows the use of anonymous functions. In fact, you've already seen the use of anonymous functions in previous section when creating an object literal. This is similar to Python's lambda function, except that the syntax isn't awkward like lambda, and the function isn't limited to one line. The following two function declarations are equivalent:
+Like JavaScript (and PyvaScript), RapydScript allows the use of anonymous functions. In fact, you've already seen the use of anonymous functions in previous section when creating an object literal ('onmouseover' and 'onmouseout' assignments). This is similar to Python's lambda function, except that the syntax isn't awkward like lambda, and the function isn't limited to one line. The following two function declarations are equivalent:
 
-	def add(var1, var2):
-		return var1+var2
+	def factorial(n):
+		if n == 0:
+			return 1
+		return n * factorial(n-1)
 	
-	add = def(var1, var2):
-		return var1+var2
+	factorial = def(n):
+		if n == 0:
+			return 1
+		return n * factorial(n-1)
 	
 This might not seem like much at first, but if you're familiar with JavaScript, you know that this can be extermely useful to the programmer, especially when dealing with nested functions, which are a bit syntactically awkward in Python (it's not immediatelly obvious that those can be copied and assigned to other objects). To illustrate the usefulness, let's create a method that creates and returns an element that changes color while the user keeps the mouse pressed on it.
 
@@ -189,6 +193,8 @@ There is a subtle difference between the last 2 lines above, arr.pop(2) will ret
 	True			true
 					undefined
 
+**NOTE**: If you want to be able to use null/false/true keywords in your RapydScript, you want to modify pyvascript/grammar.py, removing them from the keyword list the same way you did with 'typeof' in Installation section. Make sure to rerun 'sudo python setup.py install' command again from pyvascript directory so the changes can take effect.
+
 The JavaScript operators, however, are not supported. You will have to use Python versions of those. If you're unfamiliar with them, here is the mapping RapydScript uses:
 
 	RapydScript		JavaScript
@@ -214,9 +220,9 @@ One last thing to note is the difference between 'print()' and 'console.log', pr
 	print(arr)			# [1,2,3,4]
 	console.log(arr)	# [1,2,3,4]
 	
-	arr = [[1,2],[3,4]]
-	print(arr)			# [[1,2],[3,4]]
-	console.log(arr)	# [Array[2], Array[2]]
+	arr2 = [[1,2],[3,4]]
+	print(arr2)			# [[1,2],[3,4]]
+	console.log(arr2)	# [Array[2], Array[2]]
 	
 	hash = {'dogs': 1, 'cats': 2}
 	print(hash)			# {"dogs":1,"cats":2}
@@ -241,7 +247,30 @@ Admittedly this is slightly more awkward than Python, which allows you to avoid 
 	for index in range(len(animals)):			# or range(animals.length)
 		print("animal "+index+" is a "+animals[index])
 		
-RapydScript does not yet support list comprehensions, this is anther reason I'm considering switching to CoffeeScript as a base.
+## List Comprehensions
+RapydScript also supports list comprehensions, using Python syntax. Instead of the following, for example:
+
+	myArray = []
+	for index in range(1,20):
+		if index*index % 3 == 0:
+			myArray.append(index*index)
+
+You could write this:
+
+	myArray = [i*i for i in range(1,20) if i*i%3 == 0]
+	
+Which is not only shorter, but easier to read too. There are a few gotchas you might want to be aware of. RapydScript implements list comprehensions via a combination of map() and filter() functions, which are now part of the stdlib. First, I have not tested RapydScript with more complex list comprehensions, and given its current implementation (regex), it's likely to break when you start nesting them (however, this in general is a bad idea anyway, when your list comprehensions start getting incomprehensibly long, you're better off with a loop anyway). Second, RapydScript takes the 'i*i' and 'i*i%3 == 0' portions and inserts them into the output verbatim. This means that Python-only syntax, such as 'i**2' might not get compiled correctly here, but ** is not supported by RapydScript anyway, and I couldn't think of another case, so this is a low-priority bug for now (also, the work-around is quite simple, define a function doing the same operation before-hand). Which brings me to my last point. To accomodate filter() and map() syntax, RapydScript wraps this logic in an additional function call. So 'i*i' becomes:
+
+	function (i) {
+		return i*i;
+	}
+	
+This makes sense. However, this also means that if you write the following comprehension:
+
+	[stuff(x) for x in [1,2,3]]
+
+then 'stuff(x)' also gets wrapped in an extra function. I'd rather deal with the overhead of an extra function call, however, than adding more special cases that could introduce additional bugs. The current list comprehension in RapydScript is not built with performance in mind. It does omit the filter() part if you don't include the 'if' statement, and it always filters first, to reduce the number of elements it needs to run map() on. However, in the worst case scenario (when filter doesn't remove any elements), it will generate two extra arrays internally of the same size as original.
+
 
 Classes
 -------
@@ -298,7 +327,7 @@ An important distinction between Python and RapydScript is that RapydScript does
 			SomethingElse.method(self, var)
 			SomethingElse.anotherMethod(self)
 
-Notice that the __init__ method is not used. Like in Python, this method is optional for classes. If you omit it, an empty constructor will automatically get created for you by RapydScript (or when inheriting, the parent's constructor will be used). Also notice that we never inherited from SomethingElse class, yet we can invoke its methods. This brings us to the next point, the only real advantage of inheriting from another class (which you can't gain by calling the other classes method as shown above) is that the omitted methods are automatically copied from the parent. Admittedly, we might also care about instance() method, to have it work with the non-main parent, but we're already overwriting JavaScript's instanceof() method in stdlib, so feel free to tweak it further, if you have the need to. To summarize classes, assume they work the same way as in Python, plus a few bonus cases. The following, for example, are equivalent:
+Notice that 'Something' class has no __init__ method. Like in Python, this method is optional for classes. If you omit it, an empty constructor will automatically get created for you by RapydScript (or when inheriting, the parent's constructor will be used). Also notice that we never inherited from SomethingElse class, yet we can invoke its methods. This brings us to the next point, the only real advantage of inheriting from another class (which you can't gain by calling the other classes method as shown above) is that the omitted methods are automatically copied from the parent. Admittedly, we might also care about instance() method, to have it work with the non-main parent, but we're already overwriting JavaScript's instanceof() method in stdlib, so feel free to tweak it further, if you have the need to. To summarize classes, assume they work the same way as in Python, plus a few bonus cases. The following, for example, are equivalent:
 
 	class Aclass:
 		def __init__(self):
@@ -358,6 +387,8 @@ In a perfect world, software works flawlessly and doesn't have any special cases
 - RapydScript automatically appends 'new' keyword when using classes generated by it, it does not append it to objects created by another library or ones part of W3C (this second part I can fix in a later version).
 - jQuery erroneously assumes that no other library will be modifying JavaScript's 'Object', and fails to do object.hasOwnProperty() check in multiple places where it should. The standard stdlib.js will therefore break jQuery. To remedy this, you should use stdlib.jquery.safe.js instead. There is also a difference in how hash/dict methods are used between the two libraries. The regular stdlib.js allows you to call hash.keys() as well as dict.keys(hash), like pure Python. The jQuery-safe version only supports the second notation - which is admittedly a bit more awkward.
 - Any anonymous function in hash/object literal must be followed by a comma, even if it's the last argument.
+- List comprehensions could break when nesting multiple of them together on one line
+- List comprehensions could break when using Python-only shorthand syntax in them ('i**2', for example). Things like 'i+=1' should work fine, however.
 
 
 Additional Features
