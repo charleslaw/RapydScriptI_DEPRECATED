@@ -26,7 +26,7 @@ Current implementation of RapydScript relies on PyvaScript (this might change in
 
 	wget http://bitbucket.org/wkornewald/pyvascript/get/tip.zip; unzip tip.zip; cd wkornewald-pyva*; sudo python setup.py install; cd ..; rm tip.zip
 
-**NOTE:** there is a bug with 'typeof' in PyvaScript that you may want to fix before running the setup.py command. This fix is optional since RapydScript implements an alternative work-around in its stdlib. PyvaScript erroneously throws an error both when using 'typeof object' and 'typeof(object)' (because the check happens in two places, and they contradict). To apply the fix, open pyvascript/grammar.py and remove 'typeof' from the keywords in Grammar class. Now you can use 'typeof(object)' notation. From there, you can continue the installation as normal.
+**NOTE:** there is a bug with `typeof` in PyvaScript that you may want to fix before running the setup.py command. This fix is optional since RapydScript implements an alternative work-around in its stdlib. PyvaScript erroneously throws an error both when using `typeof object` and `typeof(object)` (because the check happens in two places, and they contradict). To apply the fix, open pyvascript/grammar.py and remove 'typeof' from the keywords in Grammar class. Now you can use `typeof(object)` notation. From there, you can continue the installation as normal.
 
 You can use RapydScript from the same directory you unpack it to, or 'install' it, which will copy the files to your system path, making it accessible from anywhere. The following command will perform the installation:
 
@@ -41,7 +41,7 @@ Once you have installed RapydScript, compiling your application is as simple as 
 
 	rapydscript <location of main file>
 
-This will generate a JavaScript file with the same name as your main file, in the same directory. Now all you have to do is reference it in your html page the same way as you would with a typical JavaScript file. If you're only using RapydScript for classes and functions, then you're all set. If you're using additional Python methods, such as 'range()', 'print()', 'list.append()', 'list.remove()', then you will want to link RapydScript's stdlib.js in your html page as well. There are two versions of this library, the normal one and jQuery-safe. Read the quirks section to understand the difference in more detail. The short answer is use jQuery-safe one if your page also includes any jQuery logic (even if RapydScript doesn't interact with it).
+This will generate a JavaScript file with the same name as your main file, in the same directory. Now all you have to do is reference it in your html page the same way as you would with a typical JavaScript file. If you're only using RapydScript for classes and functions, then you're all set. If you're using additional Python methods, such as `range()`, `print()`, `list.append()`, `list.remove()`, then you will want to link RapydScript's stdlib.js in your html page as well. There are two versions of this library, the normal one and jQuery-safe. Read the quirks section to understand the difference in more detail. The short answer is use jQuery-safe one if your page also includes any jQuery logic (even if RapydScript doesn't interact with it).
 
 
 Getting Started
@@ -69,7 +69,7 @@ Now all we need is to tie it into our page so that it's interactive. Let's add a
 	<input id="user-input" onblur="computeFactorial()"></input>
 	<div id="result"></div>
 
-**NOTE:** To complement RapydScript, I have also written RapydML (http://bitbucket.org/pyjeon/rapydml), which is a pre-compiler for HTML (just like RapydScript is a pre-compiler for JavaScript). 
+**NOTE:** To complement RapydScript, I have also written RapydML (`<http://bitbucket.org/pyjeon/rapydml>`_), which is a pre-compiler for HTML (just like RapydScript is a pre-compiler for JavaScript). 
 
 Now let's implement computeFactorial() function in RapydScript:
 
@@ -260,7 +260,12 @@ You could write this:
 
 	myArray = [i*i for i in range(1,20) if i*i%3 == 0]
 	
-Which is not only shorter, but easier to read too. There are a few gotchas you might want to be aware of. RapydScript implements list comprehensions via a combination of map() and filter() functions, which are now part of the stdlib. First, I have not tested RapydScript with more complex list comprehensions, and given its current implementation (regex), it's likely to break when you start nesting them (however, this in general is a bad idea anyway, when your list comprehensions start getting incomprehensibly long, you're better off with a loop anyway). Second, RapydScript takes the 'i`*`i' and 'i`*`i%3 == 0' portions and inserts them into the output verbatim. This means that Python-only syntax, such as 'i`**`2' might not get compiled correctly here, but `**` is not supported by RapydScript anyway, and I couldn't think of another case, so this is a low-priority bug for now (also, the work-around is quite simple, define a function doing the same operation before-hand). Which brings me to my last point. To accomodate filter() and map() syntax, RapydScript wraps this logic in an additional function call. So 'i`*`i' becomes:
+Which is not only shorter, but easier to read too. There are a few gotchas you might want to be aware of. RapydScript implements list comprehensions via a combination of `map()` and `filter()` functions, which are now part of the stdlib. For example, the above line compiles to:
+
+	var myArray;
+	myArray = range(1,20).filter(function(i) { return i*i%3 == 0; }).map(function(i) { return i*i; });
+
+I have not tested RapydScript with more complex list comprehensions, and given its current implementation (regex), it's likely to break when you start nesting them (however, this in general is a bad idea anyway, when your list comprehensions start getting incomprehensibly long, you're better off with a loop anyway). Second, RapydScript takes the `i*i` and `i*i%3 == 0` portions and inserts them into the output verbatim. This means that Python-only syntax, such as `i**2` might not get compiled correctly here, but `**` is not supported by RapydScript anyway, and I couldn't think of another case, so this is a low-priority bug for now (also, the work-around is quite simple, define a function doing the same operation before-hand). Which brings me to my last point. To accomodate filter() and map() syntax, RapydScript wraps this logic in an additional function call. So `i*i` becomes:
 
 	function (i) {
 		return i*i;
@@ -270,7 +275,7 @@ This makes sense. However, this also means that if you write the following compr
 
 	[stuff(x) for x in [1,2,3]]
 
-then 'stuff(x)' also gets wrapped in an extra function. I'd rather deal with the overhead of an extra function call, however, than adding more special cases that could introduce additional bugs. The current list comprehension in RapydScript is not built with performance in mind. It does omit the filter() part if you don't include the 'if' statement, and it always filters first, to reduce the number of elements it needs to run map() on. However, in the worst case scenario (when filter doesn't remove any elements), it will generate two extra arrays internally of the same size as original.
+then `stuff(x)` also gets wrapped in an extra function. I'd rather deal with the overhead of an extra function call, however, than adding more special cases that could introduce additional bugs. The current list comprehension in RapydScript is not built with performance in mind. It does omit the filter() part if you don't include the `if` statement, and it always filters first, to reduce the number of elements it needs to run map() on. However, in the worst case scenario (when filter doesn't remove any elements), it will generate two extra arrays internally of the same size as original.
 
 
 Classes
@@ -318,7 +323,7 @@ But RapydScript's capability doesn't end here. Like Python, RapydScript allows i
 				.append(field)\
 				.append(submit)
 
-A couple things to note here. We can invoke methods from the parent class the same way we would in Python, by using 'Parent.method(self, ...)' syntax. This allows us to control when and how (assuming it requires additional arguments) the parent method gets executed. Also note the use of '\' operator to break up a line. This is something Python allows for keeping each line short and legible. Likewise, RapydScript, being indentation-based, allows the same.
+A couple things to note here. We can invoke methods from the parent class the same way we would in Python, by using `Parent.method(self, ...)` syntax. This allows us to control when and how (assuming it requires additional arguments) the parent method gets executed. Also note the use of `\` operator to break up a line. This is something Python allows for keeping each line short and legible. Likewise, RapydScript, being indentation-based, allows the same.
 
 An important distinction between Python and RapydScript is that RapydScript does not allow multiple inheritance. This might seem like a big deal at first, but in actuality it barely matters. When using multiple inheritance, we usually only care about a few methods from the alternative classes. Leveraging JavaScript prototypical inheritance, RapydScript allows us to reuse methods from another class without even inheriting from it:
 
@@ -328,7 +333,7 @@ An important distinction between Python and RapydScript is that RapydScript does
 			SomethingElse.method(self, var)
 			SomethingElse.anotherMethod(self)
 
-Notice that 'Something' class has no '`__init__`' method. Like in Python, this method is optional for classes. If you omit it, an empty constructor will automatically get created for you by RapydScript (or when inheriting, the parent's constructor will be used). Also notice that we never inherited from SomethingElse class, yet we can invoke its methods. This brings us to the next point, the only real advantage of inheriting from another class (which you can't gain by calling the other classes method as shown above) is that the omitted methods are automatically copied from the parent. Admittedly, we might also care about instance() method, to have it work with the non-main parent, but we're already overwriting JavaScript's instanceof() method in stdlib, so feel free to tweak it further, if you have the need to. To summarize classes, assume they work the same way as in Python, plus a few bonus cases. The following, for example, are equivalent:
+Notice that `Something` class has no `__init__` method. Like in Python, this method is optional for classes. If you omit it, an empty constructor will automatically get created for you by RapydScript (or when inheriting, the parent's constructor will be used). Also notice that we never inherited from SomethingElse class, yet we can invoke its methods. This brings us to the next point, the only real advantage of inheriting from another class (which you can't gain by calling the other classes method as shown above) is that the omitted methods are automatically copied from the parent. Admittedly, we might also care about instance() method, to have it work with the non-main parent, but we're already overwriting JavaScript's instanceof() method in stdlib, so feel free to tweak it further, if you have the need to. To summarize classes, assume they work the same way as in Python, plus a few bonus cases. The following, for example, are equivalent:
 
 	class Aclass:
 		def __init__(self):
@@ -342,7 +347,7 @@ Notice that 'Something' class has no '`__init__`' method. Like in Python, this m
 			self.method = def():
 				doSomething(self)
 
-Note that when binding the method to another object, 'self' inside the bound function will no longer correspond to the original object. To remedy this, you can create another variable storing 'self' from original class:
+Note that when binding the method to another object, `self` inside the bound function will no longer correspond to the original object. To remedy this, you can create another variable storing `self` from original class:
 
 	class Main:
 		def __init__(self):
@@ -389,9 +394,9 @@ In a perfect world, software works flawlessly and doesn't have any special cases
 - jQuery erroneously assumes that no other library will be modifying JavaScript's 'Object', and fails to do object.hasOwnProperty() check in multiple places where it should. The standard stdlib.js will therefore break jQuery. To remedy this, you should use stdlib.jquery.safe.js instead. There is also a difference in how hash/dict methods are used between the two libraries. The regular stdlib.js allows you to call hash.keys() as well as dict.keys(hash), like pure Python. The jQuery-safe version only supports the second notation - which is admittedly a bit more awkward.
 - Any anonymous function in hash/object literal must be followed by a comma, even if it's the last argument.
 - List comprehensions could break when nesting multiple of them together on one line
-- List comprehensions could break when using Python-only shorthand syntax in them ('i**2', for example). Things like 'i+=1' should work fine, however.
+- List comprehensions could break when using Python-only shorthand syntax in them (`i**2`, for example). Things like 'i+=1' should work fine, however.
 
 
 Additional Features
 -------------------
-In addition to the above features, RapydScript also checks for obvious errors during compilation. These errors include common mistakes made by developers as well as things that aren't really errors but PyvaScript will still break on (due to its own bugs). Some examples include mixing tabs and spaces in leading whitespace, using wrong library for JavaScript's 'Math' methods (you want to use 'Math.sqrt()' instead of 'math.sqrt()' or 'sqrt()'), reusing same names for global variables/classes/functions, omitting space after 'if' even if the next character is a bracket, and some other minor PyvaScript bugs. This should be enough to get you started with RapydScript. If I omitted anything that you think is useful, feel free to contact me.
+In addition to the above features, RapydScript also checks for obvious errors during compilation. These errors include common mistakes made by developers as well as things that aren't really errors but PyvaScript will still break on (due to its own bugs). Some examples include mixing tabs and spaces in leading whitespace, using wrong library for JavaScript's `Math` methods (you want to use `Math.sqrt()` instead of `math.sqrt()` or `sqrt()`), reusing same names for global variables/classes/functions, omitting space after 'if' even if the next character is a bracket, and some other minor PyvaScript bugs. This should be enough to get you started with RapydScript. If I omitted anything that you think is useful, feel free to contact me.
