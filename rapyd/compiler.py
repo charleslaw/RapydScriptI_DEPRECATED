@@ -65,7 +65,13 @@ def convert_list_comprehension(line):
 	# this is low priority since PyvaScript doesn't support most of these operators like ** for not anyway
 	
 	# Python requires fixed-width look-aheads/look-behinds, so let's 'fix' them
-	look_behind = re.findall(r'\[\s*.+\sfor\s+', line)[0]
+	look_behind = re.findall(r'\[\s*.+\sfor\s+', line)
+	# just because we're here, doesn't mean it was a list comprehension, it could have been
+	# a regular for loop
+	if look_behind:
+		look_behind = look_behind[0]
+	else:
+		return line
 	look_ahead = re.findall(r'\s*\]', line)[-1]
 	
 	# first, expand the filter out, this stage will do the following:
