@@ -6,12 +6,24 @@ function len(item) {
   return item.length;
 }
 range = function(a, b, step){
-    var A = [];
+	var A = [];
+	if (typeof b === "undefined") {
+		b = a;
+		a = 0;
+	}
 	A[0] = a;
 	step = step || 1;
-	while(a+step <= b){
+	while(a+step < b){
 		A[A.length] = a += step;
 	}
+	return A;
+};
+enumerate = function(item) {
+	var A = [];
+	for (var i = 0; i < item.length; i++) {
+		A[A.length] = [i, item[i]];
+	}
+	return A;
 };
 function reversed(arr) {
   var temp = new Array();
