@@ -16,7 +16,7 @@ def verify_code(f, source, global_object_list, auto_correct=False):
 	line_num = 0
 	pattern_defined = False
 	post_comment_block = False
-	bad_math = ['max(', 'min(', 'sqrt(', 'abs(', 'acos(', 'asin(', 'atan(', \
+	bad_math = ['max(', 'min(', 'sqrt(', 'abs(', 'fabs(', 'acos(', 'asin(', 'atan(', \
 	'atan2(', 'log(', 'random(', 'round(', 'pow(', 'cos(', 'sin(', 'tan(', 'ceil(', 'floor(']
 	for line in source:
 		line_num += 1

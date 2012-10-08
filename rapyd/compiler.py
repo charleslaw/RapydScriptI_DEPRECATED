@@ -47,7 +47,8 @@ def add_new_keyword(line):
 	# every line of code
 	if line.find('=') != -1 or line.find(':') != -1 or line.find('return '):
 		for obj_type in class_list:
-			line = re.sub(r'\b(%s\s*\()' % obj_type, r'new \1', line)
+			# adds a new keyword to the class creation: 'Class(...)', unless it's inside of a string
+			line = re.sub(r'^([^\'"]*(?:([\'"])[^\'"]*\2)*[^\'"]*)\b(%s\s*\()' % obj_type, r'\1new \3', line)
 	return line
 	
 def convert_list_comprehension(line):
@@ -141,6 +142,8 @@ def parse_multiline(line):
 
 def invokes_method_from_another_class(line):
 	tag = line.strip()
+	# remove quoted content, so that strings can't falsely trigger our method invoking logic
+	tag = re.sub(r'([\'"])(?:(?!\1)\\?.)*\1','', tag)
 	for item in class_list:
 		found_loc = tag.find('%s.' % item)
 		if found_loc != -1 and (found_loc == 0 or (tag[found_loc-1] not in string.letters and tag[found_loc-1] != '_')):
@@ -210,7 +213,8 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 		for line in input:
 			line = line.replace('\r','')
 			#parse out multi-line comments
-			if line.lstrip()[:3] in ('"""', "'''"):
+			lstrip_line = line.lstrip()
+			if lstrip_line[:3] in ('"""', "'''"):
 				state.incomment = not state.incomment
 				continue
 			if state.incomment:
