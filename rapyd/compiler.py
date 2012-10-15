@@ -150,6 +150,15 @@ def invokes_method_from_another_class(line):
 			return True
 	return False
 
+def wrap_chained_call(line):
+	# this logic allows some non-Pythonic syntax in favor of JavaScript-like function usage (chaining, and calling anonymous function without assigning it)
+	return 'JS("<<_rapydscript_bind_>>%s;")\n' % line.rstrip().replace('"', '\\"')
+
+def bind_chained_calls(source):
+	# this logic finalizes the above logic after PyvaScript has run
+	source = re.sub(r';\s*\n*\s*<<_rapydscript_bind_>>', '', source, re.MULTILINE) # handle semi-colon binding
+	return re.sub(r'}\s*\n*\s*<<_rapydscript_bind_>>', '}', source, re.MULTILINE) # handle block binding
+
 # I was lazy here, eventually we want to have this be an optional parameter passed to constructor from caller instead of a global
 internal_var_reserved_offset = 0
 class ObjectLiteralHandler:
@@ -253,6 +262,13 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 			if line.find(' for ') != -1:
 				line = convert_list_comprehension(line)
 
+			# handle JavaScript-like chaining
+			if global_buffer and global_buffer[-1] == '\n' and lstrip_line and lstrip_line[0] == '.':
+				write_buffer(line.split('.')[0] + wrap_chained_call(lstrip_line))
+				continue
+			#elif lstrip_line and lstrip_line[0] == '.':
+			#	print repr(global_buffer)
+
 			# process the code as if it's part of a class
 			# Again, we do more 'magic' here so that we can call parent (and non-parent, removing most of
 			# the need for multiple inheritance) methods.
@@ -281,7 +297,6 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 					method_name, method_args = parse_fun(line)
 					write_buffer('%s.prototype.%s = def%s' % (state.class_name, method_name, set_args(method_args)))
 				else:
-					#print '|%s|' % line
 					# regular line
 					if replaced:
 						line = line.lstrip()
@@ -294,7 +309,6 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 					if line.find('.__init__') != -1:
 						line = line.replace('.__init__(self', '.prototype.constructor.call(this')
 					elif invokes_method_from_another_class(line):
-						#elif state.parent is not None and line.find('%s.' % state.parent) != -1 and line.find('(self') != -1:
 						# method call of another class
 						indent = get_indent(line)
 						parts = line.split('.')
@@ -332,4 +346,5 @@ def finalize_source(source, handler):
 	output = handler.finalize(output) #insert previously removed functions back in
 	#PyvaScript seems to be buggy with self replacement sometimes, let's fix that
 	output = re.sub(r'\bself\b', 'this', output)
+	output = bind_chained_calls(output)
 	return output

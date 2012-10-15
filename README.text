@@ -154,6 +154,47 @@ This might not seem like much at first, but if you're familiar with JavaScript, 
 At first glance, anonymous functions might not seem that useful. We could have easily created nested functions and assigned them instead. By using anonymous functions, however, we can quickly identify that these functions will be bound to a different object. They belong to the div, not the main function that created them, nor the logic that invoked it. The best use case for these is creating an element inside another function/object without getting confused which object the function belongs to.
 
 
+Chaining Blocks
+---------------
+RapydScript wouldn't be useful if it required work-arounds for things that JavaScript handled easily. If you've worked with JavaScript or jQuery before, you've probably seen the following syntax:
+
+	function(){
+		// some logic here
+	}.call(this);
+
+This code calls the function immediatelly after declaring it instead of assigning it to a variable. Python doesn't have any way of doing this. The closest work-around is this:
+	
+	def tmp():
+		# some logic here
+	tmp.__call__()
+	
+While it's not horrible, it did litter our namespace with a temporary variable. If we have to do this repeatedly, this pattern does get annoying. This is where RapydScript decided to be a little unorthodox and implement the JavaScript-like solution:
+
+	def():
+		# some logic here
+	.call(this)
+
+RapydScript will bind any lines beginning with `.` to the outside of the block with the matching indentation. This logic isn't limited to the `.call()` method, you can use it with `.apply()` or any other method/property the function has assigned to it. This can be used for jQuery as well:
+
+	$(element)
+	.css('background-color', 'red')
+	.show()
+
+The only limitation is that the indentation has to match, if you prefer to indent your chained calls, you can still do so by using the `\` delimiter:
+
+	$(element)\
+		.css('background-color', 'red')\
+		.show()
+
+Some of you might welcome this feature, some of you might not. RapydScript always aims to make its unique features unobtrusive to regular Python, which means that you don't have to use them if you disagree with them. In the future, we also plan to add support for a do/while loop using similar logic:
+
+	do:
+		# some logic here
+	.while(condition)
+
+In my opinion, this is something even Python could benefit from.
+
+
 Optional Arguments
 ------------------
 Like Python, Javascript allows optional arguments to be passed into a function. Unlike Python, however, JavaScript doesn't assign default values to these, nor does it work well with optional arguments. If you forget to pass an argument, JavaScript will simply set the variable to undefined, and it's up to you to handle it. Should you forget about it, you'll probably pay the price later, when you use this variable in any sort of mathematical computation. By that time, you'll either end up with NaN (not a number), infinity, or some other weird value, causing an error a few hundred lines after the line responsible for causing it (good luck debugging it). Luckily, RapydScript allows sane optional arguments, similar to Python. The following function, for example, allows you to pass in a color for the background, or it will default to black (the format is r,g,b,a):
