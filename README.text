@@ -205,6 +205,33 @@ Like Python, Javascript allows optional arguments to be passed into a function. 
 One thing to note here, is that unlike Python, RapydScript will create a separate object for the optional argument each time the function is called. This makes it slightly less efficient, but prevents it from messing up existing objects.
 
 
+Variable number of arguments (*args)
+------------------------------------
+Like Python, Javascript allows the user to write a function that takes variable number of arguments and performs its logic on all of them. Some examples of this are Math.max(), console.log() function and array's concat() method. Unlike, Python, however, JavaScript does not make this intuitive. You have to use a special iterable element inside the function called `arguments`, which has some properties of an array but doesn't support all of the functionality. Likewise, if you want to unfold an array into a list of arguments for a function during a function call, you have to use .apply() method instead of invoking the function normally. RapydScript converts Pythonic way of *args decalartion to JavaScript. For example, the following function definition will take 2 named arguments, and dump the rest into an array (which DOES support all of array functionality):
+	
+	def doSomething(a, b, *args):
+		...
+
+Likewise, the following function call will unnpack the array into separate arguments for the function:
+
+	doSomething(*args)
+
+This is useful for cases where you have multiple elements inside a list, but don't know the size of this list. Here are two equivalent ways of calling the print function, for example:
+
+	# first way
+	a = 'I was here'
+	b = 'and there'
+	print(a, b)
+	
+	# second way
+	a = 'I was here'
+	b = 'and there'
+	args = [a, b]
+	print(*args)
+
+In this particular case, there is no advantage to using *, but if you have an array of arguments and need to treat them as separate arguments rather than a list, the * becomes very handy.
+
+
 Python vs JavaScript Methods
 ----------------------------
 RapydScript allows you use both, Python and JavaScript names for the methods. For example, we can 'push()' a value to array, as well as 'append()' it:
