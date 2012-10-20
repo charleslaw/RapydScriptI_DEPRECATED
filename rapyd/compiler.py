@@ -93,8 +93,13 @@ def convert_list_comprehension(line):
 		r'\3.map(JS("function(\2) {return \1;}"))', \
 		line)
 
+basic_indent = ''
 def get_indent(line):
-	return line[:len(line)-len(line.lstrip())]
+	global basic_indent
+	indent = line[:len(line)-len(line.lstrip())]
+	if not basic_indent:
+		basic_indent = indent
+	return indent
 
 def js_convert(value):
 	if value in js_map.keys():
@@ -103,7 +108,7 @@ def js_convert(value):
 		return value
 
 def get_args(line, isclass=True):
-	#get arguments and sets arg_dump as needed (for handling optional arguments)
+	# get arguments and sets arg_dump as needed (for handling optional arguments)
 	args = line.split('(')[1].split(')')[0].split(',')
 	for i in range(len(args)):
 		args[i] = args[i].strip()
@@ -112,8 +117,13 @@ def get_args(line, isclass=True):
 			value = js_convert(assignment[1].strip())
 			args[i] = assignment[0].strip()
 			arg_dump.append('JS(\'if (typeof %s === "undefined") {%s = %s};\')\n' % (args[i], args[i], value))
+	
+	# remove "fake" arguments
+	args = filter(None, args)
+	
 	if isclass:
 		args.pop(0)
+	
 	return args
 
 def parse_fun(line, isclass=True):
@@ -134,6 +144,16 @@ def get_arg_dump(line):
 def set_args(args):
 	#return a string converting argument list to string
 	return '(%s):\n' % ', '.join(args)
+
+def to_star_args(args):
+	# return arg array such that it can be used in 'apply', assuming last argument is *args
+	if args:
+		star = args.pop().lstrip('*')
+		
+		# we can't just use str(), since every argument is already a string
+		arg_arr = '[%s]' % ', '.join([i for i in args])
+		return '%s.concat(%s)' % (arg_arr, star)
+	return ''
 
 def parse_multiline(line):
 	if len(line) >= 2 and line[-2] == '\\':
@@ -266,8 +286,6 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 			if global_buffer and global_buffer[-1] == '\n' and lstrip_line and lstrip_line[0] == '.':
 				write_buffer(line.split('.')[0] + wrap_chained_call(lstrip_line))
 				continue
-			#elif lstrip_line and lstrip_line[0] == '.':
-			#	print repr(global_buffer)
 
 			# process the code as if it's part of a class
 			# Again, we do more 'magic' here so that we can call parent (and non-parent, removing most of
@@ -295,7 +313,22 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 						write_buffer(post_init_dump)
 						post_init_dump = ''
 					method_name, method_args = parse_fun(line)
+					
+					# handle *args for function declaration
+					post_declaration = []
+					if method_args and method_args[-1][0] == '*':
+						count = 0
+						for arg in method_args[:-1]:
+							post_declaration.append('%s = arguments[%s]' % (arg, count))
+							count += 1
+						post_declaration.append('%s = [].slice.call(arguments, %s)' % (method_args[-1][1:], count))
+						method_args = ''
+					
 					write_buffer('%s.prototype.%s = def%s' % (state.class_name, method_name, set_args(method_args)))
+					
+					# finalize *args logic, if any
+					for post_line in post_declaration:
+						write_buffer(get_indent(line) + post_line + '\n')
 				else:
 					# regular line
 					if replaced:
@@ -314,7 +347,21 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 						parts = line.split('.')
 						parent_method = parts[1].split('(')[0]
 						parent_args = get_args(line, False)
-						line = '%s%s.prototype.%s.call(%s' % (indent, parts[0].strip(), parent_method, set_args(parent_args)[1:-2]+'\n')
+						
+						if parent_args[-1][0] == '*':
+							# handle *args
+							line = '%s%s.prototype.%s.apply(%s, %s)' % (\
+								indent,
+								parts[0].strip(),
+								parent_method,
+								parent_args[0],
+								to_star_args(parent_args[1:])+'\n')
+						else:
+							line = '%s%s.prototype.%s.call(%s' % (\
+								indent, 
+								parts[0].strip(),
+								parent_method,
+								set_args(parent_args)[1:-2]+'\n')
 					line = line.replace('self.', 'this.')
 					line = add_new_keyword(line)
 					write_buffer(line)
@@ -325,9 +372,37 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 				line, replaced = parse_multiline(line)
 				line = add_new_keyword(line)
 				if line.strip()[:4] == 'def ':
+					# function definition
 					fun_name, fun_args = parse_fun(line, False)
+					
+					# handle *args for function declaration
+					post_declaration = []
+					if fun_args and fun_args[-1][0] == '*':
+						count = 0
+						for arg in fun_args[:-1]:
+							post_declaration.append('%s = arguments[%s]' % (arg, count))
+							count += 1
+						post_declaration.append('%s = [].slice.call(arguments, %s)' % (fun_args[-1][1:], count))
+						fun_args = ''
+						
 					write_buffer(get_indent(line)+'def %s%s' % (fun_name, set_args(fun_args)))
+					
+					# finalize *args logic, if any
+					for post_line in post_declaration:
+						write_buffer(get_indent(line) + basic_indent + post_line + '\n')
 				else:
+					# regular line
+					
+					# the first check is a quick naive check, making sure that there is a * char
+					# between parentheses
+					# the second check is a regex designed to filter out the remaining 1% of false
+					# positives, this check is much smarter, checking that there is a ', *word)'
+					# pattern preceded by even number of quotes (meaning it's unquoted)
+					if line.find('(') < line.find('*') < line.find(')') \
+					and re.match(r'^[^\'"]*(([\'"])[^\'"]*\2)*[^\'"]*,\s*\*.*[A-Za-z$_][A-Za-z0-9$_]*\s*\)', line):
+						args = to_star_args(get_args(line, False))
+						line = re.sub('\(.*\)' , '.apply(this, %s)' % args, line)
+					
 					write_buffer(get_arg_dump(line))
 					write_buffer(line)
 	if post_init_dump:
