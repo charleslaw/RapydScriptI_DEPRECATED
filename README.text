@@ -108,7 +108,7 @@ Now you can pass it to jQuery:
 
 	$('#element').css(styles)
 
-Another feature of RapydScript is ability to have functions as part of your object literal (something PyvaScript doesn't handle unless you assign the function to a temporary variable beforehand). JavaScript APIs often take callback/handler functions as part of their input parameters, and RapydScript let's you create such object literal without any quirks/hacks:
+Another feature of RapydScript is ability to have functions as part of your object literal (something PyvaScript doesn't handle unless you assign the function to a temporary variable beforehand). JavaScript APIs often take callback/handler functions as part of their input parameters, and RapydScript lets you create such object literal without any quirks/hacks:
 
 	params = {
 		'width':	50,
@@ -186,6 +186,17 @@ The only limitation is that the indentation has to match, if you prefer to inden
 		.css('background-color', 'red')\
 		.show()
 
+RapydScript also allows an alternative syntax for the same feature, for those prefering Python's traditional, hanging-indent look:
+
+	def(one, two) and call(this, 1, 2):
+		...
+
+Which is equivalent to the following:
+
+	def(one, two):
+		...
+	.call(this, 1, 2)
+
 Some of you might welcome this feature, some of you might not. RapydScript always aims to make its unique features unobtrusive to regular Python, which means that you don't have to use them if you disagree with them. In the future, we also plan to add support for a do/while loop using similar logic:
 
 	do:
@@ -207,12 +218,12 @@ One thing to note here, is that unlike Python, RapydScript will create a separat
 
 Variable number of arguments (*args)
 ------------------------------------
-Like Python, Javascript allows the user to write a function that takes variable number of arguments and performs its logic on all of them. Some examples of this are Math.max(), console.log() function and array's concat() method. Unlike, Python, however, JavaScript does not make this intuitive. You have to use a special iterable element inside the function called `arguments`, which has some properties of an array but doesn't support all of the functionality. Likewise, if you want to unfold an array into a list of arguments for a function during a function call, you have to use .apply() method instead of invoking the function normally. RapydScript converts Pythonic way of *args decalartion to JavaScript. For example, the following function definition will take 2 named arguments, and dump the rest into an array (which DOES support all of array functionality):
+Like Python, Javascript allows the user to write a function that takes variable number of arguments and performs its logic on all of them. Some examples of this are Math.max(), console.log() function and array's concat() method. Unlike, Python, however, JavaScript does not make this intuitive. You have to use a special iterable element inside the function called `arguments`, which has some properties of an array but doesn't support all of the functionality. Likewise, if you want to unfold an array into a list of arguments for a function during a function call, you have to use `.apply()` method instead of invoking the function normally. RapydScript converts Pythonic way of *args declaration to JavaScript. For example, the following function definition will take 2 named arguments, and dump the rest into an array (which DOES support all of array functionality):
 	
 	def doSomething(a, b, *args):
 		...
 
-Likewise, the following function call will unnpack the array into separate arguments for the function:
+Likewise, the following function call will unpack the array into separate arguments for the function:
 
 	doSomething(*args)
 

@@ -96,7 +96,7 @@ def convert_list_comprehension(line):
 basic_indent = ''
 def get_indent(line):
 	global basic_indent
-	indent = line[:len(line)-len(line.lstrip())]
+	indent = line[:len(line)-len(line.lstrip())].rstrip('\n') # in case of empty line, remove \n
 	if not basic_indent:
 		basic_indent = indent
 	return indent
@@ -232,6 +232,8 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 	state = State()
 	need_indent = False
 	post_init_dump = ''
+	post_function = []
+	function_indent = None
 	replaced = 0
 	with open(file_name, 'r') as input:
 		# check for easy to spot errors/quirks we require
@@ -239,7 +241,9 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 			sys.exit()
 	
 		input.seek(0)
+		line_num = -1
 		for line in input:
+			line_num += 1
 			line = line.replace('\r','')
 			#parse out multi-line comments
 			lstrip_line = line.lstrip()
@@ -248,6 +252,22 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 				continue
 			if state.incomment:
 				continue
+			if function_indent == get_indent(line):
+				for post_line in post_function:
+					write_buffer(post_line)
+				post_function = []
+				function_indent = None
+				#input.seek(line_num)
+			if line.find('def') != -1 and line.find('def') < line.find(' and ') < line.find(':') \
+			and re.match('^(\s*)(def\s*\(.*\))\s+and\s+([A-Za-z_$][A-Za-z0-9_$]*\(.*\)):$', line):
+				# handle declaration and call at the same time
+				groups = re.match('^(\s*)(def\s*\(.*\))\s+and\s+([A-Za-z_$][A-Za-z0-9_$]*\(.*\)):$', line).groups()
+				line = groups[0] + groups[1] + ':\n'
+				indentation = groups[0]
+				if state.inclass:
+					indentation = indentation[len(state.indent):] # dedent
+				post_function.append('%s%s\n' % (indentation, wrap_chained_call('.%s' % groups[2])))
+				function_indent = groups[0]
 			if need_indent:
 				need_indent=False
 				state.indent=line.split('d')[0] #everything before 'def'
@@ -284,6 +304,8 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 
 			# handle JavaScript-like chaining
 			if global_buffer and global_buffer[-1] == '\n' and lstrip_line and lstrip_line[0] == '.':
+				if state.inclass:
+					line = line[len(state.indent):] # dedent
 				write_buffer(line.split('.')[0] + wrap_chained_call(lstrip_line))
 				continue
 
