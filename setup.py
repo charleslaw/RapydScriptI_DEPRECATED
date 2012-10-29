@@ -18,4 +18,5 @@ setup(name='rapydscript',
       platforms=['any'],
       install_requires=[],
       scripts=['rapydscript'],
+      test_suite = "tests.ometatests"
 )
