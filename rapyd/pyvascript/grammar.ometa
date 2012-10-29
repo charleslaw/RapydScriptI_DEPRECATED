@@ -16,10 +16,11 @@ block     = optspace stmt:s optspace ~~(vspace | end) -> [s]
 line      = emptyline*:e indentation stmt:s optspace (vspace | end) -> s
 line_rest = (~vspace :x)*:x -> ''.join(x)
 
-stmt = pass | global | continue | break | return | raise | while | del
-     | if | def | for | try | augassign | assign
+stmt = pass | global | nonlocal | continue | break | return | raise | while
+     | del | if | def | for | try | augassign | assign
 
 global = "global" mandspace innercsv('name'):names -> ['global', names]
+nonlocal = "nonlocal" mandspace innercsv('name'):names -> ['nonlocal', names]
 
 continue = "continue"              -> ['continue']
 break    = "break"                 -> ['break']

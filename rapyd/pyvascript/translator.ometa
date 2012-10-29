@@ -8,6 +8,7 @@ stmt = (  ['while' while:e]
         | ['try' try:e]
         | ['func' funcstmt:e]) -> '%s\n' % e
      | ['global' [expr*:names]] !(self.register_globals(names)) -> ''
+     | ['nonlocal' [expr*:names]] !(self.register_nonlocals(names)) -> ''
      | ['pass'] -> ''
      | ['call' ~~(['name' 'JS'] anything*) call:e] -> e
      | expr:e            -> '%s;' % e

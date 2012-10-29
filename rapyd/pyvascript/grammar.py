@@ -87,6 +87,7 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p})):
         super(Translator, self).__init__(*args, **kwargs)
         self.indentation = 0
         self.local_vars = set()
+        self.nonlocal_vars = set()
         self.global_vars = set()
         self.var_stack = []
         self.temp_var_id = 0
@@ -111,24 +112,34 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p})):
         return '.' not in var and '[' not in var
 
     def register_var(self, var):
-        if self.is_pure_var_name(var) and var not in self.global_vars:
+        if self.is_pure_var_name(var) and \
+                var not in self.global_vars and \
+                var not in self.nonlocal_vars:
             self.local_vars.add(var)
 
     def register_vars(self, vars):
         for var in vars:
             self.register_var(var)
 
+    def register_nonlocals(self, vars):
+        for var in vars:
+            if self.is_pure_var_name(var) and var not in self.global_vars:
+                self.nonlocal_vars.add(var)
+                self.local_vars -= set([var])
+
     def register_globals(self, vars):
         self.global_vars.update([var for var in vars if self.is_pure_var_name(var)])
         self.local_vars -= self.global_vars
+        self.nonlocal_vars -= self.global_vars
 
     def push_vars(self):
-        self.var_stack.append((self.local_vars, self.global_vars))
+        self.var_stack.append((self.local_vars, self.nonlocal_vars, self.global_vars))
         self.local_vars = set()
+        self.nonlocal_vars = set()
         self.global_vars = set()
 
     def pop_vars(self):
-        self.local_vars, self.global_vars = self.var_stack.pop()
+        self.local_vars, self.nonlocal_vars, self.global_vars = self.var_stack.pop()
 
     def make_block(self, stmts, indentation):
         indentstr = '  ' * indentation

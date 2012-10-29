@@ -1,8 +1,12 @@
-from unittest import TestCase
+# Run this from the setup.py directory using either:
+# python setup.py test
+# python tests/ometatests.py
+
+import unittest
 from rapyd.pyvascript.grammar import compile
 from textwrap import dedent
 
-class PyvaTest(TestCase):
+class PyvaTest(unittest.TestCase):
     def check(self, source, result):
         source = '\n'.join(line for line in
                            dedent(compile(dedent(source))).strip().splitlines()
@@ -13,6 +17,40 @@ class PyvaTest(TestCase):
             self.assertEqual(source, result)
         except:
             raise AssertionError('\n%s\n!=\n%s' % (repr(source), repr(result)))
+
+
+class TestNonlocalKeyword(PyvaTest):
+    def test_return_normal_not_packed(self):
+        self.check("""
+        def():
+            x = 2
+            def ():
+                y = 5
+        """, """
+        function() {
+          var x;
+          x = 2;
+          function() {
+            var y;
+            y = 5;
+          }
+        }
+        """)
+        self.check("""
+        def():
+            x = 2
+            def ():
+                nonlocal y
+                y = 5
+        """, """
+        function() {
+          var x;
+          x = 2;
+          function() {
+            y = 5;
+          }
+        }
+        """)
 
 class Test(PyvaTest):
     def test_in(self):
@@ -362,3 +400,7 @@ class Test(PyvaTest):
           };
         };
         """)
+
+
+if __name__ == '__main__':
+    unittest.main()
