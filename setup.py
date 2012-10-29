@@ -9,8 +9,8 @@ except:
     pass
 
 setup(name='rapydscript',
-      packages=['rapyd'],
-      package_data={'rapyd': ['*.pyj']},
+      packages=['rapyd', 'rapyd.pyvascript'],
+      package_data={'rapyd': ['*.pyj'], 'rapyd.pyvascript': ['*.ometa']},
       author='Alexander Tsepkov',
       url='http://www.pyjeon.com/projects/rapydscript',
       description=DESCRIPTION,

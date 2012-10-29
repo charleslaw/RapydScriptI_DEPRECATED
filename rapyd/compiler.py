@@ -2,7 +2,7 @@
 
 import sys, re, os
 import string
-from pyvascript.grammar import Grammar, Translator
+from rapyd.pyvascript.grammar import Grammar, Translator
 from codecheck import verify_code
 
 class_list = []
