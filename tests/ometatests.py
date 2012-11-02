@@ -3,7 +3,7 @@
 # python tests/ometatests.py
 
 import unittest
-from rapyd.pyvascript.grammar import compile
+from rapyd.grammar import compile
 from textwrap import dedent
 
 class PyvaTest(unittest.TestCase):

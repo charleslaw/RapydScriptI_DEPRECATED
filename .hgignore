@@ -3,3 +3,5 @@ syntax: glob
 
 *.pyc
 rapydscript.egg-info/*
+build/*
+dist/*
