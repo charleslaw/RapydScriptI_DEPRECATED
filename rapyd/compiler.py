@@ -82,7 +82,7 @@ def convert_list_comprehension(line):
 	line = re.sub(\
 		r'(?<=%s)([A-Za-z_$][A-Za-z0-9_$]*)(\s+in\s+)(.*)\s+if\s+(.*)(?=%s)' \
 		% (re.escape(look_behind), re.escape(look_ahead)), \
-		r'\1\2\3.filter(JS("function(\1){return \4;}"))', \
+		r'\1\2\3.filter(JS("function(\1){return \4;}"), self)', \
 		line)
 		
 	# now expand the map out, this stage will do the following:
@@ -90,7 +90,7 @@ def convert_list_comprehension(line):
 	# after: 	a = array.filter(JS('function(i){return something(i);}')).map(JS('function(i){return stuff(i);}'))
 	return re.sub(\
 		r'\[\s*(.+)\sfor\s+([A-Za-z_$][A-Za-z0-9_$]*)\s+in\s+(.*)\s*\]', \
-		r'\3.map(JS("function(\2) {return \1;}"))', \
+		r'\3.map(JS("function(\2) {return \1;}"), self)', \
 		line)
 
 basic_indent = ''
