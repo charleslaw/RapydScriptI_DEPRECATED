@@ -12,9 +12,9 @@ def p(s):
 class Grammar(OMeta.makeGrammar(pyva_grammar, {'p': p})):
     keywords = set(('and', 'as', 'break', 'case', 'catch', 'class', 'continue',
         'def', 'default', 'del', 'delete', 'do', 'elif', 'else', 'except',
-        'false', 'finally', 'for', 'function', 'if', 'in', 'instanceof',
-        'new', 'not', 'null', 'or', 'pass', 'raise', 'return', 'switch',
-        'throw', 'true', 'try', 'typeof', 'var', 'void', 'while', 'with',
+        'finally', 'for', 'function', 'if', 'in', 'instanceof',
+        'new', 'not', 'or', 'pass', 'raise', 'return', 'switch',
+        'throw', 'try', 'var', 'void', 'while', 'with',
         'yield',))
     hex_digits = '0123456789abcdef'
 

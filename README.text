@@ -4,7 +4,7 @@ What is RapydScript?
 --------------------
 RapydScript is a pre-compiler for JavaScript, similar to CoffeeScript, but with cleaner, more readable syntax. The syntax is mostly Python, but allows JavaScript as well. This project was written as an alternative to Pyjamas for those wishing Python-like JavaScript without the extra overhead and complexity Pyjamas introduces.
 
-RapydScript allows to write your front-end in Python without the overhead that other similar frameworks introduce (the performance is the same as with pure JavaScript). To allow this, RapydScript leverages PyvaScript (a compiler designed to do nothing more than add Pythonic syntax sugar to JavaScript), adding some much needed improvements. To those familiar with PyvaScript, the best way to describe RapydScript is PyvaScript++ (it really is like comparing C++ to C in terms of what it brings to the table). To those familiar with CoffeeScript, RapydScript is like CoffeeScript with syntax (and some features) of Python. To those familiar with Pyjamas, RapydScript brings many of the same features and support for Python syntax without the same overhead. Don't worry if you've never used either of the above-mentioned compilers, if you've ever had to write your code in pure JavaScript you'll appreciate RapydScript. RapydScript combines the best features of Python as well as JavaScript, bringing you features most other Pythonic JavaScript replacements overlook. Here are a few features of RapydScript:
+RapydScript allows to write your front-end in Python without the overhead that other similar frameworks introduce (the performance is the same as with pure JavaScript). To allow this, RapydScript leverages a customized version of PyvaScript (a compiler designed to do nothing more than add Pythonic syntax sugar to JavaScript), adding some much needed improvements. To those familiar with PyvaScript, the best way to describe RapydScript is PyvaScript++ (it really is like comparing C++ to C in terms of what it brings to the table). To those familiar with CoffeeScript, RapydScript is like CoffeeScript with syntax (and some features) of Python. To those familiar with Pyjamas, RapydScript brings many of the same features and support for Python syntax without the same overhead. Don't worry if you've never used either of the above-mentioned compilers, if you've ever had to write your code in pure JavaScript you'll appreciate RapydScript. RapydScript combines the best features of Python as well as JavaScript, bringing you features most other Pythonic JavaScript replacements overlook. Here are a few features of RapydScript:
 
 - classes that work and feel similar to Python
 - optional function arguments that work similar to Python
@@ -20,15 +20,13 @@ Let's not waste any more time with the introductions, however. The best way to l
 
 Installation
 ------------
-Current implementation of RapydScript relies on PyvaScript (this might change in the future, I'm considering using CoffeeScript as base instead). You will first need to install PyMeta (Ometa Tokenizer used by PyvaScript), then PyvaScript, and finally RapydScript. If you're using Linux or BSD, just run the following 3 commands:
+You can use RapydScript without installing it, from the same directory you unpack it to, or 'install' it, which will copy the files to your system path, making it accessible from anywhere (that way you don't have to be in RapydScript's directory to perform compilation).
+
+Current implementation of RapydScript relies on PyvaScript (this might change in the future, I'm considering using CoffeeScript as base instead). You will first need to install PyMeta (Ometa Tokenizer used by PyvaScript), and then RapydScript (PyvaScript is already included as part of RapydScript). If you're using Linux or BSD, just run the following command to install PyMeta (you will need PyMeta whether you run RapydScript from directory or install it):
 
 	wget http://bitbucket.org/wkornewald/pymeta/get/tip.zip; unzip tip.zip; cd wkornewald-pymeta*; sudo python setup.py install; cd ..; rm tip.zip
 
-	wget http://bitbucket.org/wkornewald/pyvascript/get/tip.zip; unzip tip.zip; cd wkornewald-pyva*; sudo python setup.py install; cd ..; rm tip.zip
-
-**NOTE:** there is a bug with `typeof` in PyvaScript that you may want to fix before running the setup.py command. This fix is optional since RapydScript implements an alternative work-around in its stdlib. PyvaScript erroneously throws an error both when using `typeof object` and `typeof(object)` (because the check happens in two places, and they contradict). To apply the fix, open pyvascript/grammar.py and remove 'typeof' from the keywords in Grammar class. Now you can use `typeof(object)` notation. From there, you can continue the installation as normal.
-
-You can use RapydScript from the same directory you unpack it to, or 'install' it, which will copy the files to your system path, making it accessible from anywhere. The following command will perform the installation:
+Now run the following to install RapydScript:
 
 	wget http://bitbucket.org/pyjeon/rapydscript/get/tip.zip; unzip tip.zip; cd pyjeon-rapydscript*; sudo python setup.py install; cd ..; rm tip.zip
 
@@ -85,7 +83,7 @@ Again, notice that we have access to everything JavaScript has access to, includ
 		document.getElementById("result").innerHTML = factorial(n);
 	}
 
-Notice that RapydScript automatically declares variables in local scope when you try to assign to them (this is something we get as a freebie from PyvaScript). This not only makes your code shorter, but saves you from making common JavaScript mistake of overwriting a global.
+Notice that RapydScript automatically declares variables in local scope when you try to assign to them. This not only makes your code shorter, but saves you from making common JavaScript mistake of overwriting a global. For more information on controlling variable scope, see `Scope Control` section.
 
 
 Leveraging other APIs
@@ -108,7 +106,7 @@ Now you can pass it to jQuery:
 
 	$('#element').css(styles)
 
-Another feature of RapydScript is ability to have functions as part of your object literal (something PyvaScript doesn't handle unless you assign the function to a temporary variable beforehand). JavaScript APIs often take callback/handler functions as part of their input parameters, and RapydScript lets you create such object literal without any quirks/hacks:
+Another feature of RapydScript is ability to have functions as part of your object literal. JavaScript APIs often take callback/handler functions as part of their input parameters, and RapydScript lets you create such object literal without any quirks/hacks:
 
 	params = {
 		'width':	50,
@@ -127,7 +125,7 @@ One important thing to note, here, however, is that RapydScript currently uses t
 
 Anonymous Functions
 -------------------
-Like JavaScript (and PyvaScript), RapydScript allows the use of anonymous functions. In fact, you've already seen the use of anonymous functions in previous section when creating an object literal ('onmouseover' and 'onmouseout' assignments). This is similar to Python's lambda function, except that the syntax isn't awkward like lambda, and the function isn't limited to one line. The following two function declarations are equivalent:
+Like JavaScript, RapydScript allows the use of anonymous functions. In fact, you've already seen the use of anonymous functions in previous section when creating an object literal ('onmouseover' and 'onmouseout' assignments). This is similar to Python's lambda function, except that the syntax isn't awkward like lambda, and the function isn't limited to one line. The following two function declarations are equivalent:
 
 	def factorial(n):
 		if n == 0:
@@ -240,11 +238,50 @@ This is useful for cases where you have multiple elements inside a list, but don
 	args = [a, b]
 	print(*args)
 
-In this particular case, there is no advantage to using *, but if you have an array of arguments and need to treat them as separate arguments rather than a list, the * becomes very handy.
+In this particular case, there is no advantage to using *, but if `args` gets passed in from outside, and we don't know its size, * becomes very handy. Likewise, if you're writing a function that can take variable number of arguments, it's cleaner to use *args rather than forcing the developer using it to pass in an array.
 
 
-Python vs JavaScript Methods
-----------------------------
+Inferred Tuple Packing/Unpacking
+--------------------------------
+Like Python, RapydScript allows inferred tuple packing/unpacking and assignment. While inferred/implicit logic is usually bad, it can sometimes make the code more beautiful, and based on the order of statements in the Zen of Python, 'beautiful' takes priority over 'explicit'. For example, if you wanted to swap two variables, the following looks cleaner than explicitly declaring a temporary variable:
+
+	a, b = b, a
+
+Likewise, if a function returns multiple variables, it's cleaner to say:
+
+	a, b, c = fun()
+
+rather than:
+
+	tmp = fun()
+	a = tmp[0]
+	b = tmp[1]
+	c = tmp[2]
+
+Since JavaScript doesn't have tuples, RapydScript uses arrays for tuple packing/unpacking behind the scenes, but the functionality stays the same. Note that unpacking only occurs when you're assigning to multiple arguments:
+
+	a, b, c = fun()		# gets unpacked
+	tmp = fun()			# no unpacking, tmp will store an array of length 3
+
+Unpacking can also be done in `for` loops (which you can read about in later section):
+
+	for index, value in enumerate(items):
+		print(index+': '+value)
+
+Packing is the reverse, and is done to the variables being assigned, rather than the ones being assigned to. This can occur during assignment or function return:
+
+	def fun():
+		return 1, 2, 3
+
+To summarize packing and unpacking, it's basically just syntax sugar to remove obvious assignment logic that would just litter the code. For example, the swap operation shown in the beginning of this section is equivalent to the following code:
+
+	tmp = [b, a]
+	a = tmp[0]
+	b = tmp[1]
+
+
+Python vs JavaScript
+--------------------
 RapydScript allows you use both, Python and JavaScript names for the methods. For example, we can 'push()' a value to array, as well as 'append()' it:
 
 	arr = []
@@ -271,8 +308,6 @@ There is a subtle difference between the last 2 lines above, arr.pop(2) will ret
 	False			false
 	True			true
 					undefined
-
-**NOTE**: If you want to be able to use null/false/true keywords in your RapydScript, you want to modify pyvascript/grammar.py, removing them from the keyword list the same way you did with 'typeof' in Installation section. Make sure to rerun 'sudo python setup.py install' command again from pyvascript directory so the changes can take effect.
 
 The JavaScript operators, however, are not supported. You will have to use Python versions of those. If you're unfamiliar with them, here is the mapping RapydScript uses:
 
@@ -318,10 +353,10 @@ RapydScript's loops work like Python, not JavaScript. You can't, for example use
 		
 If you need to use the index in the loop as well, you can do so by using enumerate():
 
-	for pair in enumerate(animals):
-		print("index:"+pair[0], "animal:"+pair[1])
+	for index, animal in enumerate(animals):
+		print("index:"+index, "animal:"+animal)
 
-Admittedly this is slightly more awkward than Python, which allows you to avoid the need of a temporary 'pair' variable. Perhaps future version of RapydScript could do the same, by doing a bit of extra pre-parsing. Like in Python, if you just want the index, you can use range:
+Like in Python, if you just want the index, you can use range:
 
 	for index in range(len(animals)):			# or range(animals.length)
 		print("animal "+index+" is a "+animals[index])
@@ -437,6 +472,43 @@ Note that when binding the method to another object, `self` inside the bound fun
 		
 		def doSomething(self):
 			...
+
+
+Scope Control
+-------------
+Scope refers to the context of a variable. For example, a variable declared inside a function is not seen by the code outside the function. This variable's scope is local to the function. JavaScript controls scope via `var` keyword. Any variable that you start using without declaring it with a `var` first will try to reference inner-most variable with the same name, if one doesn't exist, it will create a global variable with that name. For example, the following JavaScript code will not only return `a` incremented by 1, but also overwrite the global variable `a` with `a+1`:
+
+	a = 1;
+	a_plus_1 = function() {
+		return ++a;
+	};
+
+Basically, JavaScript defaults to outer or global scope if you omit `var`. This behavior can introduce some very frustrating bugs in large applications. To avoid this problem, RapydScript's scope preference works in reverse (same as Python's). RapydScript will prefer local-most scope, always creating a local variable if you perform any sort of assignment on it in a function (this is called variable shadowing). Shadowing can create another annoyance, however, of function's variable changes getting discarded. For example, at first, it looks like the following code will set `a` to 2:
+
+	a = 1
+	increment = def():
+		a += 1
+	increment()
+
+It will not, however, because, like Python, RapydScript will not allow you to edit variables declared in outer scope. As soon as you use any sort of assignment with `a` in the inner scope, RapydScript will declare it as an internal variable, shadowing `a` in the outer scope. One way around this is to use the `global` keyword, declaring `a` as a global variable. This, however, must be done in every function that edits `a`. It also litters global scope, which it frowned upon because it can accidently overwrite an unrelated variable with the same name (declared by someone else or another library). RapydScript solves this by introducing `nonlocal` keyword (just like Python 3):
+
+	a = 1
+	increment = def():
+		nonlocal a
+		a += 1
+	increment()
+
+You can also combine multiple non-local arguments by separating them with a comma: `nonlocal a, b, c`. You can also chain `nonlocal` declarations to escape multiple scopes:
+
+	def fun1():
+		a = 5
+		b = fun2():
+			nonlocal a
+			c = fun3():
+				nonlocal a
+				a += 1
+
+Shadowing is preferred in most cases, since it can't accidently damage outside logic, and if you want to edit an external variable, you're usually better off assigning function's return value to it. There are cases, however, when using `nonlocal` makes the code cleaner. There is also `global`, but it is rarely a good solution, and use of `nonlocal` is preferred to it.
 
 
 Importing
