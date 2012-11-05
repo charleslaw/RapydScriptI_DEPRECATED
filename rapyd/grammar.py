@@ -199,10 +199,19 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p})):
         datavar = self.make_temp_var('data')
         lenvar = self.make_temp_var('len')
         index = self.make_temp_var('index')
+        unpack_str = ''
+        if self.is_list_var_name(var):
+            RAPYD_PACKED_TUPLE = '_$rapyd$_tuple'
+            var_list = self.__get_var_list(var)
+            unpack_str = ''
+            for i in xrange(len(var_list)):
+                unpack_str += '%s%s = %s[%d];\n' % \
+                (indentstr + '  ', var_list[i], RAPYD_PACKED_TUPLE, i)
+            var = RAPYD_PACKED_TUPLE
         init = 'var %s = _$pyva_iter(%s);\n%svar %s = %s.length;\n%s' % (
             datavar, data, indentstr, lenvar, datavar, indentstr)
-        body = body.replace('{', '{\n%s%s = %s[%s];\n'
-                            % (indentstr + '  ', var, datavar, index), 1)
+        body = body.replace('{', '{\n%s%s = %s[%s];\n%s'
+                            % (indentstr + '  ', var, datavar, index, unpack_str), 1)
         return '%sfor (var %s = 0; %s < %s; %s++) %s' % (init, index, index, lenvar,
                                                          index, body)
 

@@ -130,6 +130,32 @@ class TestTuplePackingUnpacking(PyvaTest):
             packed_tuple = [vara, 'testme', 2, callable(2, 3)];
             """)
 
+    def test_for_loop_unpacking(self):
+        self.check("""
+            for vara,varb in input_list:
+                pass
+            """, """
+            var _$tmp1_data = _$pyva_iter(input_list);
+            var _$tmp2_len = _$tmp1_data.length;
+            for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
+              _$rapyd$_tuple = _$tmp1_data[_$tmp3_index];
+              vara = _$rapyd$_tuple[0];
+              varb = _$rapyd$_tuple[1];
+            }
+            """)
+
+    def test_for_loop_packing(self):
+        self.check("""
+            for input in 'inputa', obj.call2(), vara, 9.2:
+                pass
+            """, """
+            var _$tmp1_data = _$pyva_iter(['inputa', obj.call2(), vara, 9.2]);
+            var _$tmp2_len = _$tmp1_data.length;
+            for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
+              input = _$tmp1_data[_$tmp3_index];
+            }
+            """)
+
 
 class TestNonlocalKeyword(PyvaTest):
     def test_return_normal_not_packed(self):
