@@ -27,7 +27,7 @@ break    = "break"                 -> ['break']
 del      = "del" mandspace get:x   -> ['del', x]
 
 pass   = "pass"                    -> ['pass']
-return = "return" mandspace expr:e -> ['return', e]
+return = "return" mandspace possibleunpackedtuple('expr'):expr optspace -> ['return', expr]
        | "return" optspace ~~(vspace | end) -> ['return']
 raise  = "raise" mandspace expr:e  -> ['raise', e]
 
@@ -35,7 +35,7 @@ augassign = get:l optspace
             ("+=" | "-=" | "*=" | "/=" | "//=" | "%=" | "^=" | "&=" | "|=" | "~=" | "<<=" | ">>="):op
             optspace expr:r
             -> ['augassign', op, l, r]
-assign = get:l optspace '=' optspace assign:r -> ['assign', l, r]
+assign = possibleunpackedtuple('get'):l optspace '=' optspace possibleunpackedtuple('assign'):r optspace -> ['assign', l, r]
        | expr
 expr = ifexpr
      | innerifexpr
@@ -115,6 +115,8 @@ number       = "0x" hexlit:n                                                   -
                          )
 
 innercsv :rule = optspace (apply(rule):e optspace ',' optspace -> e)*:es (?(rule != 'tupleexpr' or len(es)) optspace apply(rule):l !(es.append(l)))? optspace -> es
+possibleunpackedtuple :rule = (optspace apply(rule):e optspace ',' -> e)+:es (?(len(es)>0) optspace apply(rule):l !(es.append(l)))? -> ['tuple'] + es
+       | apply(rule):e -> e
 csv :rule = !(self.enter_paren()) innercsv(rule):es !(self.leave_paren()) -> es
 list  = '[' csv('expr'):v       ']' -> ['list'] + v
 tuple = '(' csv('tupleexpr'):v  ')' -> ['tuple'] + v

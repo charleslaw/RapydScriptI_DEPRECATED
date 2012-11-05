@@ -19,6 +19,118 @@ class PyvaTest(unittest.TestCase):
             raise AssertionError('\n%s\n!=\n%s' % (repr(source), repr(result)))
 
 
+class TestTuplePackingUnpacking(PyvaTest):
+    def test_return_normal_not_packed(self):
+        self.check("""
+            def():
+                return [1, 2, 3]
+            """, """
+            function() {
+              return [1, 2, 3];
+            }
+            """)
+        
+    def test_return_pack_normal(self):
+        self.check("""
+            def():
+                return 'a', 2
+            """, """
+            function() {
+              return ['a', 2];
+            }
+            """)
+        self.check("""
+            def():
+                return a, b2
+            """, """
+            function() {
+              return [a, b2];
+            }
+            """)
+        self.check("""
+            def():
+                return a
+            """, """
+            function() {
+              return a;
+            }
+            """)
+        self.check("""
+            def():
+                return a,
+            """, """
+            function() {
+              return [a];
+            }
+            """)
+
+    def test_return_pack_tuples(self):
+        self.check("""
+            def():
+                return 1, (2, 3), 4,(5,6)
+            """, """
+            function() {
+              return [1, [2, 3], 4, [5, 6]];
+            }
+            """)
+
+    def test_return_pack_lists(self):
+        self.check("""
+            def():
+                return 1, [2, 3], 4,[5,6]
+            """, """
+            function() {
+              return [1, [2, 3], 4, [5, 6]];
+            }
+            """)
+
+    def test_return_pack_strings_with_commas(self):
+        self.check("""
+            def():
+                return 'a', 'hello, test',
+            """, """
+            function() {
+              return ['a', 'hello, test'];
+            }
+            """)
+
+    def test_return_pack_function_call(self):
+        self.check("""
+            def():
+                return 'a',2,callme('b', 2,c),'last, one'
+            """, """
+            function() {
+              return ['a', 2, callme('b', 2, c), 'last, one'];
+            }
+            """)
+
+    def test_assigment_left_two(self):
+        self.check("""
+            vara, varb = callme('var', c)
+            """, """
+            _$rapyd_tuple$_ = callme('var', c);
+            vara = _$rapyd_tuple$_[0];
+            varb = _$rapyd_tuple$_[1];
+            """)
+
+    def test_assigment_left_three(self):
+        self.check("""
+            vara, varb,varc = callme('var', c)
+            """, """
+            _$rapyd_tuple$_ = callme('var', c);
+            vara = _$rapyd_tuple$_[0];
+            varb = _$rapyd_tuple$_[1];
+            varc = _$rapyd_tuple$_[2];
+            """)
+
+    def test_assigment_right_three(self):
+        self.check("""
+            packed_tuple = vara,'testme', 2,callable(2,3)
+            """, """
+            packed_tuple = [vara, 'testme', 2, callable(2, 3)];
+            """)
+
+
 class TestNonlocalKeyword(PyvaTest):
     def test_return_normal_not_packed(self):
         self.check("""
