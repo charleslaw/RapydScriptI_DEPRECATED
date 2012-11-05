@@ -126,11 +126,13 @@ dictexpr  = string:k optspace ':' optspace expr:v -> ['dictkv', k, v]
 
 ifexpr = innerifexpr:t mandspace "if" mandspace innerifexpr:cond mandspace "else" mandspace expr:f -> ['ifexpr', cond, t, f]
 
-if    = "if" mandspace expr:cond optspace ':' block:body elif*:ei else?:e -> ['if', [cond, body]] + [ei] + ([e] if e else [])
-elif  = emptyline* indentation "elif" mandspace expr:cond optspace ':' block:body -> [cond, body]
+ifcond = mandspace expr:cond -> cond
+       | optspace '(' expr:cond ')' -> cond
+if    = "if" ifcond:cond optspace ':' block:body elif*:ei else?:e -> ['if', [cond, body]] + [ei] + ([e] if e else [])
+elif  = emptyline* indentation "elif" ifcond:cond optspace ':' block:body -> [cond, body]
 else  = emptyline* indentation "else" optspace ':' block:body -> body
 
-while = "while" mandspace expr:cond optspace ':' block:body -> ['while', cond, body]
+while = "while" ifcond:cond optspace ':' block:body -> ['while', cond, body]
 
 for   = "for" mandspace name:var mandspace "in" mandspace expr:data optspace ':' block:body -> ['for', var, data, body]
 

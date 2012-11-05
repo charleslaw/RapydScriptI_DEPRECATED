@@ -52,6 +52,7 @@ class TestNonlocalKeyword(PyvaTest):
         }
         """)
 
+
 class Test(PyvaTest):
     def test_in(self):
         self.check('x in y', '(x in y);')
@@ -159,6 +160,15 @@ class Test(PyvaTest):
           f();
         }
         """)
+        
+        self.check("""
+        if(a < 5):
+            f()
+        """, """
+        if ((a < 5)) {
+          f();
+        }
+        """)
 
     def test_while(self):
         self.check("""
@@ -175,6 +185,15 @@ class Test(PyvaTest):
           }
 
           continue;
+        }
+        """)
+
+        self.check("""
+        while(a == 3):
+            f()
+        """, """
+        while ((a == 3)) {
+          f();
         }
         """)
 
