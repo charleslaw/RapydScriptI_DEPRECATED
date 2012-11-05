@@ -1,6 +1,37 @@
 // basic
 _$pyva_int = parseInt;
 _$pyva_float = parseFloat;
+var JSON = JSON || {};
+if (!JSON.stringify) {
+	JSON.stringify = function(obj) {
+	var t = typeof (obj);
+	if (t != "object" || obj === null) {
+		// simple data type
+		if (t == "string")
+			obj = '"' + obj + '"';
+		if (t == "function")
+			return; // return undefined
+		else
+			return String(obj);
+	} else {
+		// recurse array or object
+		var n, v, json = []
+		var arr = (obj && obj.constructor == Array);
+		for (n in obj) {
+			v = obj[n];
+			t = typeof (v);
+			if (t != "function" && t != "undefined") {
+				if (t == "string")
+					v = '"' + v + '"';
+				else if ((t == "object" || t == "function") && v !== null)
+					v = JSON.stringify(v);
+				json.push((arr ? "" : '"' + n + '":') + String(v));
+			}
+		}
+		return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}");
+	}
+};
+}
 str = JSON.stringify;
 function len(item) {
   return item.length;
@@ -144,40 +175,42 @@ if (!Array.prototype.map) {
       T = thisArg;
     }
     A = new Array(len);
-    k = 0;
-    while(k < len) {
+    for (var k = 0; k < len; k++) {
       var kValue, mappedValue;
       if (k in O) {
         kValue = O[k];
-        mappedValue = callback.call(T, kValue, k, O);
+        mappedValue = callback.call(T, kValue);
         A[k] = mappedValue;
       }
-      k++;
     }
     return A;
   };
 }
 function map(oper, arr) { return arr.map(oper); }
-if (!Array.prototype.filter){
-  Array.prototype.filter = function(fun)
-  {
+if (!Array.prototype.filter) {
+  Array.prototype.filter = function(filterfun, thisArg) {
     "use strict";
-     if (this == null)
-      throw new TypeError();
-     var t = Object(this);
-    var len = t.length >>> 0;
-    if (typeof fun != "function")
-      throw new TypeError();
-     var res = [];
+    if (this == null) {
+      throw new TypeError(" this is null or not defined");
+    }
+    var O = Object(this);
+    var len = O.length >>> 0;
+    if ({}.toString.call(filterfun) != "[object Function]") {
+      throw new TypeError(filterfun + " is not a function");
+    }
+    if (thisArg) {
+      T = thisArg;
+    }
+    var A = [];
     var thisp = arguments[1];
-    for (var i = 0; i < len; i++) {
-      if (i in t) {
-        var val = t[i];
-        if (fun.call(thisp, val, i, t))
-          res.push(val);
+    for (var k = 0; k < len; k++) {
+      if (k in O) {
+        var val = O[k]; // in case fun mutates this
+        if (filterfun.call(T, val))
+          A.push(val);
       }
     }
-    return res;
+    return A;
   };
 }
 function filter(oper, arr) { return arr.filter(oper); }

@@ -19,6 +19,160 @@ class PyvaTest(unittest.TestCase):
             raise AssertionError('\n%s\n!=\n%s' % (repr(source), repr(result)))
 
 
+class TestTuplePackingUnpacking(PyvaTest):
+    def test_return_normal_not_packed(self):
+        self.check("""
+            def():
+                return [1, 2, 3]
+            """, """
+            function() {
+              return [1, 2, 3];
+            }
+            """)
+        
+    def test_return_pack_normal(self):
+        self.check("""
+            def():
+                return 'a', 2
+            """, """
+            function() {
+              return ['a', 2];
+            }
+            """)
+        self.check("""
+            def():
+                return a, b2
+            """, """
+            function() {
+              return [a, b2];
+            }
+            """)
+        self.check("""
+            def():
+                return a
+            """, """
+            function() {
+              return a;
+            }
+            """)
+        self.check("""
+            def():
+                return a,
+            """, """
+            function() {
+              return [a];
+            }
+            """)
+
+    def test_return_pack_tuples(self):
+        self.check("""
+            def():
+                return 1, (2, 3), 4,(5,6)
+            """, """
+            function() {
+              return [1, [2, 3], 4, [5, 6]];
+            }
+            """)
+
+    def test_return_pack_lists(self):
+        self.check("""
+            def():
+                return 1, [2, 3], 4,[5,6]
+            """, """
+            function() {
+              return [1, [2, 3], 4, [5, 6]];
+            }
+            """)
+
+    def test_return_pack_strings_with_commas(self):
+        self.check("""
+            def():
+                return 'a', 'hello, test',
+            """, """
+            function() {
+              return ['a', 'hello, test'];
+            }
+            """)
+
+    def test_return_pack_function_call(self):
+        self.check("""
+            def():
+                return 'a',2,callme('b', 2,c),'last, one'
+            """, """
+            function() {
+              return ['a', 2, callme('b', 2, c), 'last, one'];
+            }
+            """)
+
+    def test_assigment_left_two(self):
+        self.check("""
+            vara, varb = callme('var', c)
+            """, """
+            _$rapyd_tuple$_ = callme('var', c);
+            vara = _$rapyd_tuple$_[0];
+            varb = _$rapyd_tuple$_[1];
+            """)
+
+    def test_assigment_item_in_list(self):
+        """
+        Make sure this still works
+        """
+        self.check("""
+        def f(self):
+            myself = [0, 1, 2]
+            myself[1] = 4
+        """, """
+        f = function() {
+          var myself;
+          myself = [0, 1, 2];
+          myself[1] = 4;
+        };
+        """)
+
+    def test_assigment_left_three(self):
+        self.check("""
+            vara, varb,varc = callme('var', c)
+            """, """
+            _$rapyd_tuple$_ = callme('var', c);
+            vara = _$rapyd_tuple$_[0];
+            varb = _$rapyd_tuple$_[1];
+            varc = _$rapyd_tuple$_[2];
+            """)
+
+    def test_assigment_right_three(self):
+        self.check("""
+            packed_tuple = vara,'testme', 2,callable(2,3)
+            """, """
+            packed_tuple = [vara, 'testme', 2, callable(2, 3)];
+            """)
+
+    def test_for_loop_unpacking(self):
+        self.check("""
+            for vara,varb in input_list:
+                pass
+            """, """
+            var _$tmp1_data = _$pyva_iter(input_list);
+            var _$tmp2_len = _$tmp1_data.length;
+            for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
+              _$rapyd$_tuple = _$tmp1_data[_$tmp3_index];
+              vara = _$rapyd$_tuple[0];
+              varb = _$rapyd$_tuple[1];
+            }
+            """)
+
+    def test_for_loop_packing(self):
+        self.check("""
+            for input in 'inputa', obj.call2(), vara, 9.2:
+                pass
+            """, """
+            var _$tmp1_data = _$pyva_iter(['inputa', obj.call2(), vara, 9.2]);
+            var _$tmp2_len = _$tmp1_data.length;
+            for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
+              input = _$tmp1_data[_$tmp3_index];
+            }
+            """)
+
+
 class TestNonlocalKeyword(PyvaTest):
     def test_return_normal_not_packed(self):
         self.check("""
@@ -51,6 +205,7 @@ class TestNonlocalKeyword(PyvaTest):
           }
         }
         """)
+
 
 class Test(PyvaTest):
     def test_in(self):
@@ -159,6 +314,15 @@ class Test(PyvaTest):
           f();
         }
         """)
+        
+        self.check("""
+        if(a < 5):
+            f()
+        """, """
+        if ((a < 5)) {
+          f();
+        }
+        """)
 
     def test_while(self):
         self.check("""
@@ -175,6 +339,15 @@ class Test(PyvaTest):
           }
 
           continue;
+        }
+        """)
+
+        self.check("""
+        while(a == 3):
+            f()
+        """, """
+        while ((a == 3)) {
+          f();
         }
         """)
 

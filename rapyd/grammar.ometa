@@ -27,7 +27,7 @@ break    = "break"                 -> ['break']
 del      = "del" mandspace get:x   -> ['del', x]
 
 pass   = "pass"                    -> ['pass']
-return = "return" mandspace expr:e -> ['return', e]
+return = "return" mandspace possibleunpackedtuple('expr'):expr optspace -> ['return', expr]
        | "return" optspace ~~(vspace | end) -> ['return']
 raise  = "raise" mandspace expr:e  -> ['raise', e]
 
@@ -35,7 +35,7 @@ augassign = get:l optspace
             ("+=" | "-=" | "*=" | "/=" | "//=" | "%=" | "^=" | "&=" | "|=" | "~=" | "<<=" | ">>="):op
             optspace expr:r
             -> ['augassign', op, l, r]
-assign = get:l optspace '=' optspace assign:r -> ['assign', l, r]
+assign = possibleunpackedtuple('get'):l optspace '=' optspace possibleunpackedtuple('assign'):r optspace -> ['assign', l, r]
        | expr
 expr = ifexpr
      | innerifexpr
@@ -115,6 +115,8 @@ number       = "0x" hexlit:n                                                   -
                          )
 
 innercsv :rule = optspace (apply(rule):e optspace ',' optspace -> e)*:es (?(rule != 'tupleexpr' or len(es)) optspace apply(rule):l !(es.append(l)))? optspace -> es
+possibleunpackedtuple :rule = (optspace apply(rule):e optspace ',' -> e)+:es (?(len(es)>0) optspace apply(rule):l !(es.append(l)))? -> ['tuple'] + es
+       | apply(rule):e -> e
 csv :rule = !(self.enter_paren()) innercsv(rule):es !(self.leave_paren()) -> es
 list  = '[' csv('expr'):v       ']' -> ['list'] + v
 tuple = '(' csv('tupleexpr'):v  ')' -> ['tuple'] + v
@@ -126,13 +128,15 @@ dictexpr  = string:k optspace ':' optspace expr:v -> ['dictkv', k, v]
 
 ifexpr = innerifexpr:t mandspace "if" mandspace innerifexpr:cond mandspace "else" mandspace expr:f -> ['ifexpr', cond, t, f]
 
-if    = "if" mandspace expr:cond optspace ':' block:body elif*:ei else?:e -> ['if', [cond, body]] + [ei] + ([e] if e else [])
-elif  = emptyline* indentation "elif" mandspace expr:cond optspace ':' block:body -> [cond, body]
+ifcond = mandspace expr:cond -> cond
+       | optspace '(' expr:cond ')' -> cond
+if    = "if" ifcond:cond optspace ':' block:body elif*:ei else?:e -> ['if', [cond, body]] + [ei] + ([e] if e else [])
+elif  = emptyline* indentation "elif" ifcond:cond optspace ':' block:body -> [cond, body]
 else  = emptyline* indentation "else" optspace ':' block:body -> body
 
-while = "while" mandspace expr:cond optspace ':' block:body -> ['while', cond, body]
+while = "while" ifcond:cond optspace ':' block:body -> ['while', cond, body]
 
-for   = "for" mandspace name:var mandspace "in" mandspace expr:data optspace ':' block:body -> ['for', var, data, body]
+for   = "for" mandspace possibleunpackedtuple('get'):var mandspace "in" mandspace possibleunpackedtuple('expr'):data optspace ':' block:body -> ['for', var, data, body]
 
 def   = "def" !(self.get_indent()):i mandspace !(self.indent_stack.append(i)) name:name optspace '(' csv('name'):args ')' optspace ':' block:body !(self.indent_stack.pop()) -> ['func', name, args, body]
 deflambda = "def" !(self.get_indent()):i ~~(hspace | '(') !(self.enter_deflambda(i)) optspace '(' csv('name'):args ')' optspace ':' block:body !(self.leave_deflambda()) -> ['func', None, args, body]
