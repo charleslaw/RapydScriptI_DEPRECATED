@@ -70,11 +70,6 @@ def verify_code(f, source, global_object_list, auto_correct=False):
 		else:
 			post_comment_block = False
 		
-		# check for compatible if statements
-		if re.match('^if\(', line.lstrip()):
-			warn(f, line_num, 'Compiler gets confused unless there is a space between if statement and the paranthesis.')
-			success = False
-	
 		# check for implicit 0 before period
 		if re.search('[^0-9]\.[0-9]', line):
 			warn(f, line_num, 'Implicit 0 for the interger portion of a decimal, compiler doesn\'t support those.')
