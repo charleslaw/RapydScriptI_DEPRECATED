@@ -506,6 +506,7 @@ Note that `b` is not affected by shadowing. It's the assignment operator that tr
 		a = 5
 		b = fun2():
 			nonlocal a
+			a *= 2
 			c = fun3():
 				nonlocal a
 				a += 1
