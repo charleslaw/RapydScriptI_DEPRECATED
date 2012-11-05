@@ -113,6 +113,22 @@ class TestTuplePackingUnpacking(PyvaTest):
             varb = _$rapyd_tuple$_[1];
             """)
 
+    def test_assigment_item_in_list(self):
+        """
+        Make sure this still works
+        """
+        self.check("""
+        def f(self):
+            myself = [0, 1, 2]
+            myself[1] = 4
+        """, """
+        f = function() {
+          var myself;
+          myself = [0, 1, 2];
+          myself[1] = 4;
+        };
+        """)
+
     def test_assigment_left_three(self):
         self.check("""
             vara, varb,varc = callme('var', c)
