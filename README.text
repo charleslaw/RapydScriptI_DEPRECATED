@@ -216,7 +216,7 @@ One thing to note here, is that unlike Python, RapydScript will create a separat
 
 Variable number of arguments (*args)
 ------------------------------------
-Like Python, Javascript allows the user to write a function that takes variable number of arguments and performs its logic on all of them. Some examples of this are Math.max(), console.log() function and array's concat() method. Unlike, Python, however, JavaScript does not make this intuitive. You have to use a special iterable element inside the function called `arguments`, which has some properties of an array but doesn't support all of the functionality. Likewise, if you want to unfold an array into a list of arguments for a function during a function call, you have to use `.apply()` method instead of invoking the function normally. RapydScript converts Pythonic way of *args declaration to JavaScript. For example, the following function definition will take 2 named arguments, and dump the rest into an array (which DOES support all of array functionality):
+Like Python, Javascript allows the user to write a function that takes variable number of arguments and performs its logic on all of them. Some examples of this are Math.max(), console.log() function and array's concat() method. Unlike, Python, however, JavaScript does not make this intuitive. You have to use a special iterable element inside the function called `arguments`, which has some properties of an array but doesn't support all of the functionality. Likewise, if you want to unfold an array into a list of arguments for a function during a function call, you have to use `.apply()` method instead of invoking the function normally. RapydScript converts Pythonic way of `*args` declaration to JavaScript. For example, the following function definition will take 2 named arguments, and dump the rest into an array (which DOES support all of array functionality):
 	
 	def doSomething(a, b, *args):
 		...
@@ -238,12 +238,12 @@ This is useful for cases where you have multiple elements inside a list, but don
 	args = [a, b]
 	print(*args)
 
-In this particular case, there is no advantage to using *, but if `args` gets passed in from outside, and we don't know its size, * becomes very handy. Likewise, if you're writing a function that can take variable number of arguments, it's cleaner to use *args rather than forcing the developer using it to pass in an array.
+In this particular case, there is no advantage to using `*`, but if `args` gets passed in from outside, and we don't know its size, `*` becomes very handy. Likewise, if you're writing a function that can take variable number of arguments, it's cleaner to use `*args` rather than forcing the developer using it to pass in an array.
 
 
 Inferred Tuple Packing/Unpacking
 --------------------------------
-Like Python, RapydScript allows inferred tuple packing/unpacking and assignment. While inferred/implicit logic is usually bad, it can sometimes make the code more beautiful, and based on the order of statements in the Zen of Python, 'beautiful' takes priority over 'explicit'. For example, if you wanted to swap two variables, the following looks cleaner than explicitly declaring a temporary variable:
+Like Python, RapydScript allows inferred tuple packing/unpacking and assignment. While inferred/implicit logic is usually bad, it can sometimes make the code more cleaner, and based on the order of statements in the Zen of Python, 'beautiful' takes priority over 'explicit'. For example, if you wanted to swap two variables, the following looks cleaner than explicitly declaring a temporary variable:
 
 	a, b = b, a
 
@@ -268,7 +268,7 @@ Unpacking can also be done in `for` loops (which you can read about in later sec
 	for index, value in enumerate(items):
 		print(index+': '+value)
 
-Packing is the reverse, and is done to the variables being assigned, rather than the ones being assigned to. This can occur during assignment or function return:
+Tuple packing is the reverse operation, and is done to the variables being assigned, rather than the ones being assigned to. This can occur during assignment or function return:
 
 	def fun():
 		return 1, 2, 3
@@ -321,14 +321,14 @@ The JavaScript operators, however, are not supported. You will have to use Pytho
 	+=1				++
 	-=1				--
 	
-Admittedly, 'is' is not exactly the same thing in Python as '===' in JavaScript, but JavaScript is quirky when it comes to comparing objects anyway.
+Admittedly, `is` is not exactly the same thing in Python as `===` in JavaScript, but JavaScript is quirky when it comes to comparing objects anyway.
 
 In rare cases RapydScript might not allow you to do what you need to, and you need access to pure JavaScript. When that's the case, you can wrap your JavaScript in a string, passing it to JS() method. Code inside JS() method is not a sandbox, you can still interact with it from normal RapydScript:
 
 	JS('a = {foo: "bar", baz: 1};')
 	print(a.foo)	# prints "bar"
 
-One last thing to note is the difference between 'print()' and 'console.log', print() is part of RapydScript's stdlib, and is designed to work similar to Python's print statement, console.log() is JavaScript's version of debug output, which is more powerful but also more tedious when you just want a quick output. Here are some examples:
+One last thing to note is the difference between `print()` and `console.log`, `print()` is part of RapydScript's stdlib, and is designed to work similar to Python's print statement, `console.log()` is JavaScript's version of debug output, which is more powerful but also more tedious when you just want a quick output. Here are some examples:
 
 	arr = [1,2,3,4]
 	print(arr)			# [1,2,3,4]
@@ -476,7 +476,7 @@ Note that when binding the method to another object, `self` inside the bound fun
 
 Scope Control
 -------------
-Scope refers to the context of a variable. For example, a variable declared inside a function is not seen by the code outside the function. This variable's scope is local to the function. JavaScript controls scope via `var` keyword. Any variable that you start using without declaring it with a `var` first will try to reference inner-most variable with the same name, if one doesn't exist, it will create a global variable with that name. For example, the following JavaScript code will not only return `a` incremented by 1, but also overwrite the global variable `a` with `a+1`:
+Scope refers to the context of a variable. For example, a variable declared inside a function is not seen by the code outside the function. This variable's scope is local to the function. JavaScript controls scope via `var` keyword. Any variable that you start using without declaring with a `var` first will try to reference inner-most variable with the same name, if one doesn't exist, it will create a global variable with that name. For example, the following JavaScript code will not only return `a` incremented by 1, but also overwrite the global variable `a` with `a+1`:
 
 	a = 1;
 	a_plus_1 = function() {
@@ -486,19 +486,21 @@ Scope refers to the context of a variable. For example, a variable declared insi
 Basically, JavaScript defaults to outer or global scope if you omit `var`. This behavior can introduce some very frustrating bugs in large applications. To avoid this problem, RapydScript's scope preference works in reverse (same as Python's). RapydScript will prefer local-most scope, always creating a local variable if you perform any sort of assignment on it in a function (this is called variable shadowing). Shadowing can create another annoyance, however, of function's variable changes getting discarded. For example, at first, it looks like the following code will set `a` to 2:
 
 	a = 1
+	b = 1
 	increment = def():
-		a += 1
+		a += b
 	increment()
 
-It will not, however, because, like Python, RapydScript will not allow you to edit variables declared in outer scope. As soon as you use any sort of assignment with `a` in the inner scope, RapydScript will declare it as an internal variable, shadowing `a` in the outer scope. One way around this is to use the `global` keyword, declaring `a` as a global variable. This, however, must be done in every function that edits `a`. It also litters global scope, which it frowned upon because it can accidently overwrite an unrelated variable with the same name (declared by someone else or another library). RapydScript solves this by introducing `nonlocal` keyword (just like Python 3):
+When executed, however, increment() function will discard any changes to `a`. This is because, like Python, RapydScript will not allow you to edit variables declared in outer scope. As soon as you use any sort of assignment with `a` in the inner scope, RapydScript will declare it as an internal variable, shadowing `a` in the outer scope. One way around this is to use the `global` keyword, declaring `a` as a global variable. This, however, must be done in every function that edits `a`. It also litters global scope, which it frowned upon because it can accidently overwrite an unrelated variable with the same name (declared by someone else or another library). RapydScript solves this by introducing `nonlocal` keyword (just like Python 3):
 
 	a = 1
+	b = 1
 	increment = def():
 		nonlocal a
-		a += 1
+		a += b
 	increment()
 
-You can also combine multiple non-local arguments by separating them with a comma: `nonlocal a, b, c`. You can also chain `nonlocal` declarations to escape multiple scopes:
+Note that `b` is not affected by shadowing. It's the assignment operator that triggers shadowing, you can read outer-scope variables without having to use `nonlocal`. You can combine multiple non-local arguments by separating them with a comma: `nonlocal a, b, c`. You can also chain `nonlocal` declarations to escape multiple scopes:
 
 	def fun1():
 		a = 5
