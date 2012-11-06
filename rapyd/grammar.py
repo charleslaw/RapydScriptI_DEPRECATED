@@ -5,7 +5,6 @@ def compile(source):
     return Translator.parse(Grammar.parse(source))
 
 grammar_path = os.path.join(os.path.dirname(__file__), 'grammar.ometa')
-print grammar_path
 pyva_grammar = open(grammar_path, 'r').read()
 def p(s):
     print s

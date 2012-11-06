@@ -35,9 +35,7 @@ augassign = get:l optspace
             ("+=" | "-=" | "*=" | "/=" | "//=" | "%=" | "^=" | "&=" | "|=" | "~=" | "<<=" | ">>="):op
             optspace expr:r
             -> ['augassign', op, l, r]
-listlike = rngop
-         | possibleunpackedtuple('expr')
-assign = possibleunpackedtuple('get'):l optspace '=' optspace listlike:r optspace -> ['assign', l, r]
+assign = possibleunpackedtuple('get'):l optspace '=' optspace (rngop | possibleunpackedtuple('assign')):r optspace -> ['assign', l, r]
        | expr
 expr = ifexpr
      | innerifexpr
@@ -139,7 +137,7 @@ else  = emptyline* indentation "else" optspace ':' block:body -> body
 
 while = "while" ifcond:cond optspace ':' block:body -> ['while', cond, body]
 
-for   = "for" mandspace possibleunpackedtuple('get'):var mandspace "in" mandspace listlike:data optspace ':' block:body -> ['for', var, data, body]
+for   = "for" mandspace possibleunpackedtuple('get'):var mandspace "in" mandspace (rngop | possibleunpackedtuple('expr')):data optspace ':' block:body -> ['for', var, data, body]
 
 def   = "def" !(self.get_indent()):i mandspace !(self.indent_stack.append(i)) name:name optspace '(' csv('name'):args ')' optspace ':' block:body !(self.indent_stack.pop()) -> ['func', name, args, body]
 deflambda = "def" !(self.get_indent()):i ~~(hspace | '(') !(self.enter_deflambda(i)) optspace '(' csv('name'):args ')' optspace ':' block:body !(self.leave_deflambda()) -> ['func', None, args, body]
