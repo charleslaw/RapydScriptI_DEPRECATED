@@ -1,6 +1,6 @@
 # Run this from the setup.py directory using either:
 # python setup.py test
-# python tests/ometatests.py
+# python tests/grammartests.py
 
 import unittest
 from rapyd.grammar import compile
@@ -172,6 +172,33 @@ class TestTuplePackingUnpacking(PyvaTest):
             }
             """)
 
+class TestListComprehensions(PyvaTest):
+	def test_to_and_til(self):
+		self.check("""
+			a = [1 to 5]
+		""","""
+			a = range(1, 5+1);
+		""")
+		self.check("""
+			a = [1 til 5]
+		""","""
+			a = range(1, 5);
+		""")
+		self.check("""
+			a = [1 + 2 to 5 * 6]
+		""","""
+			a = range((1 + 2), (5 * 6)+1);
+		""")
+		self.check("""
+		for i in [4 til 10]:
+			pass
+		""","""
+		var _$tmp1_data = _$pyva_iter(range(4, 10));
+		var _$tmp2_len = _$tmp1_data.length;
+		for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
+		  i = _$tmp1_data[_$tmp3_index];
+		}
+		""")
 
 class TestNonlocalKeyword(PyvaTest):
     def test_return_normal_not_packed(self):

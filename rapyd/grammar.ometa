@@ -35,7 +35,9 @@ augassign = get:l optspace
             ("+=" | "-=" | "*=" | "/=" | "//=" | "%=" | "^=" | "&=" | "|=" | "~=" | "<<=" | ">>="):op
             optspace expr:r
             -> ['augassign', op, l, r]
-assign = possibleunpackedtuple('get'):l optspace '=' optspace possibleunpackedtuple('assign'):r optspace -> ['assign', l, r]
+listlike = rngop
+         | possibleunpackedtuple('expr')
+assign = possibleunpackedtuple('get'):l optspace '=' optspace listlike:r optspace -> ['assign', l, r]
        | expr
 expr = ifexpr
      | innerifexpr
@@ -68,6 +70,7 @@ mulop = mulop:l optspace ('*' | '/' | '//' | '%'):op unop:r -> ['binop', op, l, 
       | unop
 unop  = optspace ('-' | '+' | '~'):op unop:e -> ['unop', op, e]
       | callable
+rngop = '[' optspace addop:l mandspace ("to" | "til"):op mandspace addop:r optspace ']' -> ['binop', op, l, r]
 
 callable = optspace
          ( new
@@ -136,7 +139,7 @@ else  = emptyline* indentation "else" optspace ':' block:body -> body
 
 while = "while" ifcond:cond optspace ':' block:body -> ['while', cond, body]
 
-for   = "for" mandspace possibleunpackedtuple('get'):var mandspace "in" mandspace possibleunpackedtuple('expr'):data optspace ':' block:body -> ['for', var, data, body]
+for   = "for" mandspace possibleunpackedtuple('get'):var mandspace "in" mandspace listlike:data optspace ':' block:body -> ['for', var, data, body]
 
 def   = "def" !(self.get_indent()):i mandspace !(self.indent_stack.append(i)) name:name optspace '(' csv('name'):args ')' optspace ':' block:body !(self.indent_stack.pop()) -> ['func', name, args, body]
 deflambda = "def" !(self.get_indent()):i ~~(hspace | '(') !(self.enter_deflambda(i)) optspace '(' csv('name'):args ')' optspace ':' block:body !(self.leave_deflambda()) -> ['func', None, args, body]

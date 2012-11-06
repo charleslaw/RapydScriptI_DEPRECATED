@@ -5,6 +5,7 @@ def compile(source):
     return Translator.parse(Grammar.parse(source))
 
 grammar_path = os.path.join(os.path.dirname(__file__), 'grammar.ometa')
+print grammar_path
 pyva_grammar = open(grammar_path, 'r').read()
 def p(s):
     print s
@@ -14,7 +15,7 @@ class Grammar(OMeta.makeGrammar(pyva_grammar, {'p': p})):
         'def', 'default', 'del', 'delete', 'do', 'elif', 'else', 'except',
         'finally', 'for', 'function', 'if', 'in', 'instanceof',
         'new', 'not', 'or', 'pass', 'raise', 'return', 'switch',
-        'throw', 'try', 'var', 'void', 'while', 'with',
+        'throw', 'til', 'to', 'try', 'var', 'void', 'while', 'with',
         'yield',))
     hex_digits = '0123456789abcdef'
 
