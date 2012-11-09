@@ -2,7 +2,7 @@
 
 import sys, re, os
 import string
-from grammar import Grammar, Translator
+from grammar import Grammar, Translator, compile
 from codecheck import verify_code
 
 class_list = []
@@ -45,12 +45,20 @@ def add_new_keyword(line):
 	# yet so I will leave the old one in
 	# not every line containing a :/=/return will need this, but it's much better than running a regex on
 	# every line of code
-	if line.find('=') != -1 or line.find(':') != -1 or line.find('return '):
-		for obj_type in class_list:
+	for obj_type in class_list:
+		if obj_type in line:
 			# adds a new keyword to the class creation: 'Class(...)', unless it's inside of a string
 			line = re.sub(r'^([^\'"]*(?:([\'"])[^\'"]*\2)*[^\'"]*)\b(%s\s*\()' % obj_type, r'\1new \3', line)
 	return line
-	
+
+def convert_to_js(line):
+	"""
+	directly convert some code to js
+	"""
+	line = add_new_keyword(line)
+	line = compile(line).strip()
+	return line
+
 def convert_list_comprehension(line):
 	# replaces list comprehension in a given line with equivalent logic using map() + filter()
 	# combination from stdlib.
@@ -58,12 +66,6 @@ def convert_list_comprehension(line):
 	# this will be slightly inefficient for cases when calling a function on iterated element
 	# due to creation of an extra function call, but the performance impact is negligible and
 	# seems cleaner than introducing additional special cases here
-	
-	# TODO: address any cases where Python logic would not map to JavaScript directly:
-	# for example, [i**2 for i in array] would not properly convert since there is no ** operator in JS
-	# we should probably insert some place-holder for these cases like with anonymous functions in dicts
-	# need to address '\s+if\s+(.*)\s*\]' and '\[\s*(.*)\s+for'
-	# this is low priority since PyvaScript doesn't support most of these operators like ** for not anyway
 	
 	# Python requires fixed-width look-aheads/look-behinds, so let's 'fix' them
 	look_behind = re.findall(r'\[\s*.+\sfor\s+', line)
@@ -74,24 +76,42 @@ def convert_list_comprehension(line):
 	else:
 		return line
 	look_ahead = re.findall(r'\s*\]', line)[-1]
-	
+
+	#Get these, but we might not use them unless we have a filter/map
+	line_start = re.split(re.escape(look_behind), line)[0]
+	line_end = re.split(re.escape(look_ahead), line)[-1]
+
 	# first, expand the filter out, this stage will do the following:
 	# before:	a = [stuff(i) for i in array if something(i)]
 	# after:	a = [stuff(i) for i in array.filter(JS('function(i){return something(i);}'))]
 	# if there is no filter/if, this stage will have no effect
-	line = re.sub(\
+	filter_groups = re.search(\
 		r'(?<=%s)([A-Za-z_$][A-Za-z0-9_$]*)(\s+in\s+)(.*)\s+if\s+(.*)(?=%s)' \
-		% (re.escape(look_behind), re.escape(look_ahead)), \
-		r'\1\2\3.filter(JS("function(\1){return \4;}"), self)', \
-		line)
-		
+		% (re.escape(look_behind), re.escape(look_ahead)), line)
+	if filter_groups:
+		#parse any js code
+		return_code = convert_to_js('return %s' % filter_groups.group(4))
+
+		#Build the line using the regex groups and the converted return code
+		line = '%s%s%s%s%s.filter(JS("function(%s){%s}"), self)%s%s' % \
+			(line_start, look_behind, filter_groups.group(1), 
+			filter_groups.group(2), filter_groups.group(3),
+			filter_groups.group(1), return_code, look_ahead, line_end)
+
 	# now expand the map out, this stage will do the following:
 	# before:	a = [stuff(i) for i in array.filter(JS('function(i){return something(i);}'))]
 	# after: 	a = array.filter(JS('function(i){return something(i);}')).map(JS('function(i){return stuff(i);}'))
-	return re.sub(\
-		r'\[\s*(.+)\sfor\s+([A-Za-z_$][A-Za-z0-9_$]*)\s+in\s+(.*)\s*\]', \
-		r'\3.map(JS("function(\2) {return \1;}"), self)', \
-		line)
+	map_groups = re.search(\
+		r'\[\s*(.+)\sfor\s+([A-Za-z_$][A-Za-z0-9_$]*)\s+in\s+(.*)\s*\]', line)
+	if map_groups:
+		#parse any js code
+		return_code = convert_to_js('return %s' % map_groups.group(1))
+
+		#Build the line using the regex groups and the converted return code
+		line = '%s%s.map(JS("function(%s) {%s}"), self)%s' % \
+			(line_start, map_groups.group(3), map_groups.group(2),
+			return_code, line_end)
+	return line
 
 basic_indent = ''
 def get_indent(line):
