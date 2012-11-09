@@ -4,6 +4,8 @@ import sys, re, os
 import string
 from grammar import Grammar, Translator, compile
 from codecheck import verify_code
+from exceptions import RAPD_ERR, update_exception_indent_data, \
+	parse_exception_line, update_exception_info
 
 class_list = []
 global_object_list = {}
@@ -19,6 +21,7 @@ class State:
 		self.methods = []
 		self.inclass = False
 		self.incomment = False
+		self.exceptions = {}
 
 imported_files = []
 def import_module(line, output, handler):
@@ -204,6 +207,67 @@ def bind_chained_calls(source):
 	source = re.sub(r';\s*\n*\s*<<_rapydscript_bind_>>', '', source, re.MULTILINE) # handle semi-colon binding
 	return re.sub(r'}\s*\n*\s*<<_rapydscript_bind_>>', '}', source, re.MULTILINE) # handle block binding
 
+
+def make_exception_updates(is_except_line, line, lstrip_line, state):
+	
+	exception_info = state.exceptions
+
+	#Get information about the current indent (account for class's)
+	indent = get_indent(line)
+	indent_size = len(indent) - len(state.indent)
+
+	#Update any indent information
+	if exception_info and 'if_block_indent' not in exception_info:
+		exception_info = update_exception_indent_data(exception_info, indent_size, line[0])
+			
+	#got ouside an except line
+	outside_block = exception_info and indent_size <= exception_info['except_indent']
+
+
+	#print exception info to the buffer
+	if exception_info:
+		exceptions = exception_info['exceptions']
+		
+		if 'processed' in exception_info and not exception_info['processed']:
+			write_str = exception_info['if_block_indent']
+			if not exception_info['first_exception']:
+					write_str += 'el'
+			if exceptions:
+				#add the first exception
+				write_str += 'if %s.name == "%s"' % (RAPD_ERR, exceptions[0])
+				for exception_name in exceptions[1:]:
+					write_str += ' or \\\n%s%s.name == "%s"' % \
+							(exception_info['code_indent'], RAPD_ERR, exception_name)
+			else:
+				#printing else to the screen
+				write_str += 'se'
+			write_buffer('%s:\n' % write_str)
+	
+			# set any variables that the user has specified
+			if exception_info and exception_info['var_name']:
+				write_buffer('%s%s = %s\n'% \
+				(exception_info['code_indent'], exception_info['var_name'], RAPD_ERR))
+			
+			exception_info['processed'] = True
+
+		if outside_block and not is_except_line and exceptions:
+			#if we were catching specific exceptions, throw any exceptions that were not caught
+			write_buffer('%selse:\n%sraise %s\n' % \
+						(exception_info['if_block_indent'], exception_info['code_indent'], RAPD_ERR))
+
+
+	#Update state.exception
+	line, state = update_exception_info(line, indent, indent_size, is_except_line,
+										outside_block, state, exception_info)
+
+
+	if exception_info and not outside_block:
+		line = exception_info['added_indent'] + line
+
+
+	lstrip_line = line.lstrip()
+	return line, lstrip_line, state
+
 # I was lazy here, eventually we want to have this be an optional parameter passed to constructor from caller instead of a global
 internal_var_reserved_offset = 0
 class ObjectLiteralHandler:
@@ -256,6 +320,7 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 	global global_buffer
 	state = State()
 	need_indent = False
+	exception_info = {}
 	post_init_dump = ''
 	post_function = []
 	function_indent = None
@@ -270,8 +335,23 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 		for line in input:
 			line_num += 1
 			line = line.replace('\r','')
-			#parse out multi-line comments
+
+			#add an extra indent if needed
 			lstrip_line = line.lstrip()
+			is_nonempty_line = len(lstrip_line) > 1 or \
+				len(lstrip_line) == 1 and lstrip_line[0] != '\n'
+			
+
+			# Convert an except to the format accepted by Pyvascript
+			is_except_line = False
+			if lstrip_line[:6] == 'except':
+				is_except_line = True
+			
+			if is_except_line or (state.exceptions and is_nonempty_line):
+				line, lstrip_line, state = \
+					make_exception_updates(is_except_line, line, lstrip_line, state)
+
+			#parse out multi-line comments
 			if lstrip_line[:3] in ('"""', "'''"):
 				state.incomment = not state.incomment
 				continue
