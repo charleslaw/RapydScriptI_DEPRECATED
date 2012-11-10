@@ -13,24 +13,31 @@ EXCEPT_PATTERN = r'%sexcept(%s(?:(?:%s)%s,%s)*(?:%s))?(?:%sas%s(%s))?%s:%s$' % \
 EXCEPT_REGEX = re.compile(EXCEPT_PATTERN)
 
 
-def update_exception_indent_data(exception_info, indent_size, indent_char):
+def update_exception_indent_data(exception_info, indent_size, indent_char, exception_info_list):
     #The size of the indent under the except block
-    sub_indent_size = indent_size - exception_info['except_indent']
-    
+    sub_indent_size = indent_size - exception_info['source_indent']
+
     #Generate a string for the except block & the indent under the except block
     sub_indent_str = indent_char * sub_indent_size
-    except_indent_str = indent_char * exception_info['except_indent']
+
+    if len(exception_info_list) > 1:
+        except_indent_str = exception_info_list[-2]['code_indent']
+        added_indent = exception_info_list[-2]['added_indent']
+    else:
+        except_indent_str = indent_char * exception_info['source_indent']
+        added_indent = ''
 
     #Save some indent strings for writing to the buffer later on
     exception_info['if_block_indent'] = except_indent_str + sub_indent_str
     if exception_info['exceptions']:
-        exception_info['added_indent'] = sub_indent_str
+        exception_info['added_indent'] = added_indent + sub_indent_str
+        add_str = sub_indent_str
     else:
         #No if statements, just need code & added indent
-        exception_info['added_indent'] = ''
-    exception_info['code_indent'] = except_indent_str + sub_indent_str + \
-                                    exception_info['added_indent']
-    
+        exception_info['added_indent'] = added_indent
+        add_str = ''
+    exception_info['code_indent'] = except_indent_str + sub_indent_str + add_str
+
     return exception_info
 
 
@@ -57,26 +64,32 @@ def parse_exception_line(line):
 
 
 def update_exception_info(line, indent, indent_size, is_except_line,
-                          outside_block, exception_info_list, exception_info):
+                          outside_block_count, exception_info_list, exception_info):
 
-    if not is_except_line:
-        if outside_block:
-            #Outside the except block, and did not see an except line, we're
-            # done with this exception
-            exception_info_list.pop(-1)
-    else:
-        first_exception = False if exception_info else True
+    for i in xrange(outside_block_count):
+        #Outside the except block, and did not see an except line, we're
+        # done with this exception
+        exception_info_list.pop(-1)
 
+    if is_except_line:
+        first_exception = True
+        nested_exception = False
+        if exception_info:
+            nested_exception = indent_size > exception_info['source_indent']
+            first_exception = nested_exception
         var_name, exception_list = parse_exception_line(line)
-            
+
         if first_exception and not exception_list:
             #This special case does not require any further processing
             #exception_info_list.pop(0)
-            pass
+            new_except = False 
         else:
-            if first_exception:
+            new_except = True
+            if nested_exception:
+                new_exception = {'source_indent': indent_size}
+            elif first_exception:
                 #Save the indent size only on the first exception in a set
-                new_exception = {'except_indent': indent_size}
+                new_exception = {'source_indent': indent_size}
             else:
                 new_exception = exception_info_list.pop(-1)
             #Always update this information
@@ -91,11 +104,14 @@ def update_exception_info(line, indent, indent_size, is_except_line,
                 var_name = RAPD_ERR
             # If this is the first exception seen in a series of exceptions,
             # the line we pass to the ast parser will be except <exception_var>
-            line = indent + 'except %s:\n' % var_name
+            if nested_exception and new_except:
+                line = indent + exception_info['added_indent'] + 'except %s:\n' % var_name
+            else:
+                line = indent + 'except %s:\n' % var_name
         else:
             # If this is no the first exception, essentially blank this line
             # instead it will be if <exception_var>.name == caught exception
             line = '\n'
-            
+
     return line, exception_info_list
 

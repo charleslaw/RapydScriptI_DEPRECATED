@@ -208,9 +208,9 @@ def bind_chained_calls(source):
 
 
 def make_exception_updates(is_except_line, line, lstrip_line, exception_info_list, state_indent):
-	
+
 	if len(exception_info_list) > 0:
-		exception_info = exception_info_list[0]
+		exception_info = exception_info_list[-1]
 	else:
 		exception_info = None
 
@@ -220,10 +220,18 @@ def make_exception_updates(is_except_line, line, lstrip_line, exception_info_lis
 
 	#Update any indent information
 	if exception_info and 'if_block_indent' not in exception_info:
-		exception_info = update_exception_indent_data(exception_info, indent_size, line[0])
-			
+		exception_info = update_exception_indent_data(exception_info, indent_size, line[0], exception_info_list)
+
 	#got ouside an except line
-	outside_block = exception_info and indent_size <= exception_info['except_indent']
+	outside_block_count = 0
+	for test_except in reversed(exception_info_list):
+		#print "Test", indent_size, test_except['source_indent']
+		if test_except and indent_size < test_except['source_indent']:
+			outside_block_count += 1
+		elif test_except and indent_size == test_except['source_indent'] and not is_except_line:
+			outside_block_count += 1
+		else:
+			break 
 
 
 	#print exception info to the buffer
@@ -244,28 +252,33 @@ def make_exception_updates(is_except_line, line, lstrip_line, exception_info_lis
 				#printing else to the screen
 				write_str += 'se'
 			write_buffer('%s:\n' % write_str)
-	
+
 			# set any variables that the user has specified
 			if exception_info and exception_info['var_name']:
 				write_buffer('%s%s = %s\n'% \
 				(exception_info['code_indent'], exception_info['var_name'], RAPD_ERR))
-			
+
 			exception_info['processed'] = True
 
-		if outside_block and not is_except_line and exceptions:
-			#if we were catching specific exceptions, throw any exceptions that were not caught
-			write_buffer('%selse:\n%sraise %s\n' % \
-						(exception_info['if_block_indent'], exception_info['code_indent'], RAPD_ERR))
+		last_ind = len(exception_info_list)
+		for i in xrange(outside_block_count):
+			last_ind -= 1
+			exited_except = exception_info_list[last_ind]
+			if exited_except['exceptions']:
+				#if outside_block and not is_except_line and exceptions:
+				#if we were catching specific exceptions, throw any exceptions that were not caught
+				write_buffer('%selse:\n%sraise %s\n' % \
+							(exited_except['if_block_indent'], exited_except['code_indent'], RAPD_ERR))
 
 
 	#Update state.exception
 	line, exception_info_list = update_exception_info(line, indent, indent_size, is_except_line,
-										outside_block, exception_info_list, exception_info)
+										outside_block_count, exception_info_list, exception_info)
 
 
-	if len(exception_info_list) > 0 and exception_info_list[0] and \
-			not outside_block and 'added_indent' in exception_info_list[0]:
-			line = exception_info_list[0]['added_indent'] + line
+	if len(exception_info_list) > 0 and exception_info_list[-1] and \
+			'added_indent' in exception_info_list[-1]:
+		line = exception_info_list[-1]['added_indent'] + line
 
 
 	lstrip_line = line.lstrip()
