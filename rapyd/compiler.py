@@ -333,7 +333,7 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 	global global_buffer
 	state = State()
 	need_indent = False
-	exception_info_list = []
+	exception_stack = []
 	post_init_dump = ''
 	post_function = []
 	function_indent = None
@@ -360,10 +360,10 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 			if lstrip_line[:6] == 'except':
 				is_except_line = True
 			
-			if is_except_line or (exception_info_list and is_nonempty_line):
-				line, lstrip_line, exception_info_list = \
+			if is_except_line or (exception_stack and is_nonempty_line):
+				line, lstrip_line, exception_stack = \
 					make_exception_updates(is_except_line, line, lstrip_line,
-											exception_info_list, state.indent)
+											exception_stack, state.indent)
 
 			#parse out multi-line comments
 			if lstrip_line[:3] in ('"""', "'''"):
