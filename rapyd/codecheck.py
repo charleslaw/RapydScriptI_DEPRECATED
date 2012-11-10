@@ -1,5 +1,6 @@
 import re
 import string
+from rapyd.exceptions import EXCEPT_REGEX
 
 
 def warn(file_name, line_num, message, error_type = 'ERROR'):
@@ -20,6 +21,7 @@ def verify_code(f, source, global_object_list, auto_correct=False):
 	'atan2(', 'log(', 'random(', 'round(', 'pow(', 'cos(', 'sin(', 'tan(', 'ceil(', 'floor(']
 	for line in source:
 		line_num += 1
+		lstrip_line = line.lstrip()
 		
 		# check for consistent whitespace
 		if indent is None and line[0] == ' ' or line[0] == '\t':
@@ -74,7 +76,13 @@ def verify_code(f, source, global_object_list, auto_correct=False):
 		if re.search('[^0-9]\.[0-9]', line):
 			warn(f, line_num, 'Implicit 0 for the interger portion of a decimal, compiler doesn\'t support those.')
 			success = False
-	
+
+		# check for parsable except lines
+		if lstrip_line.startswith('except'):
+			if not EXCEPT_REGEX.match(line):
+				warn(f, line_num, 'Cannot parse Except Line')
+				success = False
+
 		# check for compatible math functions
 		for function in bad_math:
 			pos = line.find(function)
