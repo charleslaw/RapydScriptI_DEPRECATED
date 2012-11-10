@@ -76,6 +76,7 @@ def process_exception_line(line, indent, indent_size, is_except_line,
     if is_except_line:
         #Parse the line
         var_name, exception_list = parse_exception_line(line)
+        exception_var = '%s_%d' % (RAPD_ERR, len(exception_stack)+1)
         
         first_exception = True
         if exception_info:
@@ -90,7 +91,8 @@ def process_exception_line(line, indent, indent_size, is_except_line,
 
             if first_exception:
                 #Save the indent size only on the first exception in a set
-                new_exception = {'source_indent': indent_size}
+                new_exception = {'source_indent': indent_size,
+                                 'exception_var': exception_var}
             else:
                 #If this is not he first exception, reuse data from the previous
                 #exception - this is really just indent information
@@ -104,7 +106,7 @@ def process_exception_line(line, indent, indent_size, is_except_line,
 
         if first_exception:
             if exception_list or var_name is None:
-                var_name = RAPD_ERR
+                var_name = exception_var
             # If this is the first exception seen in a series of exceptions,
             # the line we pass to the ast parser will be except <exception_var>
             line = indent + 'except %s:\n' % var_name

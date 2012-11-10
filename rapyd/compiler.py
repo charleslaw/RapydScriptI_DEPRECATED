@@ -236,10 +236,10 @@ def make_exception_updates(is_except_line, line, lstrip_line, exception_stack, s
 					write_str += 'el'
 			if exceptions:
 				#add the first exception
-				write_str += 'if %s.name == "%s"' % (RAPD_ERR, exceptions[0])
+				write_str += 'if %s.name == "%s"' % (exception_info['exception_var'], exceptions[0])
 				for exception_name in exceptions[1:]:
 					write_str += ' or \\\n%s%s.name == "%s"' % \
-							(exception_info['code_indent'], RAPD_ERR, exception_name)
+							(exception_info['code_indent'], exception_info['exception_var'], exception_name)
 			else:
 				#printing else to the output
 				write_str += 'se'
@@ -248,7 +248,7 @@ def make_exception_updates(is_except_line, line, lstrip_line, exception_stack, s
 			# set any variables that the user has specified
 			if exception_info and exception_info['var_name']:
 				write_buffer('%s%s = %s\n'% \
-				(exception_info['code_indent'], exception_info['var_name'], RAPD_ERR))
+				(exception_info['code_indent'], exception_info['var_name'], exception_info['exception_var']))
 
 
 	#Print and remove exited exceptions
@@ -264,7 +264,9 @@ def make_exception_updates(is_except_line, line, lstrip_line, exception_stack, s
 			if exited_exception['exceptions']:
 				#if we were catching specific exceptions, throw any exceptions that were not caught
 				write_buffer('%selse:\n%sraise %s\n' % \
-							(exited_exception['if_block_indent'], exited_exception['code_indent'], RAPD_ERR))
+							(exited_exception['if_block_indent'],
+							exited_exception['code_indent'],
+							exited_exception['exception_var']))
 		else:
 			#did not exit the except block, so stop trying
 			break
