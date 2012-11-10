@@ -5,7 +5,7 @@ import string
 from grammar import Grammar, Translator, compile
 from codecheck import verify_code
 from exceptions import RAPD_ERR, update_exception_indent_data, \
-	parse_exception_line, update_exception_info
+	parse_exception_line, process_exception_line
 
 class_list = []
 global_object_list = {}
@@ -207,10 +207,10 @@ def bind_chained_calls(source):
 	return re.sub(r'}\s*\n*\s*<<_rapydscript_bind_>>', '}', source, re.MULTILINE) # handle block binding
 
 
-def make_exception_updates(is_except_line, line, lstrip_line, exception_info_list, state_indent):
+def make_exception_updates(is_except_line, line, lstrip_line, exception_stack, state_indent):
 
-	if len(exception_info_list) > 0:
-		exception_info = exception_info_list[-1]
+	if len(exception_stack) > 0:
+		exception_info = exception_stack[-1]
 	else:
 		exception_info = None
 
@@ -218,27 +218,19 @@ def make_exception_updates(is_except_line, line, lstrip_line, exception_info_lis
 	indent = get_indent(line)
 	indent_size = len(indent) - len(state_indent)
 
+
 	#Update any indent information
 	if exception_info and 'if_block_indent' not in exception_info:
-		exception_info = update_exception_indent_data(exception_info, indent_size, line[0], exception_info_list)
-
-	#got ouside an except line
-	outside_block_count = 0
-	for test_except in reversed(exception_info_list):
-		#print "Test", indent_size, test_except['source_indent']
-		if test_except and indent_size < test_except['source_indent']:
-			outside_block_count += 1
-		elif test_except and indent_size == test_except['source_indent'] and not is_except_line:
-			outside_block_count += 1
-		else:
-			break 
+		exception_info = update_exception_indent_data(exception_info, indent_size, line[0], exception_stack)
 
 
 	#print exception info to the buffer
 	if exception_info:
 		exceptions = exception_info['exceptions']
 		
-		if 'processed' in exception_info and not exception_info['processed']:
+		if 'printed' in exception_info and not exception_info['printed']:
+			exception_info['printed'] = True
+			
 			write_str = exception_info['if_block_indent']
 			if not exception_info['first_exception']:
 					write_str += 'el'
@@ -249,7 +241,7 @@ def make_exception_updates(is_except_line, line, lstrip_line, exception_info_lis
 					write_str += ' or \\\n%s%s.name == "%s"' % \
 							(exception_info['code_indent'], RAPD_ERR, exception_name)
 			else:
-				#printing else to the screen
+				#printing else to the output
 				write_str += 'se'
 			write_buffer('%s:\n' % write_str)
 
@@ -258,31 +250,34 @@ def make_exception_updates(is_except_line, line, lstrip_line, exception_info_lis
 				write_buffer('%s%s = %s\n'% \
 				(exception_info['code_indent'], exception_info['var_name'], RAPD_ERR))
 
-			exception_info['processed'] = True
 
-		last_ind = len(exception_info_list)
-		for i in xrange(outside_block_count):
-			last_ind -= 1
-			exited_except = exception_info_list[last_ind]
-			if exited_except['exceptions']:
-				#if outside_block and not is_except_line and exceptions:
+	#Print and remove exited exceptions
+	#Test whitespace to see if we got ouside an except block
+	for i in xrange(len(exception_stack)-1, -1, -1):
+		#Exited an except block if:
+		# - current indent < exception indent
+		# - current indent == exception indent AND isn't catching another exception in a try block
+		if (indent_size < exception_stack[i]['source_indent']) or \
+				(indent_size == exception_stack[i]['source_indent'] and not is_except_line):
+			
+			exited_exception = exception_stack.pop(-1)
+			if exited_exception['exceptions']:
 				#if we were catching specific exceptions, throw any exceptions that were not caught
 				write_buffer('%selse:\n%sraise %s\n' % \
-							(exited_except['if_block_indent'], exited_except['code_indent'], RAPD_ERR))
+							(exited_exception['if_block_indent'], exited_exception['code_indent'], RAPD_ERR))
+		else:
+			#did not exit the except block, so stop trying
+			break
 
 
-	#Update state.exception
-	line, exception_info_list = update_exception_info(line, indent, indent_size, is_except_line,
-										outside_block_count, exception_info_list, exception_info)
-
-
-	if len(exception_info_list) > 0 and exception_info_list[-1] and \
-			'added_indent' in exception_info_list[-1]:
-		line = exception_info_list[-1]['added_indent'] + line
+	#Update the exception information and update the line with any neccesary added indents
+	line, exception_stack = process_exception_line(line, indent, indent_size, is_except_line,
+										exception_stack, exception_info)
 
 
 	lstrip_line = line.lstrip()
-	return line, lstrip_line, exception_info_list
+	return line, lstrip_line, exception_stack
+
 
 # I was lazy here, eventually we want to have this be an optional parameter passed to constructor from caller instead of a global
 internal_var_reserved_offset = 0

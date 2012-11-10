@@ -63,55 +63,59 @@ def parse_exception_line(line):
     return var_name, exception_list
 
 
-def update_exception_info(line, indent, indent_size, is_except_line,
-                          outside_block_count, exception_info_list, exception_info):
+def process_exception_line(line, indent, indent_size, is_except_line,
+                           exception_stack, exception_info):
 
-    for i in xrange(outside_block_count):
-        #Outside the except block, and did not see an except line, we're
-        # done with this exception
-        exception_info_list.pop(-1)
+    #See if any indent is required based on the current exception stack
+    current_added_indent = ''
+    if len(exception_stack) > 0 and exception_stack[-1] and \
+            'added_indent' in exception_stack[-1]:
+        current_added_indent = exception_stack[-1]['added_indent']
+
 
     if is_except_line:
-        first_exception = True
-        nested_exception = False
-        if exception_info:
-            nested_exception = indent_size > exception_info['source_indent']
-            first_exception = nested_exception
+        #Parse the line
         var_name, exception_list = parse_exception_line(line)
+        
+        first_exception = True
+        if exception_info:
+            #If there is already exception information, then this is only
+            # a first exception if it is a nested except (increased indent)
+            first_exception = indent_size > exception_info['source_indent']
 
-        if first_exception and not exception_list:
-            #This special case does not require any further processing
-            #exception_info_list.pop(0)
-            new_except = False 
-        else:
-            new_except = True
-            if nested_exception:
-                new_exception = {'source_indent': indent_size}
-            elif first_exception:
+        #if first_exception and not exception_list:
+        #    This special case does not require any further processing
+        #    Just print except <some_variable_name>:
+        if not (first_exception and not exception_list):
+
+            if first_exception:
                 #Save the indent size only on the first exception in a set
                 new_exception = {'source_indent': indent_size}
             else:
-                new_exception = exception_info_list.pop(-1)
+                #If this is not he first exception, reuse data from the previous
+                #exception - this is really just indent information
+                new_exception = exception_stack.pop(-1)
             #Always update this information
             new_exception['exceptions'] = exception_list
             new_exception['var_name'] = var_name
             new_exception['first_exception'] = first_exception
-            new_exception['processed'] = False
-            exception_info_list.append(new_exception)
+            new_exception['printed'] = False #if exception.name == exception
+            exception_stack.append(new_exception)
 
         if first_exception:
             if exception_list or var_name is None:
                 var_name = RAPD_ERR
             # If this is the first exception seen in a series of exceptions,
             # the line we pass to the ast parser will be except <exception_var>
-            if nested_exception and new_except:
-                line = indent + exception_info['added_indent'] + 'except %s:\n' % var_name
-            else:
-                line = indent + 'except %s:\n' % var_name
+            line = indent + 'except %s:\n' % var_name
         else:
             # If this is no the first exception, essentially blank this line
             # instead it will be if <exception_var>.name == caught exception
             line = '\n'
+    
 
-    return line, exception_info_list
+    if current_added_indent:
+        line = current_added_indent + line
+
+    return line, exception_stack
 
