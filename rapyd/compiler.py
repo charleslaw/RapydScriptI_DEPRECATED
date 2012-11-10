@@ -21,7 +21,6 @@ class State:
 		self.methods = []
 		self.inclass = False
 		self.incomment = False
-		self.exceptions = {}
 
 imported_files = []
 def import_module(line, output, handler):
@@ -208,13 +207,16 @@ def bind_chained_calls(source):
 	return re.sub(r'}\s*\n*\s*<<_rapydscript_bind_>>', '}', source, re.MULTILINE) # handle block binding
 
 
-def make_exception_updates(is_except_line, line, lstrip_line, state):
+def make_exception_updates(is_except_line, line, lstrip_line, exception_info_list, state_indent):
 	
-	exception_info = state.exceptions
+	if len(exception_info_list) > 0:
+		exception_info = exception_info_list[0]
+	else:
+		exception_info = None
 
 	#Get information about the current indent (account for class's)
 	indent = get_indent(line)
-	indent_size = len(indent) - len(state.indent)
+	indent_size = len(indent) - len(state_indent)
 
 	#Update any indent information
 	if exception_info and 'if_block_indent' not in exception_info:
@@ -257,16 +259,17 @@ def make_exception_updates(is_except_line, line, lstrip_line, state):
 
 
 	#Update state.exception
-	line, state = update_exception_info(line, indent, indent_size, is_except_line,
-										outside_block, state, exception_info)
+	line, exception_info_list = update_exception_info(line, indent, indent_size, is_except_line,
+										outside_block, exception_info_list, exception_info)
 
 
-	if exception_info and not outside_block:
-		line = exception_info['added_indent'] + line
+	if len(exception_info_list) > 0 and exception_info_list[0] and \
+			not outside_block and 'added_indent' in exception_info_list[0]:
+			line = exception_info_list[0]['added_indent'] + line
 
 
 	lstrip_line = line.lstrip()
-	return line, lstrip_line, state
+	return line, lstrip_line, exception_info_list
 
 # I was lazy here, eventually we want to have this be an optional parameter passed to constructor from caller instead of a global
 internal_var_reserved_offset = 0
@@ -320,7 +323,7 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 	global global_buffer
 	state = State()
 	need_indent = False
-	exception_info = {}
+	exception_info_list = []
 	post_init_dump = ''
 	post_function = []
 	function_indent = None
@@ -347,9 +350,10 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 			if lstrip_line[:6] == 'except':
 				is_except_line = True
 			
-			if is_except_line or (state.exceptions and is_nonempty_line):
-				line, lstrip_line, state = \
-					make_exception_updates(is_except_line, line, lstrip_line, state)
+			if is_except_line or (exception_info_list and is_nonempty_line):
+				line, lstrip_line, exception_info_list = \
+					make_exception_updates(is_except_line, line, lstrip_line,
+											exception_info_list, state.indent)
 
 			#parse out multi-line comments
 			if lstrip_line[:3] in ('"""', "'''"):

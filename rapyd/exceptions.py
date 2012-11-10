@@ -34,7 +34,7 @@ def update_exception_indent_data(exception_info, indent_size, indent_char):
     return exception_info
 
 
-def parse_exception_line(line, first_exception):
+def parse_exception_line(line):
     """
     recognize:
     - except:
@@ -57,29 +57,34 @@ def parse_exception_line(line, first_exception):
 
 
 def update_exception_info(line, indent, indent_size, is_except_line,
-                          outside_block, state, exception_info):
+                          outside_block, exception_info_list, exception_info):
+
     if not is_except_line:
         if outside_block:
             #Outside the except block, and did not see an except line, we're
             # done with this exception
-            state.exceptions = {}
+            exception_info_list.pop(-1)
     else:
         first_exception = False if exception_info else True
 
-        var_name, exception_list = parse_exception_line(line, first_exception)
+        var_name, exception_list = parse_exception_line(line)
             
         if first_exception and not exception_list:
             #This special case does not require any further processing
-            state.exceptions = {}
+            #exception_info_list.pop(0)
+            pass
         else:
             if first_exception:
                 #Save the indent size only on the first exception in a set
-                state.exceptions = {'except_indent': indent_size}
+                new_exception = {'except_indent': indent_size}
+            else:
+                new_exception = exception_info_list.pop(-1)
             #Always update this information
-            state.exceptions['exceptions'] = exception_list
-            state.exceptions['var_name'] = var_name
-            state.exceptions['first_exception'] = first_exception
-            state.exceptions['processed'] = False
+            new_exception['exceptions'] = exception_list
+            new_exception['var_name'] = var_name
+            new_exception['first_exception'] = first_exception
+            new_exception['processed'] = False
+            exception_info_list.append(new_exception)
 
         if first_exception:
             if exception_list or var_name is None:
@@ -92,5 +97,5 @@ def update_exception_info(line, indent, indent_size, is_except_line,
             # instead it will be if <exception_var>.name == caught exception
             line = '\n'
             
-    return line, state
+    return line, exception_info_list
 
