@@ -73,13 +73,18 @@ def convert_list_comprehension(line):
 	# a regular for loop
 	if look_behind:
 		look_behind = look_behind[0]
+		#get the text before the look_behind string
+		line_start = re.split(re.escape(look_behind), line)[0]
 	else:
 		return line
-	look_ahead = re.findall(r'\s*\]', line)[-1]
 
-	#Get these, but we might not use them unless we have a filter/map
-	line_start = re.split(re.escape(look_behind), line)[0]
-	line_end = re.split(re.escape(look_ahead), line)[-1]
+	look_ahead = re.findall(r'\s*\]', line)
+	if look_ahead:
+		look_ahead = look_ahead[-1]
+		#get the text after the look_ahead string
+		line_end = re.split(re.escape(look_ahead), line)[-1]
+	else:
+		return line
 
 	# first, expand the filter out, this stage will do the following:
 	# before:	a = [stuff(i) for i in array if something(i)]
