@@ -76,7 +76,7 @@ def process_exception_line(line, indent, indent_size, is_except_line,
     if is_except_line:
         #Parse the line
         var_name, exception_list = parse_exception_line(line)
-        exception_var = '%s' % RAPD_ERR)
+        exception_var = '%s' % RAPD_ERR
         
         first_exception = True
         if exception_info:
@@ -101,7 +101,7 @@ def process_exception_line(line, indent, indent_size, is_except_line,
             new_exception['exceptions'] = exception_list
             new_exception['var_name'] = var_name
             new_exception['first_exception'] = first_exception
-            new_exception['printed'] = False #if exception.name == exception
+            new_exception['printed'] = False #if exceptionn instanceof exception
             exception_stack.append(new_exception)
 
         if first_exception:
@@ -112,7 +112,7 @@ def process_exception_line(line, indent, indent_size, is_except_line,
             line = indent + 'except %s:\n' % var_name
         else:
             # If this is no the first exception, essentially blank this line
-            # instead it will be if <exception_var>.name == caught exception
+            # instead it will be if <exception_var> instanceof caught exception
             line = '\n'
     
 

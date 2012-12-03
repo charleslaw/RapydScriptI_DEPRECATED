@@ -235,9 +235,9 @@ def make_exception_updates(is_except_line, line, lstrip_line, exception_stack, s
 					write_str += 'el'
 			if exceptions:
 				#add the first exception
-				write_str += 'if %s.name == "%s"' % (exception_info['exception_var'], exceptions[0])
+				write_str += 'if isinstance(%s, %s)' % (exception_info['exception_var'], exceptions[0])
 				for exception_name in exceptions[1:]:
-					write_str += ' or \\\n%s%s.name == "%s"' % \
+					write_str += ' or \\\n%sisinstance(%s, %s)' % \
 							(exception_info['code_indent'], exception_info['exception_var'], exception_name)
 			else:
 				#printing else to the output
