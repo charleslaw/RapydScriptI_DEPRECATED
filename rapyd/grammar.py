@@ -1,4 +1,5 @@
 from pymeta.grammar import OMeta
+import json
 import os
 
 def compile(source):
@@ -62,7 +63,7 @@ class Grammar(OMeta.makeGrammar(pyva_grammar, {'p': p})):
 
 translator_path = os.path.join(os.path.dirname(__file__), 'translator.ometa')
 pyva_translator = open(translator_path, 'r').read()
-class Translator(OMeta.makeGrammar(pyva_translator, {'p': p})):
+class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
     op_map = {
         'not': '!',
     }
