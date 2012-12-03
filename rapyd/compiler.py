@@ -4,8 +4,7 @@ import sys, re, os
 import string
 from grammar import Grammar, Translator, compile
 from codecheck import verify_code
-from exceptions import RAPD_ERR, update_exception_indent_data, \
-	parse_exception_line, process_exception_line
+from exceptions import update_exception_indent_data, process_exception_line
 
 class_list = []
 global_object_list = {}

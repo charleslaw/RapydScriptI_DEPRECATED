@@ -76,7 +76,7 @@ def process_exception_line(line, indent, indent_size, is_except_line,
     if is_except_line:
         #Parse the line
         var_name, exception_list = parse_exception_line(line)
-        exception_var = '%s_%d' % (RAPD_ERR, len(exception_stack)+1)
+        exception_var = '%s' % RAPD_ERR)
         
         first_exception = True
         if exception_info:
