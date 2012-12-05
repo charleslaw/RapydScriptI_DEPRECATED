@@ -125,7 +125,7 @@ dict  = '{' csv('dictexpr'):v   '}' -> ['dict'] + v
 set   = '{' csv('expr'):v       '}' -> ['set'] + v
 
 tupleexpr = expr
-dictexpr  = string:k optspace ':' optspace expr:v -> ['dictkv', k, v]
+dictexpr  = ( name:k | string:k ) optspace ':' optspace expr:v -> ['dictkv', k, v]
 
 ifexpr = innerifexpr:t mandspace "if" mandspace innerifexpr:cond mandspace "else" mandspace expr:f -> ['ifexpr', cond, t, f]
 
