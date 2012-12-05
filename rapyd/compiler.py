@@ -48,7 +48,7 @@ def add_new_keyword(line):
 	for obj_type in class_list:
 		if obj_type in line:
 			# adds a new keyword to the class creation: 'Class(...)', unless it's inside of a string
-			line = re.sub(r'^([^\'"]*(?:([\'"])[^\'"]*\2)*[^\'"]*)\b(%s\s*\()' % obj_type, r'\1new \3', line)
+			line = re.sub(r'^([^\'"]*(?:([\'"])[^\'"]*\2)*[^\'"]*)(?=\b|\B\$)(%s\s*\()' % re.escape(obj_type), r'\1new \3', line)
 	return line
 
 def convert_to_js(line):
