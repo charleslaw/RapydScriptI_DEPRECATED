@@ -132,12 +132,12 @@ def js_convert(value):
 	else:
 		return value
 
-def get_args(line, isclass=True):
+def get_args(line, isclass=True, isdef=True):
 	# get arguments and sets arg_dump as needed (for handling optional arguments)
 	args = line.split('(')[1].split(')')[0].split(',')
 	for i in range(len(args)):
 		args[i] = args[i].strip()
-		if args[i].find('=') != -1:
+		if isdef and args[i].find('=') != -1:
 			assignment = args[i].split('=') 
 			value = js_convert(assignment[1].strip())
 			args[i] = assignment[0].strip()
@@ -397,18 +397,33 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 						
 						if parent_args[-1][0] == '*':
 							# handle *args
-							line = '%s%s.prototype.%s.apply(%s, %s)' % (\
+							line = '%s%s.prototype.%s.apply(%s, %s)\n' % (\
 								indent,
 								parts[0].strip(),
 								parent_method,
 								parent_args[0],
-								to_star_args(parent_args[1:])+'\n')
+								to_star_args(parent_args[1:]))
 						else:
 							line = '%s%s.prototype.%s.call(%s' % (\
 								indent, 
 								parts[0].strip(),
 								parent_method,
 								set_args(parent_args)[1:-2]+'\n')
+					elif line.find('(') < line.find('*') < line.find(')') \
+					and re.match(r'^[^\'"]*(([\'"])[^\'"]*\2)*[^\'"]*[,(]\s*\*.*[A-Za-z$_][A-Za-z0-9$_]*\s*\)', line):
+						# normal line with args, we need to check if it has *args
+						args = get_args(line, False, False)
+						if args and args[-1][0] == '*':
+							function = line.split('(')[0]
+							if function.find('.') != -1:
+								obj = function.split('.')[0].split('[')[0]
+							else:
+								obj = 'this'
+							# handle *args
+							line = '%s.apply(%s, %s)\n' % (\
+								function,
+								obj,
+								to_star_args(args[0:]))
 					line = line.replace('self.', 'this.')
 					line = add_new_keyword(line)
 					write_buffer(line)
@@ -446,9 +461,13 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 					# positives, this check is much smarter, checking that there is a ', *word)'
 					# pattern preceded by even number of quotes (meaning it's unquoted)
 					if line.find('(') < line.find('*') < line.find(')') \
-					and re.match(r'^[^\'"]*(([\'"])[^\'"]*\2)*[^\'"]*,\s*\*.*[A-Za-z$_][A-Za-z0-9$_]*\s*\)', line):
-						args = to_star_args(get_args(line, False))
-						line = re.sub('\(.*\)' , '.apply(this, %s)' % args, line)
+					and re.match(r'^[^\'"]*(([\'"])[^\'"]*\2)*[^\'"]*[,(]\s*\*.*[A-Za-z$_][A-Za-z0-9$_]*\s*\)', line):
+						args = to_star_args(get_args(line, False, False))
+						if function.find('.') != -1:
+							obj = function.split('.')[0].split('[')[0]
+						else:
+							obj = 'this'
+						line = re.sub('\(.*\)' , '.apply(%s, %s)' % (obj, args), line)
 					
 					write_buffer(get_arg_dump(line))
 					write_buffer(line)
