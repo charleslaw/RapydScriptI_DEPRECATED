@@ -387,7 +387,7 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 					write_buffer(get_arg_dump(line))
 					
 					if line.find('.__init__') != -1:
-						line = line.replace('.__init__(self', '.prototype.constructor.call(this')
+						line = line.replace('.__init__(', '.prototype.constructor.call(')
 					elif invokes_method_from_another_class(line):
 						# method call of another class
 						indent = get_indent(line)
@@ -416,7 +416,7 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 						if args and args[-1][0] == '*':
 							function = line.split('(')[0]
 							if function.find('.') != -1:
-								obj = function.split('.')[0].split('[')[0]
+								obj = function.rsplit('.', 1)[0].split('[')[0]
 							else:
 								obj = 'this'
 							# handle *args
@@ -464,7 +464,7 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 					and re.match(r'^[^\'"]*(([\'"])[^\'"]*\2)*[^\'"]*[,(]\s*\*.*[A-Za-z$_][A-Za-z0-9$_]*\s*\)', line):
 						args = to_star_args(get_args(line, False, False))
 						if function.find('.') != -1:
-							obj = function.split('.')[0].split('[')[0]
+							obj = function.rsplit('.', 1)[0].split('[')[0]
 						else:
 							obj = 'this'
 						line = re.sub('\(.*\)' , '.apply(%s, %s)' % (obj, args), line)
