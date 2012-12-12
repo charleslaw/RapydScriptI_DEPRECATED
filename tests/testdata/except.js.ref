@@ -1,0 +1,22 @@
+abc = function() {
+  var a, e;
+  try {
+    a = null;
+    a = a.x;
+  } catch(_$rapyd$_Exception) {
+    if (isinstance(_$rapyd$_Exception, RangeError)) {
+      e = _$rapyd$_Exception;
+      console.log("failed");
+    } else if (isinstance(_$rapyd$_Exception, TypeError)) {
+      e = _$rapyd$_Exception;
+      console.log("looks good");
+    } else {
+      e = _$rapyd$_Exception;
+      console.log("unexpected exception");
+    }
+
+  }
+
+};
+
+window.onload = abc;

@@ -1,0 +1,5 @@
+def test_fun():
+    a = range(10).map(JS("function(i) {return i;}"), self)
+    b = range(10).filter(JS("function(i){return ((i % 2) == 1);}"), self).map(JS("function(i) {return i;}"), self)
+
+

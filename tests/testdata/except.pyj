@@ -1,0 +1,12 @@
+def abc():
+    try:
+        a = null
+        a = a.x
+    except RangeError as e:
+        console.log('failed')
+    except TypeError as e:
+        console.log('looks good')
+    except as e:
+        console.log('unexpected exception')
+
+window.onload = abc

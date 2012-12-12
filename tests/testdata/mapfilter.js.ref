@@ -1,0 +1,6 @@
+test_fun = function() {
+  var a, b;
+  a = range(10).map(function(i) {return i;}, this);
+  b = range(10).filter(function(i){return ((i % 2) == 1);}, this).map(function(i) {return i;}, this);
+};
+

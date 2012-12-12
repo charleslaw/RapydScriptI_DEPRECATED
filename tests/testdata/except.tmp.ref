@@ -1,0 +1,18 @@
+def abc():
+    try:
+        a = null
+        a = a.x
+    except _$rapyd$_Exception:
+        if isinstance(_$rapyd$_Exception, RangeError):
+            e = _$rapyd$_Exception
+            console.log('failed')
+    
+        elif isinstance(_$rapyd$_Exception, TypeError):
+            e = _$rapyd$_Exception
+            console.log('looks good')
+    
+        else:
+            e = _$rapyd$_Exception
+            console.log('unexpected exception')
+
+window.onload = abc
