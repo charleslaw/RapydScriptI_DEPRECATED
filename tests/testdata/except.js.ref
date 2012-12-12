@@ -1,22 +1,219 @@
-abc = function() {
-  var a, e;
+bad_object = null;
+try {
+  bad_list.fake_call();
+} catch(_$rapyd$_Exception) {
+  print("Test 1: Got an exception");
+}
+
+try {
+  bad_list.fake_call();
+} catch(_$rapyd$_Exception) {
+  if (isinstance(_$rapyd$_Exception, TypeError)) {
+    print("Test 2: Got an exception");
+  } else {
+    throw _$rapyd$_Exception;
+  }
+
+}
+
+try {
+  bad_list.fake_call();
+} catch(e) {
+  print(("Test 3: Got an exception" + str(e)));
+}
+
+try {
+  bad_list.fake_call();
+} catch(_$rapyd$_Exception) {
+  if (isinstance(_$rapyd$_Exception, TypeError)) {
+    e = _$rapyd$_Exception;
+    print(("Test 4: Got an exception" + str(e)));
+  } else {
+    throw _$rapyd$_Exception;
+  }
+
+}
+
+try {
+  bad_list.fake_call();
+} catch(_$rapyd$_Exception) {
+  if (isinstance(_$rapyd$_Exception, FakeError)) {
+    b = _$rapyd$_Exception;
+    print(("Test 5: This is unexpected" + str(b)));
+  } else if (isinstance(_$rapyd$_Exception, TypeError)) {
+    e = _$rapyd$_Exception;
+    print(("Test 5: Got an exception" + str(e)));
+  } else {
+    print("Test 5: This is unexpected too");
+  }
+
+}
+
+try {
+  bad_list.fake_call();
+} catch(_$rapyd$_Exception) {
+  if (isinstance(_$rapyd$_Exception, FakeError)) {
+    print("Test 6: This is unexpected");
+  } else if (isinstance(_$rapyd$_Exception, TypeError)) {
+    print("Test 6: Got an exception");
+  } else {
+    e = _$rapyd$_Exception;
+    print(("Test 6: This is unexpected too" + str(e)));
+  }
+
+}
+
+try {
+  bad_list.fake_call();
+} catch(_$rapyd$_Exception) {
+  if (isinstance(_$rapyd$_Exception, TestError)) {
+    e = _$rapyd$_Exception;
+    print(("Test 7: unexpected error" + str(e)));
+  } else if (isinstance(_$rapyd$_Exception, TypeError)) {
+    d = _$rapyd$_Exception;
+    print(("Test 7: Step 1" + str(e)));
+    try {
+      bad_list.fake_call2();
+    } catch(_$rapyd$_Exception) {
+      if (isinstance(_$rapyd$_Exception, NestException)) {
+        print("Test 7: unexpected error");
+      } else {
+        print("Test 7: Step 2");
+        try {
+          bad_list.another_fake_call();
+        } catch(_$rapyd$_Exception) {
+          if (isinstance(_$rapyd$_Exception, FakeException)) {
+            print("Test 7: unexpected error");
+          } else {
+            c = _$rapyd$_Exception;
+            print(("Test 7: Step 3" + str(c)));
+          }
+
+        }
+
+      }
+
+    }
+
+  } else if (isinstance(_$rapyd$_Exception, FinalError)) {
+    print("Test 7: unexpected error");
+  } else {
+    throw _$rapyd$_Exception;
+  }
+
+}
+
+ExceptClass = function() {
+  
+};
+
+ExceptClass.prototype.test_exceptions = (function() {
+  var b, c, d, e;
   try {
-    a = null;
-    a = a.x;
+    bad_list.fake_call();
   } catch(_$rapyd$_Exception) {
-    if (isinstance(_$rapyd$_Exception, RangeError)) {
-      e = _$rapyd$_Exception;
-      console.log("failed");
-    } else if (isinstance(_$rapyd$_Exception, TypeError)) {
-      e = _$rapyd$_Exception;
-      console.log("looks good");
+    print("Test 8: Got an exception");
+  }
+
+  try {
+    bad_list.fake_call();
+  } catch(_$rapyd$_Exception) {
+    if (isinstance(_$rapyd$_Exception, TypeError)) {
+      print("Test 9: Got an exception");
     } else {
-      e = _$rapyd$_Exception;
-      console.log("unexpected exception");
+      throw _$rapyd$_Exception;
     }
 
   }
 
-};
+  try {
+    bad_list.fake_call();
+  } catch(e) {
+    print(("Test 10: Got an exception" + str(e)));
+  }
 
-window.onload = abc;
+  try {
+    bad_list.fake_call();
+  } catch(_$rapyd$_Exception) {
+    if (isinstance(_$rapyd$_Exception, TypeError)) {
+      e = _$rapyd$_Exception;
+      print(("Test 11: Got an exception" + str(e)));
+    } else {
+      throw _$rapyd$_Exception;
+    }
+
+  }
+
+  try {
+    bad_list.fake_call();
+  } catch(_$rapyd$_Exception) {
+    if (isinstance(_$rapyd$_Exception, FakeError)) {
+      b = _$rapyd$_Exception;
+      print(("Test 12: This is unexpected" + str(b)));
+    } else if (isinstance(_$rapyd$_Exception, TypeError)) {
+      e = _$rapyd$_Exception;
+      print(("Test 12: Got an exception" + str(e)));
+    } else {
+      print("Test 12: This is unexpected too");
+    }
+
+  }
+
+  try {
+    bad_list.fake_call();
+  } catch(_$rapyd$_Exception) {
+    if (isinstance(_$rapyd$_Exception, FakeError)) {
+      print("Test 13: This is unexpected");
+    } else if (isinstance(_$rapyd$_Exception, TypeError)) {
+      print("Test 13: Got an exception");
+    } else {
+      e = _$rapyd$_Exception;
+      print(("Test 13: This is unexpected too" + str(e)));
+    }
+
+  }
+
+  try {
+    bad_list.fake_call();
+  } catch(_$rapyd$_Exception) {
+    if (isinstance(_$rapyd$_Exception, TestError)) {
+      e = _$rapyd$_Exception;
+      print(("Test 14: unexpected error" + str(e)));
+    } else if (isinstance(_$rapyd$_Exception, TypeError)) {
+      d = _$rapyd$_Exception;
+      print(("Test 14: Step 1" + str(e)));
+      try {
+        bad_list.fake_call2();
+      } catch(_$rapyd$_Exception) {
+        if (isinstance(_$rapyd$_Exception, NestException)) {
+          print("Test 14: unexpected error");
+        } else {
+          print("Test 14: Step 2");
+          try {
+            bad_list.another_fake_call();
+          } catch(_$rapyd$_Exception) {
+            if (isinstance(_$rapyd$_Exception, FakeException)) {
+              print("Test 14: unexpected error");
+            } else {
+              c = _$rapyd$_Exception;
+              print(("Test 14: Step 3" + str(c)));
+            }
+
+          }
+
+        }
+
+      }
+
+    } else {
+      throw _$rapyd$_Exception;
+    }
+
+  }
+
+});
+window.onload = (function() {
+  var a;
+  a = new ExceptClass();
+  a.test_exceptions();
+});

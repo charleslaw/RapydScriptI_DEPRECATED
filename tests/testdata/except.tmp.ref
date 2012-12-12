@@ -1,18 +1,198 @@
-def abc():
-    try:
-        a = null
-        a = a.x
-    except _$rapyd$_Exception:
-        if isinstance(_$rapyd$_Exception, RangeError):
-            e = _$rapyd$_Exception
-            console.log('failed')
+bad_object = None
+
+
+
+#Test the different ways of catching exceptions
+try:
+    bad_list.fake_call()
+except _$rapyd$_Exception:
+    print('Test 1: Got an exception')
+
+try:
+    bad_list.fake_call()
+except _$rapyd$_Exception:
+    if isinstance(_$rapyd$_Exception, TypeError):
+        print('Test 2: Got an exception')
+
+    else:
+        raise _$rapyd$_Exception
+try:
+    bad_list.fake_call()
+except e:
+    print('Test 3: Got an exception' + str(e))
+
+try:
+    bad_list.fake_call()
+except _$rapyd$_Exception:
+    if isinstance(_$rapyd$_Exception, TypeError):
+        e = _$rapyd$_Exception
+        print('Test 4: Got an exception' + str(e))
+
+
+
+    else:
+        raise _$rapyd$_Exception
+#Multiple catches
+try:
+    bad_list.fake_call()
+except _$rapyd$_Exception:
+    if isinstance(_$rapyd$_Exception, FakeError):
+        b = _$rapyd$_Exception
+        print('Test 5: This is unexpected' + str(b))
     
-        elif isinstance(_$rapyd$_Exception, TypeError):
-            e = _$rapyd$_Exception
-            console.log('looks good')
+    elif isinstance(_$rapyd$_Exception, TypeError):
+        e = _$rapyd$_Exception
+        print('Test 5: Got an exception' + str(e))
+    
+    else:
+        print('Test 5: This is unexpected too')
+
+try:
+    bad_list.fake_call()
+except _$rapyd$_Exception:
+    if isinstance(_$rapyd$_Exception, FakeError):
+        print('Test 6: This is unexpected')
+    
+    elif isinstance(_$rapyd$_Exception, TypeError):
+        print('Test 6: Got an exception')
+    
+    else:
+        e = _$rapyd$_Exception
+        print('Test 6: This is unexpected too' + str(e))
+
+
+
+#Have multiple layers of exceptions
+try:
+    bad_list.fake_call()
+except _$rapyd$_Exception:
+    if isinstance(_$rapyd$_Exception, TestError):
+        e = _$rapyd$_Exception
+        print("Test 7: unexpected error" + str(e))
+    
+    elif isinstance(_$rapyd$_Exception, TypeError):
+        d = _$rapyd$_Exception
+        print("Test 7: Step 1" + str(e))
+        try:
+            bad_list.fake_call2()
+        except _$rapyd$_Exception:
+            if isinstance(_$rapyd$_Exception, NestException):
+                print("Test 7: unexpected error")
+        
+            else:
+                print("Test 7: Step 2")
+                try:
+                    bad_list.another_fake_call()
+                except _$rapyd$_Exception:
+                    if isinstance(_$rapyd$_Exception, FakeException):
+                        print("Test 7: unexpected error")
+            
+                    else:
+                        c = _$rapyd$_Exception
+                        print("Test 7: Step 3" + str(c))
+    
+    elif isinstance(_$rapyd$_Exception, FinalError):
+        print("Test 7: unexpected error")
+
+
+
+    else:
+        raise _$rapyd$_Exception
+#Redo the tests inside of a class
+def ExceptClass():
+    pass
+
+#Test the different ways of catching exceptions
+ExceptClass.prototype.test_exceptions = def():
+    try:
+        bad_list.fake_call()
+    except _$rapyd$_Exception:
+        print('Test 8: Got an exception')
+    
+    try:
+        bad_list.fake_call()
+    except _$rapyd$_Exception:
+        if isinstance(_$rapyd$_Exception, TypeError):
+            print('Test 9: Got an exception')
     
         else:
+            raise _$rapyd$_Exception
+    try:
+        bad_list.fake_call()
+    except e:
+        print('Test 10: Got an exception' + str(e))
+    
+    try:
+        bad_list.fake_call()
+    except _$rapyd$_Exception:
+        if isinstance(_$rapyd$_Exception, TypeError):
             e = _$rapyd$_Exception
-            console.log('unexpected exception')
+            print('Test 11: Got an exception' + str(e))
+    
+        else:
+            raise _$rapyd$_Exception
+    #Multiple catches
+    try:
+        bad_list.fake_call()
+    except _$rapyd$_Exception:
+        if isinstance(_$rapyd$_Exception, FakeError):
+            b = _$rapyd$_Exception
+            print('Test 12: This is unexpected' + str(b))
 
-window.onload = abc
+        elif isinstance(_$rapyd$_Exception, TypeError):
+            e = _$rapyd$_Exception
+            print('Test 12: Got an exception' + str(e))
+
+        else:
+            print('Test 12: This is unexpected too')
+    
+    try:
+        bad_list.fake_call()
+    except _$rapyd$_Exception:
+        if isinstance(_$rapyd$_Exception, FakeError):
+            print('Test 13: This is unexpected')
+
+        elif isinstance(_$rapyd$_Exception, TypeError):
+            print('Test 13: Got an exception')
+
+        else:
+            e = _$rapyd$_Exception
+            print('Test 13: This is unexpected too' + str(e))
+    
+    #Have multiple layers of exceptions
+    try:
+        bad_list.fake_call()
+    except _$rapyd$_Exception:
+        if isinstance(_$rapyd$_Exception, TestError):
+            e = _$rapyd$_Exception
+            print("Test 14: unexpected error" + str(e))
+
+        elif isinstance(_$rapyd$_Exception, TypeError):
+            d = _$rapyd$_Exception
+            print("Test 14: Step 1" + str(e))
+            try:
+                bad_list.fake_call2()
+            except _$rapyd$_Exception:
+                if isinstance(_$rapyd$_Exception, NestException):
+                    print("Test 14: unexpected error")
+    
+                else:
+                    print("Test 14: Step 2")
+                    try:
+                        bad_list.another_fake_call()
+                    except _$rapyd$_Exception:
+                        if isinstance(_$rapyd$_Exception, FakeException):
+                            print("Test 14: unexpected error")
+        
+                        else:
+                            c = _$rapyd$_Exception
+                            print("Test 14: Step 3" + str(c))
+
+    
+        else:
+            raise _$rapyd$_Exception
+window.onload = def():
+    a = new ExceptClass()
+    a.test_exceptions()     
+    
+
