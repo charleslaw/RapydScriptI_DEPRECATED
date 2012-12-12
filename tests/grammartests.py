@@ -36,7 +36,7 @@ class TestTuplePackingUnpacking(PyvaTest):
                 return 'a', 2
             """, """
             function() {
-              return ['a', 2];
+              return ["a", 2];
             }
             """)
         self.check("""
@@ -90,7 +90,7 @@ class TestTuplePackingUnpacking(PyvaTest):
                 return 'a', 'hello, test',
             """, """
             function() {
-              return ['a', 'hello, test'];
+              return ["a", "hello, test"];
             }
             """)
 
@@ -100,7 +100,7 @@ class TestTuplePackingUnpacking(PyvaTest):
                 return 'a',2,callme('b', 2,c),'last, one'
             """, """
             function() {
-              return ['a', 2, callme('b', 2, c), 'last, one'];
+              return ["a", 2, callme("b", 2, c), "last, one"];
             }
             """)
 
@@ -108,7 +108,7 @@ class TestTuplePackingUnpacking(PyvaTest):
         self.check("""
             vara, varb = callme('var', c)
             """, """
-            _$rapyd_tuple$_ = callme('var', c);
+            _$rapyd_tuple$_ = callme("var", c);
             vara = _$rapyd_tuple$_[0];
             varb = _$rapyd_tuple$_[1];
             """)
@@ -133,7 +133,7 @@ class TestTuplePackingUnpacking(PyvaTest):
         self.check("""
             vara, varb,varc = callme('var', c)
             """, """
-            _$rapyd_tuple$_ = callme('var', c);
+            _$rapyd_tuple$_ = callme("var", c);
             vara = _$rapyd_tuple$_[0];
             varb = _$rapyd_tuple$_[1];
             varc = _$rapyd_tuple$_[2];
@@ -143,7 +143,7 @@ class TestTuplePackingUnpacking(PyvaTest):
         self.check("""
             packed_tuple = vara,'testme', 2,callable(2,3)
             """, """
-            packed_tuple = [vara, 'testme', 2, callable(2, 3)];
+            packed_tuple = [vara, "testme", 2, callable(2, 3)];
             """)
 
     def test_for_loop_unpacking(self):
@@ -165,7 +165,7 @@ class TestTuplePackingUnpacking(PyvaTest):
             for input in 'inputa', obj.call2(), vara, 9.2:
                 pass
             """, """
-            var _$tmp1_data = _$pyva_iter(['inputa', obj.call2(), vara, 9.2]);
+            var _$tmp1_data = _$pyva_iter(["inputa", obj.call2(), vara, 9.2]);
             var _$tmp2_len = _$tmp1_data.length;
             for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
               input = _$tmp1_data[_$tmp3_index];
@@ -247,7 +247,7 @@ class Test(PyvaTest):
 
     def test_delete(self):
         self.check('del x[a]', 'delete x[a];')
-        self.check("del x['a']", "delete x['a'];")
+        self.check("del x['a']", "delete x[\"a\"];")
         self.check('del x.a', 'delete x.a;')
 
     def test_getitem(self):
@@ -532,7 +532,7 @@ class Test(PyvaTest):
         }
         """, """
         x.prototype = {
-          '__init__': (function() {
+          "__init__": (function() {
             var a, nested, x;
 
             nested = function() {
@@ -543,7 +543,7 @@ class Test(PyvaTest):
             x = (a + 3);
             return x;
           }),
-          'add': (function(a, b, c) {
+          "add": (function(a, b, c) {
             return (1 + 2);
           })
         };
