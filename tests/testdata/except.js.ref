@@ -214,6 +214,176 @@ ExceptClass.prototype.test_exceptions = (function() {
   }
 
 });
+try {
+  bad_list.fake_call();
+} catch(_$rapyd$_Exception) {
+  print("Test 15: Got an exception");
+} finally {
+  print("Test 15: Finally");
+}
+
+try {
+  bad_list.fake_call();
+} catch(_$rapyd$_Exception) {
+  if (isinstance(_$rapyd$_Exception, TypeError)) {
+    print("Test 16: Got an exception");
+  } else {
+    throw _$rapyd$_Exception;
+  }
+
+} finally {
+  print("Test 16: Finally");
+}
+
+try {
+  bad_list.fake_call();
+} catch(_$rapyd$_Exception) {
+  e = _$rapyd$_Exception;
+  print(("Test 17: Got an exception" + str(e)));
+} finally {
+  print("Test 17: Finally");
+}
+
+try {
+  bad_list.fake_call();
+} catch(_$rapyd$_Exception) {
+  if (isinstance(_$rapyd$_Exception, TypeError)) {
+    e = _$rapyd$_Exception;
+    print(("Test 18: Got an exception" + str(e)));
+  } else {
+    throw _$rapyd$_Exception;
+  }
+
+} finally {
+  print("Test 18: Finally");
+}
+
+ExceptFinallyClass = function() {
+  
+};
+
+ExceptFinallyClass.prototype.test_exceptions = (function() {
+  var b, c, d, e;
+  try {
+    bad_list.fake_call();
+  } catch(_$rapyd$_Exception) {
+    print("Test 19: Got an exception");
+  } finally {
+    print("Test 19: Finally");
+  }
+
+  try {
+    bad_list.fake_call();
+  } catch(_$rapyd$_Exception) {
+    if (isinstance(_$rapyd$_Exception, TypeError)) {
+      print("Test 20: Got an exception");
+    } else {
+      throw _$rapyd$_Exception;
+    }
+
+  } finally {
+    print("Test 20: Finally");
+  }
+
+  try {
+    bad_list.fake_call();
+  } catch(_$rapyd$_Exception) {
+    e = _$rapyd$_Exception;
+    print(("Test 21: Got an exception" + str(e)));
+  } finally {
+    print("Test 21: Finally");
+  }
+
+  try {
+    bad_list.fake_call();
+  } catch(_$rapyd$_Exception) {
+    if (isinstance(_$rapyd$_Exception, TypeError)) {
+      e = _$rapyd$_Exception;
+      print(("Test 22: Got an exception" + str(e)));
+    } else {
+      throw _$rapyd$_Exception;
+    }
+
+  } finally {
+    print("Test 22: Finally");
+  }
+
+  try {
+    bad_list.fake_call();
+  } catch(_$rapyd$_Exception) {
+    if (isinstance(_$rapyd$_Exception, FakeError)) {
+      b = _$rapyd$_Exception;
+      print(("Test 23: This is unexpected" + str(b)));
+    } else if (isinstance(_$rapyd$_Exception, TypeError)) {
+      e = _$rapyd$_Exception;
+      print(("Test 23: Got an exception" + str(e)));
+    } else {
+      print("Test 23: This is unexpected too");
+    }
+
+  } finally {
+    print("Test 23: Finally");
+  }
+
+  try {
+    bad_list.fake_call();
+  } catch(_$rapyd$_Exception) {
+    if (isinstance(_$rapyd$_Exception, FakeError)) {
+      print("Test 24: This is unexpected");
+    } else if (isinstance(_$rapyd$_Exception, TypeError)) {
+      print("Test 24: Got an exception");
+    } else {
+      e = _$rapyd$_Exception;
+      print(("Test 24: This is unexpected too" + str(e)));
+    }
+
+  } finally {
+    print("Test 24: Finally");
+  }
+
+  try {
+    bad_list.fake_call();
+  } catch(_$rapyd$_Exception) {
+    if (isinstance(_$rapyd$_Exception, TestError)) {
+      e = _$rapyd$_Exception;
+      print(("Test 25: unexpected error" + str(e)));
+    } else if (isinstance(_$rapyd$_Exception, TypeError)) {
+      d = _$rapyd$_Exception;
+      print(("Test 25: Step 1" + str(e)));
+      try {
+        bad_list.fake_call2();
+      } catch(_$rapyd$_Exception) {
+        if (isinstance(_$rapyd$_Exception, NestException)) {
+          print("Test 25: unexpected error");
+        } else {
+          print("Test 25: Step 2");
+          try {
+            bad_list.another_fake_call();
+          } catch(_$rapyd$_Exception) {
+            if (isinstance(_$rapyd$_Exception, FakeException)) {
+              print("Test 25: unexpected error");
+            } else {
+              c = _$rapyd$_Exception;
+              print(("Test 25: Step 3" + str(c)));
+            }
+
+          } finally {
+            print("Test 25: Finally A");
+          }
+
+        }
+
+      }
+
+    } else {
+      throw _$rapyd$_Exception;
+    }
+
+  } finally {
+    print("Test 25: Finally B");
+  }
+
+});
 window.onload = (function() {
   var a;
   a = new ExceptClass();

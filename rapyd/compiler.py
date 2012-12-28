@@ -206,7 +206,7 @@ def bind_chained_calls(source):
 	return re.sub(r'}\s*\n*\s*<<_rapydscript_bind_>>', '}', source, re.MULTILINE) # handle block binding
 
 
-def make_exception_updates(is_except_line, line, lstrip_line, exception_stack, state_indent):
+def make_exception_updates(line, lstrip_line, exception_stack, state_indent):
 
 	if len(exception_stack) > 0:
 		exception_info = exception_stack[-1]
@@ -252,6 +252,7 @@ def make_exception_updates(is_except_line, line, lstrip_line, exception_stack, s
 
 	#Print and remove exited exceptions
 	#Test whitespace to see if we got ouside an except block
+	is_except_line = lstrip_line.startswith('except')
 	for i in xrange(len(exception_stack)-1, -1, -1):
 		#Exited an except block if:
 		# - current indent < exception indent
@@ -356,13 +357,14 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 
 			# Convert an except to the format accepted by Pyvascript
 			is_except_line = False
-			if lstrip_line[:6] == 'except':
+			if lstrip_line.startswith('except') or \
+					lstrip_line.startswith('finally'):
 				is_except_line = True
 			
 			if is_except_line or (exception_stack and is_nonempty_line):
 				line, lstrip_line, exception_stack = \
-					make_exception_updates(is_except_line, line, lstrip_line,
-											exception_stack, state.indent)
+					make_exception_updates(line, lstrip_line,
+										   exception_stack, state.indent)
 
 			#parse out multi-line comments
 			if lstrip_line[:3] in ('"""', "'''"):
