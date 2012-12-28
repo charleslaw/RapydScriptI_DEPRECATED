@@ -18,7 +18,8 @@ except _$rapyd$_Exception:
         raise _$rapyd$_Exception
 try:
     bad_list.fake_call()
-except e:
+except _$rapyd$_Exception:
+    e = _$rapyd$_Exception
     print('Test 3: Got an exception' + str(e))
 
 try:
@@ -119,7 +120,8 @@ ExceptClass.prototype.test_exceptions = def():
             raise _$rapyd$_Exception
     try:
         bad_list.fake_call()
-    except e:
+    except _$rapyd$_Exception:
+        e = _$rapyd$_Exception
         print('Test 10: Got an exception' + str(e))
     
     try:

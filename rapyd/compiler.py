@@ -239,10 +239,10 @@ def make_exception_updates(is_except_line, line, lstrip_line, exception_stack, s
 				for exception_name in exceptions[1:]:
 					write_str += ' or \\\n%sisinstance(%s, %s)' % \
 							(exception_info['code_indent'], exception_info['exception_var'], exception_name)
-			else:
-				#printing else to the output
-				write_str += 'se'
-			write_buffer('%s:\n' % write_str)
+				write_buffer('%s:\n' % write_str)
+			elif not exception_info['first_exception']:
+				#printing el+se (%sse) to the output
+				write_buffer('%sse:\n' % write_str)
 
 			# set any variables that the user has specified
 			if exception_info and exception_info['var_name']:

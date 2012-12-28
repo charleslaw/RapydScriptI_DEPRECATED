@@ -18,7 +18,8 @@ try {
 
 try {
   bad_list.fake_call();
-} catch(e) {
+} catch(_$rapyd$_Exception) {
+  e = _$rapyd$_Exception;
   print(("Test 3: Got an exception" + str(e)));
 }
 
@@ -128,7 +129,8 @@ ExceptClass.prototype.test_exceptions = (function() {
 
   try {
     bad_list.fake_call();
-  } catch(e) {
+  } catch(_$rapyd$_Exception) {
+    e = _$rapyd$_Exception;
     print(("Test 10: Got an exception" + str(e)));
   }
 

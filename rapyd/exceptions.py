@@ -84,32 +84,25 @@ def process_exception_line(line, indent, indent_size, is_except_line,
             # a first exception if it is a nested except (increased indent)
             first_exception = indent_size > exception_info['source_indent']
 
-        #if first_exception and not exception_list:
-        #    This special case does not require any further processing
-        #    Just print except <some_variable_name>:
-        if not (first_exception and not exception_list):
-
-            if first_exception:
-                #Save the indent size only on the first exception in a set
-                new_exception = {'source_indent': indent_size,
-                                 'exception_var': exception_var}
-            else:
-                #If this is not he first exception, reuse data from the previous
-                #exception - this is really just indent information
-                new_exception = exception_stack.pop(-1)
-            #Always update this information
-            new_exception['exceptions'] = exception_list
-            new_exception['var_name'] = var_name
-            new_exception['first_exception'] = first_exception
-            new_exception['printed'] = False #if exceptionn instanceof exception
-            exception_stack.append(new_exception)
+        if first_exception:
+            #Save the indent size only on the first exception in a set
+            new_exception = {'source_indent': indent_size,
+                             'exception_var': exception_var}
+        else:
+            #If this is not he first exception, reuse data from the previous
+            #exception - this is really just indent information
+            new_exception = exception_stack.pop(-1)
+        #Always update this information
+        new_exception['exceptions'] = exception_list
+        new_exception['var_name'] = var_name
+        new_exception['first_exception'] = first_exception
+        new_exception['printed'] = False #if exceptionn instanceof exception
+        exception_stack.append(new_exception)
 
         if first_exception:
-            if exception_list or var_name is None:
-                var_name = exception_var
             # If this is the first exception seen in a series of exceptions,
             # the line we pass to the ast parser will be except <exception_var>
-            line = indent + 'except %s:\n' % var_name
+            line = indent + 'except %s:\n' % exception_var
         else:
             # If this is no the first exception, essentially blank this line
             # instead it will be if <exception_var> instanceof caught exception
