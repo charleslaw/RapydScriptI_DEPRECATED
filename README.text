@@ -280,6 +280,63 @@ To summarize packing and unpacking, it's basically just syntax sugar to remove o
 	b = tmp[1]
 
 
+Exception Handling
+------------------
+Like Python and JavaScript, RapydScript has exception handling logic. The following, for example, will warn the user if variable `foo` is not defined:
+
+	try:
+		print(foo)
+	except:
+		print('Foo wasn't declared yet')
+
+It's a good practice, however, to only catch exceptions we expect. Imagine, for example, if `foo` was defined, but as a circular structure (with one of its attributes referencing itself):
+
+	foo = {}
+	foo.bar = foo
+
+We would still trigger an exception, but for a completely different reason. A better way to rewrite our `try/except` block would be:
+
+	try:
+		print(foo)
+	except ReferenceError:
+		print('Foo wasn't declared yet')
+
+We could also handle circular structure exception, if we needed to:
+
+	try:
+		print(foo)
+	except ReferenceError:
+		print('foo wasn't declared yet')
+	except TypeError:
+		print("One of foo's attributes references foo")
+
+Or we could jump dump the error back to the user:
+
+	try:
+		print(foo)
+	except as e:
+		print(e.name + ':' + e.message)
+
+`e` is a JavaScript error object, it has `name` and `message` attributes, more information can be found at <https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Error>. You can lump multiple errors in the same except block as well:
+
+	try:
+		print(foo)
+	except ReferenceError, TypeError as e:
+		print(e.name + ':' + e.message)
+
+Basically, `try/except/finally` in RapydScript works very similar to the way it does in Python 3, lacking only the `else` directive (it didn't seem useful enough to implement). Like in Python and JavaScript, you can nest multiple exceptions inside each other, and use `raise` to throw the error back at the user:
+
+	try:
+		print(foo)
+	except ReferenceError as e:
+		if e.message == 'foo is not defined':
+		else:
+			raise e
+	finally:
+		# reset foo
+		foo = 'bar'
+
+
 Python vs JavaScript
 --------------------
 RapydScript allows you use both, Python and JavaScript names for the methods. For example, we can 'push()' a value to array, as well as 'append()' it:
@@ -574,7 +631,6 @@ In a perfect world, software works flawlessly and doesn't have any special cases
 - jQuery erroneously assumes that no other library will be modifying JavaScript's 'Object', and fails to do object.hasOwnProperty() check in multiple places where it should. The standard stdlib.js will therefore break jQuery. To remedy this, you should use stdlib.jquery.safe.js instead. There is also a difference in how hash/dict methods are used between the two libraries. The regular stdlib.js allows you to call hash.keys() as well as dict.keys(hash), like pure Python. The jQuery-safe version only supports the second notation - which is admittedly a bit more awkward.
 - Any anonymous function in hash/object literal must be followed by a comma, even if it's the last argument.
 - List comprehensions could break when nesting multiple of them together on one line
-- List comprehensions could break when using Python-only shorthand syntax in them (`i**2`, for example). Things like 'i+=1' should work fine, however.
 
 
 Additional Features
