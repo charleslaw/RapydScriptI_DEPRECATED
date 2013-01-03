@@ -8,7 +8,6 @@ from exceptions import update_exception_indent_data, process_exception_line
 
 class_list = []
 global_object_list = {}
-dependency_list = [] #TODO: build this and append files in required order
 arg_dump = []
 js_map = {'None' : 'null', 'True' : 'true', 'False' : 'false'}
 
@@ -30,10 +29,19 @@ def import_module(line, output, handler):
 	
 	if tokens[1] not in imported_files:
 		try:
-			imported_files.append(tokens[1])
 			parse_file(tokens[1].replace('.', '/') +'.pyj', output, handler)
 		except IOError:
-			raise ImportError("Can't import %s, module doesn't exist" % tokens[1])
+			# couldn't find the file in local directory, check RapydScript lib directory
+			cur_dir = os.getcwd()
+			try:
+				# we have to rely on __file__, because cwd could be different if invoked by another script
+				os.chdir(os.path.dirname(__file__))
+				parse_file(tokens[1].replace('.', '/') +'.pyj', output, handler)
+			except IOError:
+				raise ImportError("Can't import %s, module doesn't exist" % tokens[1])
+			finally:
+				os.chdir(cur_dir)
+		imported_files.append(tokens[1])
 		
 def add_new_keyword(line):
 	#check to see if we need to plug in the 'new' keyword
