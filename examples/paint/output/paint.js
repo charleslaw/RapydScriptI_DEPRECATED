@@ -120,7 +120,7 @@ Drawing = function() {
     g = colorLayer[(pixelPos + 1)];
     b = colorLayer[(pixelPos + 2)];
     a = colorLayer[(pixelPos + 3)];
-    return ((((r == startPixel[0]) && (g == startPixel[1])) && (b == startPixel[2])) && (bool(a) == bool(startPixel[3])));
+    return ((((r == startPixel[0]) && (g == startPixel[1])) && (b == startPixel[2])) && (!!(a) == !!(startPixel[3])));
   });
   eachPixel = (function(imageData, callback) {
     var length, offset;

@@ -1,6 +1,4 @@
 // basic
-_$pyva_int = parseInt;
-_$pyva_float = parseFloat;
 var JSON = JSON || {};
 if (!JSON.stringify) {
 	JSON.stringify = function(obj) {

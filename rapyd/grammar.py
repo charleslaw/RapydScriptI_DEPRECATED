@@ -78,8 +78,9 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
         'True': 'true',
         'False': 'false',
         'self': 'this',
-        'int': '_$pyva_int',
-        'float': '_$pyva_float',
+        'int': 'parseInt',
+        'float': 'parseFloat',
+        'bool': '!!',
         'tuple': 'list',
         'unicode': 'str',
     }
