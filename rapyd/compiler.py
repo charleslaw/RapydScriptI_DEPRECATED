@@ -9,16 +9,25 @@ from exceptions import update_exception_indent_data, process_exception_line
 class_list = []
 global_object_list = {}
 arg_dump = []
-js_map = {'None' : 'null', 'True' : 'true', 'False' : 'false'}
 
 class State:
-	def __init__(self):
+	def __init__(self, file_name):
 		self.class_name = None
 		self.parent = None
-		self.indent = ''
+		self.indent = ''	# default indent marker of this file
 		self.methods = []
 		self.inclass = False
 		self.incomment = False
+		
+		# file statistics
+		self.file_name = file_name
+		self.line_num = 0
+		self.line_content = ''
+		self.multiline_start_num = -1
+		self.multiline_content = ''
+	
+	def reset(self):
+		self.__init__(self.file_name)
 
 imported_files = []
 def import_module(line, output, handler):
@@ -62,20 +71,22 @@ def add_new_keyword(line):
 
 def convert_to_js(line):
 	"""
-	directly convert some code to js
+	Directly convert some code to js, useful for compiling a chunk of code that PyvaScript
+	can't handle itself.
 	"""
 	line = add_new_keyword(line)
 	line = compile(line).strip()
 	return line
 
 def convert_list_comprehension(line):
-	# replaces list comprehension in a given line with equivalent logic using map() + filter()
-	# combination from stdlib.
+	"""
+	Replace list comprehension in a given line with equivalent logic using map() + filter()
+	combination from stdlib.
 	
-	# this will be slightly inefficient for cases when calling a function on iterated element
-	# due to creation of an extra function call, but the performance impact is negligible and
-	# seems cleaner than introducing additional special cases here
-	
+	this will be slightly inefficient for cases when calling a function on iterated element
+	due to creation of an extra function call, but the performance impact is negligible and
+	seems cleaner than introducing additional special cases here
+	"""
 	# Python requires fixed-width look-aheads/look-behinds, so let's 'fix' them
 	look_behind = re.findall(r'\[\s*.+\sfor\s+', line)
 	# just because we're here, doesn't mean it was a list comprehension, it could have been
@@ -135,7 +146,8 @@ def get_indent(line):
 		basic_indent = indent
 	return indent
 
-def js_convert(value):
+js_map = {'None' : 'null', 'True' : 'true', 'False' : 'false'}
+def convert_keyword_to_js(value):
 	if value in js_map.keys():
 		return js_map[value]
 	else:
@@ -143,12 +155,12 @@ def js_convert(value):
 
 def get_args(line, isclass=True, isdef=True):
 	# get arguments and sets arg_dump as needed (for handling optional arguments)
-	args = line.split('(')[1].split(')')[0].split(',')
+	args = line.split('(', 1)[1].rsplit(')', 1)[0].split(',')
 	for i in range(len(args)):
 		args[i] = args[i].strip()
 		if isdef and args[i].find('=') != -1:
 			assignment = args[i].split('=') 
-			value = js_convert(assignment[1].strip())
+			value = convert_keyword_to_js(assignment[1].strip())
 			args[i] = assignment[0].strip()
 			arg_dump.append('JS(\'if (typeof %s === "undefined") {%s = %s};\')\n' % (args[i], args[i], value))
 	
@@ -176,11 +188,15 @@ def get_arg_dump(line):
 	return output
 
 def set_args(args):
-	#return a string converting argument list to string
+	"""
+	Return a string converting argument list to string
+	"""
 	return '(%s):\n' % ', '.join(args)
 
 def to_star_args(args):
-	# return arg array such that it can be used in 'apply', assuming last argument is *args
+	"""
+	Return arg array such that it can be used in 'apply', assuming last argument is *args
+	"""
 	if args:
 		star = args.pop().lstrip('*')
 		
@@ -188,11 +204,6 @@ def to_star_args(args):
 		arg_arr = '[%s]' % ', '.join([i for i in args])
 		return '%s.concat(%s)' % (arg_arr, star)
 	return ''
-
-def parse_multiline(line):
-	if len(line) >= 2 and line[-2] == '\\':
-		return line.replace('\\\n', ''), 1
-	return line, 0
 
 def invokes_method_from_another_class(line):
 	tag = line.strip()
@@ -221,17 +232,17 @@ def make_exception_updates(line, lstrip_line, exception_stack, state_indent):
 	else:
 		exception_info = None
 
-	#Get information about the current indent (account for class's)
+	# Get information about the current indent (account for class's)
 	indent = get_indent(line)
 	indent_size = len(indent) - len(state_indent)
 
 
-	#Update any indent information
+	# Update any indent information
 	if exception_info and 'if_block_indent' not in exception_info:
 		exception_info = update_exception_indent_data(exception_info, indent_size, line[0], exception_stack)
 
 
-	#print exception info to the buffer
+	# Print exception info to the buffer
 	if exception_info:
 		exceptions = exception_info['exceptions']
 		
@@ -242,14 +253,14 @@ def make_exception_updates(line, lstrip_line, exception_stack, state_indent):
 			if not exception_info['first_exception']:
 					write_str += 'el'
 			if exceptions:
-				#add the first exception
+				# add the first exception
 				write_str += 'if isinstance(%s, %s)' % (exception_info['exception_var'], exceptions[0])
 				for exception_name in exceptions[1:]:
 					write_str += ' or \\\n%sisinstance(%s, %s)' % \
 							(exception_info['code_indent'], exception_info['exception_var'], exception_name)
 				write_buffer('%s:\n' % write_str)
 			elif not exception_info['first_exception']:
-				#printing el+se (%sse) to the output
+				# printing el+se (%sse) to the output
 				write_buffer('%sse:\n' % write_str)
 
 			# set any variables that the user has specified
@@ -257,12 +268,11 @@ def make_exception_updates(line, lstrip_line, exception_stack, state_indent):
 				write_buffer('%s%s = %s\n'% \
 				(exception_info['code_indent'], exception_info['var_name'], exception_info['exception_var']))
 
-
-	#Print and remove exited exceptions
-	#Test whitespace to see if we got ouside an except block
+	# Print and remove exited exceptions
+	# Test whitespace to see if we got ouside an except block
 	is_except_line = lstrip_line.startswith('except')
 	for i in xrange(len(exception_stack)-1, -1, -1):
-		#Exited an except block if:
+		# Exited an except block if:
 		# - current indent < exception indent
 		# - current indent == exception indent AND isn't catching another exception in a try block
 		if (indent_size < exception_stack[i]['source_indent']) or \
@@ -270,53 +280,49 @@ def make_exception_updates(line, lstrip_line, exception_stack, state_indent):
 			
 			exited_exception = exception_stack.pop(-1)
 			if exited_exception['exceptions']:
-				#if we were catching specific exceptions, throw any exceptions that were not caught
+				# if we were catching specific exceptions, throw any exceptions that were not caught
 				write_buffer('%selse:\n%sraise %s\n' % \
 							(exited_exception['if_block_indent'],
 							exited_exception['code_indent'],
 							exited_exception['exception_var']))
 		else:
-			#did not exit the except block, so stop trying
+			# did not exit the except block, so stop trying
 			break
-
-
-	#Update the exception information and update the line with any neccesary added indents
+	
+	# Update the exception information and update the line with any neccesary added indents
 	line, exception_stack = process_exception_line(line, indent, indent_size, is_except_line,
 										exception_stack, exception_info)
-
 
 	lstrip_line = line.lstrip()
 	return line, lstrip_line, exception_stack
 
 
-# I was lazy here, eventually we want to have this be an optional parameter passed to constructor from caller instead of a global
-internal_var_reserved_offset = 0
 class ObjectLiteralHandler:
 
-	def __init__(self):
+	def __init__(self, offset=0):
 		self.object_literal_function_defs = {}
+		self.starting_offset = self.offset = offset
 	
 	def start(self, source):
-		#PyvaScript breaks on function definitions inside dictionaries/object literals
-		#we rip them out and translate them independently, replacing with temporary placeholders
-		global internal_var_reserved_offset
+		# PyvaScript breaks on function definitions inside dictionaries/object literals
+		# we rip them out and translate them independently, replacing with temporary placeholders
 		items = re.findall('(?P<indent>\n\s*)["\'][A-Za-z0-9_$]+["\']+\s*:\s*(?P<main>def\s*\([A-Za-z0-9_=, ]*\):.*?),(?=((?P=indent)(?!\s))|\s*})', source, re.M + re.DOTALL)
 		offset = 0
 		for count, item in enumerate(items):
-			hash_val = '$rapyd_internal_var%d' % (count+internal_var_reserved_offset)
+			hash_val = '$rapyd$_internal_var%d' % (count+self.offset)
 			
-			#apply proper indent, split function into pythonic multi-line version and convert it
-			#we do recursive substitution here to allow object literal declaration inside other functions
+			# apply proper indent, split function into pythonic multi-line version and convert it
+			# we do recursive substitution here to allow object literal declaration inside other functions
 			function = item[1].replace(item[0],'\n').replace('\r', '')
-			handler = ObjectLiteralHandler()
+			handler = ObjectLiteralHandler(self.offset)
 			function = handler.start(function)
 			function = Translator.parse(Grammar.parse(function)).replace('\n', item[0]).rstrip()
 			function = handler.finalize(function)
 			
 			self.object_literal_function_defs[hash_val] = function
 			source = source.replace(item[1], hash_val)
-			offset += 1
-		internal_var_reserved_offset += offset
+			offset += 1 + handler.offset - handler.starting_offset
+		self.offset += offset
 		return source
 		
 	def finalize(self, source):
@@ -337,44 +343,61 @@ def dump_buffer(file):
 	global_buffer = ''
 
 def parse_file(file_name, output, handler = ObjectLiteralHandler()):
-	#parse a single file into global namespace
+	# parse a single file into global namespace
 	global global_buffer
-	state = State()
+	state = State(file_name)
 	need_indent = False
 	exception_stack = []
 	post_init_dump = ''
-	post_function = []
+	post_function = []	# store 'to-do' logic to perform after function definition
 	function_indent = None
-	replaced = 0
+	
 	with open(file_name, 'r') as input:
 		# check for easy to spot errors/quirks we require
 		if not verify_code(file_name, input, global_object_list):
 			sys.exit()
 	
 		input.seek(0)
-		line_num = -1
 		for line in input:
-			line_num += 1
-			line = line.replace('\r','')
+			state.line_num += 1
+			state.line_content = line
 
-			#add an extra indent if needed
+			# stage 0: standardize input
+			# stage 0: stitching multi-line logic and multi-line strings together
+			# stage 1: strip empty and doc-string lines, perform any 'to-do' logic inferred from previous line
+			# stage 2: processing/interpreting the line
+			
+			# stage 0:
+			# standardize input
+			# convert DOS to UNIX format (handles files written in Windows)
+			line = line.replace('\r','')
+			
+			# stage 1:
+			# stitch together lines ending with \
+			if not state.multiline_content:
+				state.multiline_start_num = -1
+			else:
+				# continuing, strip indent
+				line = line[len(get_indent(line)):]
+			if len(line) >= 2 and line[-2] == '\\':
+				# start/continue stitching
+				if not state.multiline_content:
+					# just started, remember the line
+					state.multiline_start_num = state.line_num
+				line = line[:-2]
+				state.multiline_content += line
+				continue
+			else:
+				# finished stitching
+				line = state.multiline_content + line
+				state.multiline_content = ''
+					
+			# stage 2:
+			# add an extra indent if needed, strip out 'blank' lines, perform post-function-defition logic
 			lstrip_line = line.lstrip()
 			is_nonempty_line = len(lstrip_line) > 1 or \
 				len(lstrip_line) == 1 and lstrip_line[0] != '\n'
-			
-
-			# Convert an except to the format accepted by Pyvascript
-			is_except_line = False
-			if lstrip_line.startswith('except') or \
-					lstrip_line.startswith('finally'):
-				is_except_line = True
-			
-			if is_except_line or (exception_stack and is_nonempty_line):
-				line, lstrip_line, exception_stack = \
-					make_exception_updates(line, lstrip_line,
-										   exception_stack, state.indent)
-
-			#parse out multi-line comments
+			# parse out multi-line comments
 			if lstrip_line[:3] in ('"""', "'''"):
 				state.incomment = not state.incomment
 				continue
@@ -385,7 +408,23 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 					write_buffer(post_line)
 				post_function = []
 				function_indent = None
-				#input.seek(line_num)
+			
+			# TODO: Charles, this logic was originally before stage 1, NO interpretation logic should ever happen
+			# before stage 3, I moved it further down but didn't analyze it in more detail, it's possible there
+			# is other logic in stage 3 that should have priority over this, please look into it when you
+			# have the time
+			# Convert an except to the format accepted by Pyvascript
+			is_except_line = False
+			if lstrip_line.startswith('except') or \
+					lstrip_line.startswith('finally'):
+				is_except_line = True
+			
+			if is_except_line or (exception_stack and is_nonempty_line):
+				line, lstrip_line, exception_stack = \
+					make_exception_updates(line, lstrip_line,
+										   exception_stack, state.indent)
+			
+			# stage 3:
 			if line.find('def') != -1 and line.find('def') < line.find(' and ') < line.find(':') \
 			and re.match('^(\s*)(def\s*\(.*\))\s+and\s+([A-Za-z_$][A-Za-z0-9_$]*\(.*\)):$', line):
 				# handle declaration and call at the same time
@@ -407,7 +446,7 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 				# this is where we do our 'magic', creating 'bad' Python that PyvaScript naively translates
 				# into good JavaScript
 				initdef = False
-				state.__init__() #reset state
+				state.reset()
 				state.inclass = True
 				class_data = line[6:].split('(')
 				if len(class_data) == 1: #no inheritance
@@ -441,14 +480,14 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 			# Again, we do more 'magic' here so that we can call parent (and non-parent, removing most of
 			# the need for multiple inheritance) methods.
 			if state.inclass and line[:6] != 'class ':
-				if line.find('def __init__') != -1:
+				if line.lstrip()[:12] == 'def __init__':
 					# constructor definition
 					initdef = True
 					if state.parent is not None:
 						post_init_dump += '%s.prototype.constructor = %s\n' % (state.class_name, state.class_name)
 					init_args = get_args(line)
 					write_buffer('def %s%s' % (state.class_name, set_args(init_args)))
-				elif len(line) > len(state.indent)+4 and line[len(state.indent):len(state.indent)+4] == 'def ':
+				elif line[:len(state.indent)+4] == state.indent + 'def ':
 					# method definition
 					if not initdef:
 						#assume that __init__ will be the first method declared, if it is declared
@@ -481,12 +520,7 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 						write_buffer(get_indent(line) + post_line + '\n')
 				else:
 					# regular line
-					if replaced:
-						line = line.lstrip()
-						replaced = 0
-					elif len(line) > len(state.indent):
-						line = line[len(state.indent):] #dedent
-					line, replaced = parse_multiline(line)
+					line = line[len(state.indent):] # dedent by 1 because we're inside a class
 					write_buffer(get_arg_dump(line))
 					
 					if line.find('.__init__') != -1:
@@ -531,10 +565,6 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 					line = add_new_keyword(line)
 					write_buffer(line)
 			elif line[:6] != 'class ':
-				if replaced:
-					line = line.lstrip()
-					replaced = 0
-				line, replaced = parse_multiline(line)
 				line = add_new_keyword(line)
 				if line.strip()[:4] == 'def ':
 					# function definition
