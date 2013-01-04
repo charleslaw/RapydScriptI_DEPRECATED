@@ -573,10 +573,10 @@ main = function() {
   });
   setStroke("black");
   $colorPickers = $(".colorpicker");
-  var _$tmp4_data = _$pyva_iter([[$stroke, "#fg-color", "#no-stroke", setStroke], [$fill, "#bg-color", "#no-fill", setFill]]);
-  var _$tmp5_len = _$tmp4_data.length;
-  for (var _$tmp6_index = 0; _$tmp6_index < _$tmp5_len; _$tmp6_index++) {
-    _$rapyd$_tuple = _$tmp4_data[_$tmp6_index];
+  var _$tmp1_data = _$pyva_iter([[$stroke, "#fg-color", "#no-stroke", setStroke], [$fill, "#bg-color", "#no-fill", setFill]]);
+  var _$tmp2_len = _$tmp1_data.length;
+  for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
+    _$rapyd$_tuple = _$tmp1_data[_$tmp3_index];
     $swatch = _$rapyd$_tuple[0];
     idtag = _$rapyd$_tuple[1];
     resetid = _$rapyd$_tuple[2];

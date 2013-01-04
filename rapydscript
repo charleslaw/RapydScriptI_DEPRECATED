@@ -10,12 +10,8 @@ if __name__ == "__main__":
 
 	if base_dir:
 		os.chdir(base_dir)
-	with open(filename+'.tmp', 'w') as output:
-		handler = parse_file(orig_file, output)
-
-	with open(filename+'.tmp', 'r') as fp:
-		source = fp.read()
-	output = finalize_source(source, handler)
+	
+	source = parse_file(orig_file)
 	with open(filename + '.js', 'w') as new_file:
-		new_file.write(output)
+		new_file.write(source)
 	os.chdir(orig_dir)
