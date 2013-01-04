@@ -536,7 +536,7 @@ We could also handle circular structure exception, if we needed to:
 	except TypeError:
 		print("One of foo's attributes references foo")
 
-Or we could jump dump the error back to the user:
+Or we could just dump the error back to the user:
 
 	try:
 		print(foo)
@@ -565,6 +565,7 @@ Basically, `try/except/finally` in RapydScript works very similar to the way it 
 		print(foo)
 	except ReferenceError as e:
 		if e.message == 'foo is not defined':
+			print('undefined')
 		else:
 			raise e
 	finally:
