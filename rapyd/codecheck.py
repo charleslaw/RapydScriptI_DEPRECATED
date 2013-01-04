@@ -57,20 +57,6 @@ def verify_code(f, source, global_object_list, auto_correct=False):
 					success = False
 				else:
 					global_object_list[global_object] = (f, line_num)
-	
-		# check for compatible comments
-		if re.search('(\S+\s*("""|\'\'\')\s*\S*|\S*\s*("""|\'\'\')\s*\S+)', line):
-			warn(f, line_num, 'Docstrings should have the quote on separate line, the compiler gets confused otherwise.')
-			success = False
-	
-		# check for compatible comment spacing
-		if re.search('("""|\'\'\')', line):
-			post_comment_block = True
-		elif post_comment_block and not len(line.strip()):
-			warn(f, line_num, 'The line directly after a docstring must not be a blank line.')
-			success = False
-		else:
-			post_comment_block = False
 		
 		# check for implicit 0 before period
 		if re.search('[^0-9]\.[0-9]', line):

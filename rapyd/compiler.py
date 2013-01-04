@@ -10,14 +10,30 @@ class_list = []
 global_object_list = {}
 arg_dump = []
 
+
+def find_all(line, sub, remove_escaped=False):
+	"""
+	Returns array of all occurences of sub in a line
+	"""
+	matches = [match.start() for match in re.finditer(re.escape(sub), line)]
+	if remove_escaped:
+		for index in matches[:]:
+			if line[index-1] == '\\':
+				matches.remove(index)
+	return matches
+
 class State:
 	def __init__(self, file_name):
+		self.indent = ''	# current class indent
+		self.incomment = False
+		self.docstring = False
+		self.comment_type = None
+		
+		# class info
+		self.inclass = False
 		self.class_name = None
 		self.parent = None
-		self.indent = ''	# default indent marker of this file
 		self.methods = []
-		self.inclass = False
-		self.incomment = False
 		
 		# file statistics
 		self.file_name = file_name
@@ -26,8 +42,91 @@ class State:
 		self.multiline_start_num = -1
 		self.multiline_content = ''
 	
-	def reset(self):
+	def reset(self, full_reset=False):
+		if not full_reset:
+			indent = self.indent
+			line_num = self.line_num
 		self.__init__(self.file_name)
+		if not full_reset:
+			self.indent = indent
+			self.line_num = line_num
+	
+	def update_incomment_state(self, line):
+		"""
+		Toggles the current program state to 'incomment' if it encounters 
+		unmatched multi-line quote on the line (triple-" or triple-'). This
+		allows RapydScript preprocessor to ignore doc-strings and multi-line
+		strings, which could otherwise get mutilated or trigger a false error.
+		"""
+		# helper methods only relevant to this function
+		def pop_while_inside(arr1, arr2, pop_arr2=True):
+			"""
+			Keep popping from arr1 while its values are less than arr2[1].
+			arr2[0] and arr2[1] will also be popped
+			"""
+			count = 0
+			if pop_arr2:
+				arr2.pop(0)
+			try:
+				while arr1.pop(0) < arr2[0]:
+					count += 1
+			finally:
+				if pop_arr2:
+					arr2.pop(0)
+			return count
+	
+		def check_for_valid_multiline_quote(comment_type, triggering_list, other_list, sub):
+			"""
+			Checks if this line starts a valid comment, and updates state accordingly
+			"""
+			def terminates_inside_comment(line):
+				"""
+				Returns True if string terminates before comment ("|') closes
+				"""
+				single = find_all(line, "'", True)
+				double = find_all(line, '"', True)
+	
+				try:
+					if min(single[0], double[0]) == single[0]:
+						pop_while_inside(double, single)
+					else:
+						pop_while_inside(single, double)
+				except IndexError:
+					if (len(single) + len(double))%2:
+						return True
+					else:
+						return False
+	
+			triggering_list.pop(0)
+			if not terminates_inside_comment(sub):
+				# valid quote (doesn't occur inside another quote), enter comment mode
+				self.comment_type = comment_type
+				self.incomment = not self.incomment
+	
+		# begin function
+		single = find_all(line, "'''")
+		double = find_all(line, '"""')
+		sub_list = [y for z in [x.split('"""') for x in line.split("'''")] for y in z]
+		# in 99% of the cases, we'll skip directly to the end of the loop, there
+		# will only be one quote in the line, but we should check for all special
+		# cases anyway
+		while single and double:
+			index = min(single[0], double[0])
+			sub = sub_list.pop(0)
+			if index == single[0]:
+				n = pop_while_inside(double, single, False)
+				check_for_valid_multiline_quote("'''", single, double, sub)
+			else:
+				n = pop_while_inside(single, double, False)
+				check_for_valid_multiline_quote('"""', double, single, sub)
+			sub_list = sub_list[n:]
+		sub = sub_list.pop(0)
+		while single:
+			check_for_valid_multiline_quote("'''", single, double, sub)
+		while double:
+			check_for_valid_multiline_quote('"""', double, single, sub)
+		if self.incomment and line.lstrip()[:3] in ('"""', "'''"):
+			self.docstring = True
 
 imported_files = []
 def import_module(line, output, handler):
@@ -309,7 +408,7 @@ class ObjectLiteralHandler:
 		items = re.findall('(?P<indent>\n\s*)["\'][A-Za-z0-9_$]+["\']+\s*:\s*(?P<main>def\s*\([A-Za-z0-9_=, ]*\):.*?),(?=((?P=indent)(?!\s))|\s*})', source, re.M + re.DOTALL)
 		offset = 0
 		for count, item in enumerate(items):
-			hash_val = '$rapyd$_internal_var%d' % (count+self.offset)
+			hash_val = '$rapyd$_internal_var%s' % str(count+self.offset).zfill(20)
 			
 			# apply proper indent, split function into pythonic multi-line version and convert it
 			# we do recursive substitution here to allow object literal declaration inside other functions
@@ -362,15 +461,26 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 			state.line_num += 1
 			state.line_content = line
 
-			# stage 0: standardize input
+			# stage 0: standardize input and check if any processing is required
 			# stage 0: stitching multi-line logic and multi-line strings together
 			# stage 1: strip empty and doc-string lines, perform any 'to-do' logic inferred from previous line
 			# stage 2: processing/interpreting the line
 			
 			# stage 0:
-			# standardize input
+			# standardize input and check if any processing is required
 			# convert DOS to UNIX format (handles files written in Windows)
 			line = line.replace('\r','')
+			lstrip_line = line.lstrip()
+			# check if pre-processing is required
+			previously_comment = state.incomment
+			state.update_incomment_state(line)
+			if state.incomment or (lstrip_line and lstrip_line[0] == '#') or previously_comment:
+				if state.inclass:
+					line = line[len(basic_indent):]
+				if not state.docstring:
+					write_buffer(line)
+				continue
+			state.docstring = False
 			
 			# stage 1:
 			# stitch together lines ending with \
@@ -378,7 +488,7 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 				state.multiline_start_num = -1
 			else:
 				# continuing, strip indent
-				line = line[len(get_indent(line)):]
+				line = lstrip_line
 			if len(line) >= 2 and line[-2] == '\\':
 				# start/continue stitching
 				if not state.multiline_content:
@@ -390,19 +500,13 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 			else:
 				# finished stitching
 				line = state.multiline_content + line
+				lstrip_line = line.lstrip()
 				state.multiline_content = ''
 					
 			# stage 2:
-			# add an extra indent if needed, strip out 'blank' lines, perform post-function-defition logic
-			lstrip_line = line.lstrip()
+			# add an extra indent if needed, perform post-function-defition logic
 			is_nonempty_line = len(lstrip_line) > 1 or \
 				len(lstrip_line) == 1 and lstrip_line[0] != '\n'
-			# parse out multi-line comments
-			if lstrip_line[:3] in ('"""', "'''"):
-				state.incomment = not state.incomment
-				continue
-			if state.incomment:
-				continue
 			if function_indent == get_indent(line):
 				for post_line in post_function:
 					write_buffer(post_line)
@@ -437,7 +541,7 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 				function_indent = groups[0]
 			if need_indent:
 				need_indent=False
-				state.indent=line.split('d')[0] #everything before 'def'
+				state.indent=basic_indent
 			if line[:5] == 'from ' or line[:7] == 'import ':
 				import_module(line, output, handler)
 				continue
