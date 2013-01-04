@@ -475,7 +475,7 @@ def parse_file(file_name, output, handler = ObjectLiteralHandler()):
 			previously_comment = state.incomment
 			state.update_incomment_state(line)
 			if state.incomment or (lstrip_line and lstrip_line[0] == '#') or previously_comment:
-				if state.inclass:
+				if state.inclass and len(line) > len(lstrip_line):
 					line = line[len(basic_indent):]
 				if not state.docstring:
 					write_buffer(line)
