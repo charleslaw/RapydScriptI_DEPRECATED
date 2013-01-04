@@ -54,13 +54,14 @@ range = function(a, b, step) {
   A[0] = a;
   step = (step || 1);
   if ((step > 0)) {
-    a += step;
-    while ((a < b)) {
+    while (((a + step) < b)) {
+      a += step;
       A[A.length] = a;
     }
 
   } else {
-    while ((a > b)) {
+    while (((a + step) > b)) {
+      a += step;
       A[A.length] = a;
     }
 
