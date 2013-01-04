@@ -358,31 +358,47 @@ dict.clear = (function(hash) {
   }
 
 });
-YQL = function(query, callback) {
+YQLError = function(message) {
+  this.name = "YQLError";
+  this.message = message;
+};
+
+YQL = function(query, callback, diagnostics) {
   var doNothing;
+  if (typeof diagnostics === "undefined") {diagnostics = false};
   this.query = query;
   doNothing = (function() {
     
   });
   this.callback = (callback || doNothing);
+  this.diagnostics = diagnostics;
 };
 
+YQLError.prototype = new Error();
+YQLError.prototype.constructor = YQLError;
 YQL.prototype.fetch = (function() {
-  var encodedQuery, instance, scriptEl, uid;
-  if (((!this.query) || (!this.callback))) {
-    throw new Error("YQL.fetch(): YQL.query and YQL.callback must be defined");
+  var encodedQuery, main, scriptEl, uid, url;
+  if ((!this.query)) {
+    throw new YQLError("YQL.query attribute must be defined before invoking YQL.fetch()");
+  } else if ((!this.callback)) {
+    throw new YQLError("YQL.callback attribute must be defined before invoking YQL.fetch()");
   }
 
   scriptEl = document.createElement("script");
   uid = (("yql" + new Date().getTime()) + str(Math.floor((Math.random() * 1000))).zfill(3));
   encodedQuery = encodeURIComponent(this.query.toLowerCase());
-  instance = this;
+  main = this;
   YQL[uid] = (function(json) {
-    instance.callback(json["query"]);
+    main.callback(json["query"]);
     delete YQL[uid];
     document.body.removeChild(scriptEl);
   });
-  scriptEl.src = ((("http://query.yahooapis.com/v1/public/yql?q=" + encodedQuery) + "&format=json&callback=YQL.") + uid);
+  url = ("http://query.yahooapis.com/v1/public/yql?q=" + encodedQuery);
+  if (this.diagnostics) {
+    url += "&diagnostics=true";
+  }
+
+  scriptEl.src = ((url + "&format=json&callback=YQL.") + uid);
   document.body.appendChild(scriptEl);
 });
 Stock = function(symbols, callback) {
