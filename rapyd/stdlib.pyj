@@ -11,9 +11,7 @@
 ###########################################################
 # Basic Functionality
 ###########################################################
-# returns object type
-def type(obj):
-	return typeof(obj)
+
 JSON = JSON or {}
 
 # implement JSON.stringify in older browsers, if doesn't already exist
@@ -59,7 +57,7 @@ def len(item):
 # Python's range() function
 def range(a, b, step):
 	A = []
-	if type(b) is "undefined":
+	if typeof(b) is "undefined":
 		b = a
 		a = 0
 	A[0] = a
@@ -148,9 +146,6 @@ Function.prototype.bind = (function(owner) {
 
 	return bound;
 });
-function type(object) {
-	return typeof(object);
-}
 """)
 
 
@@ -279,7 +274,7 @@ def dict(iterable):
 		result[key] = iterable[key]
 	return result
 
-if type(Object.getOwnPropertyNames) is not "function":
+if typeof(Object.getOwnPropertyNames) is not "function":
 	# IE and older browsers
 	dict.keys = def(hash):
 		keys = []
