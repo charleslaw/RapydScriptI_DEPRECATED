@@ -18,7 +18,7 @@ def get_test_file_list():
             file_type = '.pyj'
         elif filename.endswith('.ref'):
             test_name, file_type = path.splitext(filename[:-4])
-            if file_type not in ['.js', '.tmp']:
+            if file_type not in ['.js']:
                 file_type = ''
         
         if test_name and file_type:
@@ -28,8 +28,8 @@ def get_test_file_list():
 
     test_list = []
     for test_name, test_file_list in file_dict.iteritems():
-        #save tests that have all 3 files
-        if len(test_file_list) == 3:
+        #save tests that have all 2 files
+        if len(test_file_list) == 2:
             test_list.append(test_name)
         else:
             print('%s has unexpected files %s' % (test_name, test_file_list))
@@ -37,7 +37,7 @@ def get_test_file_list():
 
 
 def delete_test_output(test_name):
-    for check_ext in 'tmp', 'js':
+    for check_ext in ('js', ):
         try:
             check_file = '%s/%s.%s'%(DATA_DIR, test_name, check_ext)
             remove(check_file)
@@ -52,7 +52,7 @@ def test_generator(test_name):
         p = Popen(['./rapydscript', '%s/%s.pyj'%(DATA_DIR, test_name)])
         p.communicate() #wait for rapydscript to run
         #check the output files were generated
-        for check_ext, test in (('tmp', 'precompiler'), ('js', 'Javascript')):
+        for check_ext, test in (('js', 'Javascript'), ):
             check_file = '%s/%s.%s'%(DATA_DIR, test_name, check_ext)
             self.assertTrue(cmp(check_file, '%s.ref' % check_file),
                             'Unexpected %s output for %s' % (check_file, test))
