@@ -43,6 +43,7 @@ string    :s       -> json.dumps(s)
 new  expr:c                  -> 'new %s' % c
 
 call ['name' 'len'] [expr:obj] -> '%s.length' % obj
+call ['name' 'type'] [expr:obj] -> 'typeof(%s)' % obj
 call ['name' 'hasattr'] [expr:obj expr:attr] -> '(typeof %s[%s] != "undefined")' % (obj, attr)
 call ['name' 'getattr'] [expr:obj expr:attr] -> '%s[%s]' % (obj, attr)
 call ['name' 'setattr'] [expr:obj expr:attr expr:value] -> '%s[%s] = %s' % (obj, attr, value)
