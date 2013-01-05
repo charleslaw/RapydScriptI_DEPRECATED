@@ -1,4 +1,4 @@
-bad_object = null;
+bad_list = null;
 try {
   bad_list.fake_call();
 } catch(_$rapyd$_Exception) {
@@ -384,6 +384,12 @@ ExceptFinallyClass.prototype.test_exceptions = (function() {
   }
 
 });
+try {
+  bad_list.fake_call();
+} finally {
+  print("Finally");
+}
+
 window.onload = (function() {
   var a;
   a = new ExceptClass();

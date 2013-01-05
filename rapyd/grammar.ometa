@@ -146,4 +146,9 @@ lambda = "lambda" mandspace csv('name'):args optspace ':' expr:e -> ['func', Non
 try = "try" optspace ':' block:body
       emptyline* indentation "except" mandspace name:err optspace ':' block:errbody
       (emptyline* indentation "finally" optspace ':' block)?:finbody
-      -> ['try', body, err, errbody] + ([finbody] if finbody else [])
+      -> ['try', body, [err, errbody]] + ([finbody] if finbody else [])
+    | "try" optspace ':' block:body
+      emptyline* indentation "finally" optspace ':' block:finbody
+      -> ['try', body, finbody]
+
+

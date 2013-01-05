@@ -1,4 +1,4 @@
-bad_object = None
+bad_list = None
 
 
 
@@ -248,6 +248,14 @@ class ExceptFinallyClass:
                     print('Test 25: Finally A')
         finally:
             print('Test 25: Finally B')
+
+
+# Simple try finally test
+try:
+    bad_list.fake_call()
+finally:
+    print('Finally')
+
         
 window.onload = def():
     a = ExceptClass()

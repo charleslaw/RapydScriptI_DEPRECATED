@@ -196,6 +196,14 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
             expr.append('else %s' % elseblock)
         return ' '.join(expr)
 
+    def make_try(self, body, err, finbody):
+    	expr = ['try %s' % body]
+    	if err is not None:
+    		expr.append('catch(%s) %s' % (err[0], err[1]))
+    	if finbody is not None:
+    		expr.append('finally %s' % finbody)
+        return ' '.join(expr)
+
     def make_for(self, var, data, body):
         indentstr = '  ' * self.indentation
         datavar = self.make_temp_var('data')
