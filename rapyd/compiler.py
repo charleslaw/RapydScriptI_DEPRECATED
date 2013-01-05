@@ -72,7 +72,7 @@ class State:
 		return args
 	
 	def parse_fun(self, line, isclass=True):
-		method_name = line.lstrip().split()[1].split('(')[0]
+		method_name = line.split('(')[0]
 		method_args = self.get_args(line, isclass)
 		return method_name, method_args
 	
@@ -605,7 +605,7 @@ def parse_file(file_name, handler = ObjectLiteralHandler()):
 					if post_init_dump:
 						state.write_buffer(post_init_dump)
 						post_init_dump = ''
-					method_name, method_args = state.parse_fun(line)
+					method_name, method_args = state.parse_fun(lstrip_line[4:])
 					
 					# handle *args for function declaration
 					post_declaration = []
@@ -622,6 +622,27 @@ def parse_file(file_name, handler = ObjectLiteralHandler()):
 					# finalize *args logic, if any
 					for post_line in post_declaration:
 						state.write_buffer(state.get_indent(line) + post_line + '\n')
+				elif line.find('def') and re.search(r'\bdef\b', line):
+					# normal or anonymous function definition that just happens to be inside a class
+					line = line[len(state.indent):] # dedent by 1 because we're inside a class
+					fun_def = re.split(r'\bdef\b', line)
+					fun_name, fun_args = state.parse_fun(fun_def[1], False)
+					
+					# handle *args for function declaration
+					post_declaration = []
+					if fun_args and fun_args[-1][0] == '*':
+						count = 0
+						for arg in fun_args[:-1]:
+							post_declaration.append('%s = arguments[%s]' % (arg, count))
+							count += 1
+						post_declaration.append('%s = [].slice.call(arguments, %s)' % (fun_args[-1][1:], count))
+						fun_args = ''
+						
+					state.write_buffer(fun_def[0]+'def%s%s' % (fun_name, set_args(fun_args)))
+					
+					# finalize *args logic, if any
+					for post_line in post_declaration:
+						state.write_buffer(state.get_indent(line) + state.basic_indent + post_line + '\n')
 				else:
 					# regular line
 					line = line[len(state.indent):] # dedent by 1 because we're inside a class
@@ -670,9 +691,13 @@ def parse_file(file_name, handler = ObjectLiteralHandler()):
 					state.write_buffer(line)
 			elif line[:6] != 'class ':
 				line = add_new_keyword(line)
-				if line.strip()[:4] == 'def ':
-					# function definition
-					fun_name, fun_args = state.parse_fun(line, False)
+				if line.find('def') != -1 and re.search(r'\bdef\b', line):
+					# find() filters out the first 90% of the cases, and the expensive regex
+					# is only performed on the last few cases to keep the compiler fast
+					
+					# function definition, has to handle normal functions as well as anonymous ones
+					fun_def = re.split(r'\bdef\b', line)
+					fun_name, fun_args = state.parse_fun(fun_def[1], False)
 					
 					# handle *args for function declaration
 					post_declaration = []
@@ -684,7 +709,7 @@ def parse_file(file_name, handler = ObjectLiteralHandler()):
 						post_declaration.append('%s = [].slice.call(arguments, %s)' % (fun_args[-1][1:], count))
 						fun_args = ''
 						
-					state.write_buffer(state.get_indent(line)+'def %s%s' % (fun_name, set_args(fun_args)))
+					state.write_buffer(fun_def[0]+'def%s%s' % (fun_name, set_args(fun_args)))
 					
 					# finalize *args logic, if any
 					for post_line in post_declaration:
@@ -713,7 +738,11 @@ def parse_file(file_name, handler = ObjectLiteralHandler()):
 		post_init_dump = ''
 	
 	state.file_buffer = handler.start(state.file_buffer)
-	global_buffer += finalize_source(state.file_buffer, handler)
+	try:
+		global_buffer += finalize_source(state.file_buffer, handler)
+	except:
+		print "Parse Error in %s:\n" % file_name
+		raise
 	return global_buffer
 
 def finalize_source(source, handler):
