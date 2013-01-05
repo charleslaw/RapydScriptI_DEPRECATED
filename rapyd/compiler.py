@@ -335,7 +335,7 @@ def bind_chained_calls(source):
 	return re.sub(r'}\s*\n*\s*<<_rapydscript_bind_>>', '}', source, re.MULTILINE) # handle block binding
 
 
-def make_exception_updates(line, lstrip_line, exception_stack, state_indent):
+def make_exception_updates(line, lstrip_line, exception_stack, state):
 
 	if len(exception_stack) > 0:
 		exception_info = exception_stack[-1]
@@ -344,7 +344,7 @@ def make_exception_updates(line, lstrip_line, exception_stack, state_indent):
 
 	# Get information about the current indent (account for class's)
 	indent = state.get_indent(line)
-	indent_size = len(indent) - len(state_indent)
+	indent_size = len(indent) - len(state.indent)
 
 
 	# Update any indent information
@@ -513,10 +513,6 @@ def parse_file(file_name, handler = ObjectLiteralHandler()):
 				post_function = []
 				function_indent = None
 			
-			# TODO: Charles, this logic was originally before stage 1, NO interpretation logic should ever happen
-			# before stage 3, I moved it further down but didn't analyze it in more detail, it's possible there
-			# is other logic in stage 3 that should have priority over this, please look into it when you
-			# have the time
 			# Convert an except to the format accepted by Pyvascript
 			is_except_line = False
 			if lstrip_line.startswith('except') or \
@@ -526,7 +522,7 @@ def parse_file(file_name, handler = ObjectLiteralHandler()):
 			if is_except_line or (exception_stack and is_nonempty_line):
 				line, lstrip_line, exception_stack = \
 					make_exception_updates(line, lstrip_line,
-										   exception_stack, state.indent)
+										   exception_stack, state)
 			
 			# stage 3:
 			if line.find('def') != -1 and line.find('def') < line.find(' and ') < line.find(':') \
