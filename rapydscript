@@ -2,29 +2,77 @@
 
 import re, os
 import argparse
+from subprocess import Popen, PIPE
+import pipes
 from rapyd.compiler import parse_file, finalize_source
+
+class ShellError(Exception):
+	"""
+	Helper class for outputting error messages
+	"""
+	def __init__(self, message):
+		self.message = message
+
+	def __str__(self):
+		return self.message
 
 parser = argparse.ArgumentParser(description='Pre-Compiler for JavaScript. \
 Simplifies writing JavaScript by simplifying the syntax and making it more \
 human-readable as well as adding useful features from Python (classes, list \
 comprehensions, proper scoping, support for multiple modules, and more).')
 
-parser.add_argument('input', metavar='INPUT', type=file,
+parser.add_argument('input', metavar='INPUT', type=file, nargs='?', # this is only optional if --recompile is specified
 					help='The RapydScript file to compile')
 parser.add_argument('--no-acknowledgement', dest='no_ack', action='store_true', default=False,
 					help='Avoid the string stating that the file was generating using RapydScript')
+parser.add_argument('--recompile', dest='recompile', action='store_true', default=False,
+					help='Rerun all tests, rebuild all examples and stdlib. You should ALWAYS \
+					re-run this option before any commit. You should also manually test that each \
+					example works after rerunning this.')
 
 args = parser.parse_args()
 
 if __name__ == "__main__":
-	orig_dir = os.getcwd()
-	base_dir, orig_file = os.path.split(args.input.name)
-	filename = orig_file.rsplit('.', 1)[0] # remove the extension
+	if args.recompile:
+		result = Popen('python setup.py test', stdout=PIPE, stderr=PIPE, shell=True).communicate()
+		# for some reason setuptools developers think it makes sense to output the test
+		# results as STDERR, as far as I'm concerned that's a BUG, but to stay consistent
+		# with it, I will have to parse STDERR for 'OK' message.
+		print "Tests: ", result[1].split('\n')[-2]
 
-	if base_dir:
-		os.chdir(base_dir)
+		# recompile stdlib
+		result = Popen('./rapydscript rapyd/stdlib.pyj', stdout=PIPE, stderr=PIPE, shell=True).communicate()
+		if result[1]:
+			print ''.join(result)
+		else:
+			print "stdlib:  OK"
 
-	source = parse_file(orig_file)
-	with open(filename + '.js', 'w') as new_file:
-		new_file.write(source)
-	os.chdir(orig_dir)
+		# recompile examples
+		dir_loc = 'examples'
+		sub_dirs = os.listdir(dir_loc)
+		home_dir = os.getcwd()
+		for sub_dir in sub_dirs:
+			os.chdir('%s/%s' % (dir_loc, sub_dir))
+			result = Popen('./build', stdout=PIPE, stderr=PIPE, shell=True).communicate()
+			if result[1]:
+				print ''.join(result)
+			else:
+				print "%s: compilation OK, please test that the app works" % sub_dir
+			os.chdir(home_dir)
+	elif not args.input:
+		parser.print_usage()
+		print "rapydscript: error: too few arguments"
+	else:
+		orig_dir = os.getcwd()
+		base_dir, orig_file = os.path.split(args.input.name)
+		filename = orig_file.rsplit('.', 1)[0] # remove the extension
+
+		if base_dir:
+			os.chdir(base_dir)
+
+		source = parse_file(orig_file)
+		with open(filename + '.js', 'w') as new_file:
+			if not args.no_ack:
+				new_file.write('/* This file was auto-generated using RapydScript */\n')
+			new_file.write(source)
+		os.chdir(orig_dir)

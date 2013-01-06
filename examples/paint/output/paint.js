@@ -1,3 +1,4 @@
+/* This file was auto-generated using RapydScript */
 BRUSH = 0;
 ERASER = 1;
 LINE = 2;

@@ -1,3 +1,4 @@
+/* This file was auto-generated using RapydScript */
 bad_list = null;
 try {
   bad_list.fake_call();

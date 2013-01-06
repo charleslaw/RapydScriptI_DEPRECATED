@@ -1,3 +1,4 @@
+/* This file was auto-generated using RapydScript */
 test_fun = function() {
   var a, b;
   a = range(10).map(function(i) {return i;}, this);
