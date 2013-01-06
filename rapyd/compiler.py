@@ -416,7 +416,7 @@ class ObjectLiteralHandler:
 	def start(self, source):
 		# PyvaScript breaks on function definitions inside dictionaries/object literals
 		# we rip them out and translate them independently, replacing with temporary placeholders
-		items = re.findall('(?P<indent>\n\s*)["\'][A-Za-z0-9_$]+["\']+\s*:\s*(?P<main>def\s*\([A-Za-z0-9_=, ]*\):.*?),(?=((?P=indent)(?!\s))|\s*})', source, re.M + re.DOTALL)
+		items = re.findall('(?P<indent>\n\s*)["\']?[A-Za-z0-9_$]+["\']?\s*:\s*(?P<main>def\s*\([A-Za-z0-9_=, ]*\):.*?),(?=((?P=indent)(?!\s))|\s*})', source, re.M + re.DOTALL)
 		offset = 0
 		for count, item in enumerate(items):
 			hash_val = '$rapyd$_internal_var%s' % str(count+self.offset).zfill(20)
