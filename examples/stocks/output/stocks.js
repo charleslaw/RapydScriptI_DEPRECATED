@@ -1,7 +1,3 @@
-type = function(obj) {
-  return typeof(obj);
-};
-
 JSON = (JSON || {
   
 });
@@ -46,7 +42,7 @@ len = function(item) {
 range = function(a, b, step) {
   var A;
   A = [];
-  if ((type(b) === "undefined")) {
+  if ((typeof(b) === "undefined")) {
     b = a;
     a = 0;
   }
@@ -144,9 +140,6 @@ Function.prototype.bind = (function(owner) {
 
   return bound;
 });
-function type(object) {
-  return typeof(object);
-}
 
 ValueError = function(message) {
   this.name = "ValueError";
@@ -298,7 +291,7 @@ dict = function(iterable) {
   return result;
 };
 
-if ((type(Object.getOwnPropertyNames) !== "function")) {
+if ((typeof(Object.getOwnPropertyNames) !== "function")) {
   dict.keys = (function(hash) {
     var keys;
     keys = [];
