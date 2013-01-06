@@ -82,9 +82,9 @@ def main():
 		# a function generator allows us to create a handler tied to current values, not the final ones
 		# that the loop terminates with (useful for keeping color-pickers independent)
 		makeHandler = def($target, $popup):
-			showColorpicker = def():
+			showColorpicker = def(event):
 				$colorPickers.hide()
-				popupUnder($target, $popup)
+				popupUnder(event, $target, $popup)
 			return showColorpicker
 		$swatch.click(makeHandler($swatch, $colorPicker))
 		
@@ -98,7 +98,7 @@ def main():
 		$(resetid).click(makeReset($swatch, callback))
 	
 	# set up top menubar
-	popupUnder = def($element, $popup):
+	popupUnder = def(event, $element, $popup):
 		event.stopPropagation() # prevent document from closing us
 		absolute = $element.offset()
 		$popup.css({'left': absolute.left, 'top': absolute.top+$element.outerHeight()}).show()
@@ -108,7 +108,7 @@ def main():
 		idtag = $this.attr('id').split('-')[2]
 		showMenu = def(event):
 			$menus.hide()
-			popupUnder($this, $('#menubar-menu-'+idtag))
+			popupUnder(event, $this, $('#menubar-menu-'+idtag))
 		$this.click(showMenu)
 	
 	# hide menus if we click anywhere outside the menu div

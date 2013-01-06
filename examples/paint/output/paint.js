@@ -586,9 +586,9 @@ main = function() {
     $colorPicker.farbtastic(callback);
     makeHandler = (function($target, $popup) {
       var showColorpicker;
-      showColorpicker = (function() {
+      showColorpicker = (function(event) {
         $colorPickers.hide();
-        popupUnder($target, $popup);
+        popupUnder(event, $target, $popup);
       });
       return showColorpicker;
     });
@@ -605,7 +605,7 @@ main = function() {
     $(resetid).click(makeReset($swatch, callback));
   }
 
-  popupUnder = (function($element, $popup) {
+  popupUnder = (function(event, $element, $popup) {
     var absolute;
     event.stopPropagation();
     absolute = $element.offset();
@@ -621,7 +621,7 @@ main = function() {
     idtag = $this.attr("id").split("-")[2];
     showMenu = (function(event) {
       $menus.hide();
-      popupUnder($this, $(("#menubar-menu-" + idtag)));
+      popupUnder(event, $this, $(("#menubar-menu-" + idtag)));
     });
     $this.click(showMenu);
   });
