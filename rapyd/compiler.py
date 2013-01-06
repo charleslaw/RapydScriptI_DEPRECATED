@@ -23,28 +23,36 @@ def find_all(line, sub, remove_escaped=False):
 
 class State:
 	def __init__(self, file_name):
-		self.indent = ''	# current class indent
-		self.incomment = False
-		self.docstring = False
-		self.comment_type = None
+	
+		# basic info about current state
+		self.indent = ''			# current indent offset (currently only used by class)
+		self.incomment = False		# identifies if we're currently in multi-line string (used to prevent parsing strings)
+		self.docstring = False		# true if multi-line string is not assigned to anything (used as a docstring)
+		self.comment_type = None	# if in string, identifies the quote type that started the string
+		self.exception_stack = []	# current exception stack (used when processing try/except blocks)
 		
-		# class info
-		self.inclass = False
-		self.class_name = None
-		self.parent = None
-		self.methods = []
+		# current class info
+		self.inclass = False		# True if we're currently inside a class definition
+		self.need_indent = False	# Used by class to trigger logic that sets correct indentation level
+		self.initdef = False		# True if code defines __init__ method explicitly
+		self.class_name = None		# if in class, defines the class name
+		self.parent = None			# if in class, defines the class we inherited from
+		self.methods = []			# if in class, identifies member methods of this class that have been processed so far
+		self.post_init_dump = ''	# code to write into the buffer after __init__ definition
 		
-		# function info
-		self.arg_dump = []
+		# current function info
+		self.arg_dump = []			# contains code used to set optional arguments in case they're not passed in
+		self.function_indent = None	# indentation level of this particular function
+		self.post_function = []		# store 'to-do' logic to perform after function definition
 		
-		# file statistics
-		self.basic_indent = ''
-		self.file_buffer = ''
-		self.file_name = file_name
-		self.line_num = 0
-		self.line_content = ''
-		self.multiline_start_num = -1
-		self.multiline_content = ''
+		# current file statistics
+		self.basic_indent = ''		# basic indent marker used by the file (a sequence of whitespace characters)
+		self.file_buffer = ''		# parsed portion of the current file (after RapydScript logic, but before PyvaScript)
+		self.file_name = file_name	# name of currently parsed file
+		self.line_num = 0			# line number we're currently on inside the file we're currently parsing
+		self.line_content = ''		# line content of the current line
+		self.multiline_start_num = -1	# line number where multiline content started, used with lines stitched via \
+		self.multiline_content = ''		# content of entire multi-line block after stitching \-lines together
 	
 	def get_indent(self, line):
 		indent = line[:len(line)-len(line.lstrip())].rstrip('\n') # in case of empty line, remove \n
@@ -326,19 +334,24 @@ def invokes_method_from_another_class(line):
 	return False
 
 def wrap_chained_call(line):
-	# this logic allows some non-Pythonic syntax in favor of JavaScript-like function usage (chaining, and calling anonymous function without assigning it)
+	"""
+	This logic allows some non-Pythonic syntax in favor of JavaScript-like function usage (chaining, 
+	and calling anonymous function without assigning it)
+	"""
 	return 'JS("<<_rapydscript_bind_>>%s;")\n' % line.rstrip().replace('"', '\\"')
 
 def bind_chained_calls(source):
-	# this logic finalizes the above logic after PyvaScript has run
+	"""
+	This logic finalizes the above logic after PyvaScript has run
+	"""
 	source = re.sub(r';\s*\n*\s*<<_rapydscript_bind_>>', '', source, re.MULTILINE) # handle semi-colon binding
 	return re.sub(r'}\s*\n*\s*<<_rapydscript_bind_>>', '}', source, re.MULTILINE) # handle block binding
 
 
-def make_exception_updates(line, lstrip_line, exception_stack, state):
+def make_exception_updates(line, lstrip_line, state):
 
-	if len(exception_stack) > 0:
-		exception_info = exception_stack[-1]
+	if len(state.exception_stack) > 0:
+		exception_info = state.exception_stack[-1]
 	else:
 		exception_info = None
 
@@ -349,7 +362,7 @@ def make_exception_updates(line, lstrip_line, exception_stack, state):
 
 	# Update any indent information
 	if exception_info and 'if_block_indent' not in exception_info:
-		exception_info = update_exception_indent_data(exception_info, indent_size, line[0], exception_stack)
+		exception_info = update_exception_indent_data(exception_info, indent_size, line[0], state.exception_stack)
 
 
 	# Print exception info to the buffer
@@ -381,14 +394,14 @@ def make_exception_updates(line, lstrip_line, exception_stack, state):
 	# Print and remove exited exceptions
 	# Test whitespace to see if we got ouside an except block
 	is_except_line = lstrip_line.startswith('except')
-	for i in xrange(len(exception_stack)-1, -1, -1):
+	for i in xrange(len(state.exception_stack)-1, -1, -1):
 		# Exited an except block if:
 		# - current indent < exception indent
 		# - current indent == exception indent AND isn't catching another exception in a try block
-		if (indent_size < exception_stack[i]['source_indent']) or \
-				(indent_size == exception_stack[i]['source_indent'] and not is_except_line):
+		if (indent_size < state.exception_stack[i]['source_indent']) or \
+				(indent_size == state.exception_stack[i]['source_indent'] and not is_except_line):
 			
-			exited_exception = exception_stack.pop(-1)
+			exited_exception = state.exception_stack.pop()
 			if exited_exception['exceptions']:
 				# if we were catching specific exceptions, throw any exceptions that were not caught
 				state.write_buffer('%selse:\n%sraise %s\n' % \
@@ -400,11 +413,11 @@ def make_exception_updates(line, lstrip_line, exception_stack, state):
 			break
 	
 	# Update the exception information and update the line with any neccesary added indents
-	line, exception_stack = process_exception_line(line, indent, indent_size, is_except_line,
-										exception_stack, exception_info)
+	line, state.exception_stack = process_exception_line(line, indent, indent_size, is_except_line,
+										state.exception_stack, exception_info)
 
 	lstrip_line = line.lstrip()
-	return line, lstrip_line, exception_stack
+	return line, lstrip_line
 
 
 class ObjectLiteralHandler:
@@ -445,12 +458,244 @@ def parse_file(file_name, handler = ObjectLiteralHandler()):
 	# parse a single file into global namespace
 	global global_buffer
 	state = State(file_name)
-	need_indent = False
-	exception_stack = []
-	post_init_dump = ''
-	post_function = []	# store 'to-do' logic to perform after function definition
-	function_indent = None
 	
+	# declare function for parsing a single line
+	def parse_line(line, state):
+	
+		# we can't simply pass in old lstrip_line since the line could have been split
+		lstrip_line = line.lstrip()
+	
+		# stage 2:
+		# add an extra indent if needed, perform post-function-definition logic
+		is_nonempty_line = len(lstrip_line) > 1 or \
+			len(lstrip_line) == 1 and lstrip_line[0] != '\n'
+		if state.function_indent >= state.get_indent(line):
+			for post_line in state.post_function:
+				state.write_buffer(post_line)
+			state.post_function = []
+			state.function_indent = None
+		
+		# Convert an except to the format accepted by PyvaScript
+		is_except_line = False
+		if lstrip_line.startswith('except') or \
+				lstrip_line.startswith('finally'):
+			is_except_line = True
+		
+		if is_except_line or (state.exception_stack and is_nonempty_line):
+			line, lstrip_line = make_exception_updates(line, lstrip_line, state)
+		
+		# stage 3:
+		if line.find('def') != -1 and line.find('def') < line.find(' and ') < line.find(':') \
+		and re.match('^(\s*)(def\s*\(.*\))\s+and\s+([A-Za-z_$][A-Za-z0-9_$]*\(.*\)):$', line):
+			# handle declaration and call at the same time
+			groups = re.match('^(\s*)(def\s*\(.*\))\s+and\s+([A-Za-z_$][A-Za-z0-9_$]*\(.*\)):$', line).groups()
+			line = groups[0] + groups[1] + ':\n'
+			indentation = groups[0]
+			if state.inclass:
+				indentation = indentation[len(state.indent):] # dedent
+			state.post_function.append('%s%s\n' % (indentation, wrap_chained_call('.%s' % groups[2])))
+			function_indent = groups[0]
+		if line[:5] == 'from ' or line[:7] == 'import ':
+			import_module(line, handler)
+			return
+		if state.need_indent:
+			state.indent = state.basic_indent
+			state.need_indent = False
+		if line[:6] == 'class ':
+			# class definition
+			# this is where we do our 'magic', creating 'bad' Python that PyvaScript naively translates
+			# into good JavaScript
+			
+			# if we were already processing another class, finalize it now
+			if state.post_init_dump:
+				state.write_buffer(state.post_init_dump)
+				state.post_init_dump = ''
+			
+			state.reset()
+			state.inclass = True
+			class_data = line[6:].split('(')
+			if len(class_data) == 1: #no inheritance
+				state.class_name = class_data[0][:-2] #remove the colon and newline from the end
+			else:
+				state.class_name = class_data[0]
+				state.parent = class_data[1][:-3] #assume single inheritance, remove '):'
+				state.post_init_dump += '%s.prototype = new %s()\n' % (state.class_name, state.parent)
+			class_list.append(state.class_name)
+			state.need_indent = True # don't set the indent yet, it might not be available if this is the first line
+		elif line[0] not in (' ', '\t', '\n'):
+			#line starts with a non-space character
+			if state.post_init_dump:
+				state.write_buffer(state.post_init_dump)
+				state.post_init_dump = ''
+			state.inclass = False
+			
+		# convert list comprehensions
+		# don't bother performing expensive regex unless the line actually has 'for' keyword in it
+		if line.find(' for ') != -1:
+			line = convert_list_comprehension(line)
+
+		# handle JavaScript-like chaining
+		if state.file_buffer and state.file_buffer[-1] == '\n' and lstrip_line and lstrip_line[0] == '.':
+			if state.inclass:
+				line = line[len(state.indent):] # dedent
+			state.write_buffer(line.split('.')[0] + wrap_chained_call(lstrip_line))
+			return
+
+		# process the code as if it's part of a class
+		# Again, we do more 'magic' here so that we can call parent (and non-parent, removing most of
+		# the need for multiple inheritance) methods.
+		if state.inclass and line[:6] != 'class ':
+			if line.lstrip()[:12] == 'def __init__':
+				# constructor definition
+				state.initdef = True
+				if state.parent is not None:
+					state.post_init_dump += '%s.prototype.constructor = %s\n' % (state.class_name, state.class_name)
+				init_args = state.get_args(line)
+				state.write_buffer('def %s%s' % (state.class_name, set_args(init_args)))
+			elif line[:len(state.indent)+4] == state.indent + 'def ':
+				# method definition
+				if not state.initdef:
+					#assume that __init__ will be the first method declared, if it is declared
+					if state.parent is not None:
+						state.post_init_dump += '%s.prototype.constructor = %s\n' % (state.class_name, state.class_name)
+						inherited = '%s.prototype.constructor.call(this);' % state.parent
+					else:
+						inherited = ''
+					state.write_buffer('JS(\'%s = function() {%s};\')\n' % (state.class_name, inherited))
+					state.initdef = True
+				if state.post_init_dump:
+					state.write_buffer(state.post_init_dump)
+					state.post_init_dump = ''
+				method_name, method_args = state.parse_fun(lstrip_line[4:])
+				
+				# handle *args for function declaration
+				post_declaration = []
+				if method_args and method_args[-1][0] == '*':
+					count = 0
+					for arg in method_args[:-1]:
+						post_declaration.append('%s = arguments[%s]' % (arg, count))
+						count += 1
+					post_declaration.append('%s = [].slice.call(arguments, %s)' % (method_args[-1][1:], count))
+					method_args = ''
+				
+				state.write_buffer('%s.prototype.%s = def%s' % (state.class_name, method_name, set_args(method_args)))
+				
+				# finalize *args logic, if any
+				for post_line in post_declaration:
+					state.write_buffer(state.get_indent(line) + post_line + '\n')
+			elif line.find('def') and re.search(r'\bdef\b', line):
+				# normal or anonymous function definition that just happens to be inside a class
+				line = line[len(state.indent):] # dedent by 1 because we're inside a class
+				fun_def = re.split(r'\bdef\b', line)
+				fun_name, fun_args = state.parse_fun(fun_def[1], False)
+				
+				# handle *args for function declaration
+				post_declaration = []
+				if fun_args and fun_args[-1][0] == '*':
+					count = 0
+					for arg in fun_args[:-1]:
+						post_declaration.append('%s = arguments[%s]' % (arg, count))
+						count += 1
+					post_declaration.append('%s = [].slice.call(arguments, %s)' % (fun_args[-1][1:], count))
+					fun_args = ''
+					
+				state.write_buffer(fun_def[0]+'def%s%s' % (fun_name, set_args(fun_args)))
+				
+				# finalize *args logic, if any
+				for post_line in post_declaration:
+					state.write_buffer(state.get_indent(line) + state.basic_indent + post_line + '\n')
+			else:
+				# regular line
+				line = line[len(state.indent):] # dedent by 1 because we're inside a class
+				state.write_buffer(state.get_arg_dump(line))
+				
+				if line.find('.__init__') != -1:
+					line = line.replace('.__init__(', '.prototype.constructor.call(')
+				elif invokes_method_from_another_class(line):
+					# method call of another class
+					indent = state.get_indent(line)
+					parts = line.split('.')
+					parent_method = parts[1].split('(')[0]
+					parent_args = state.get_args(line, False)
+					
+					if parent_args[-1][0] == '*':
+						# handle *args
+						line = '%s%s.prototype.%s.apply(%s, %s)\n' % (\
+							indent,
+							parts[0].strip(),
+							parent_method,
+							parent_args[0],
+							to_star_args(parent_args[1:]))
+					else:
+						line = '%s%s.prototype.%s.call(%s' % (\
+							indent, 
+							parts[0].strip(),
+							parent_method,
+							set_args(parent_args)[1:-2]+'\n')
+				elif line.find('(') < line.find('*') < line.find(')') \
+				and re.match(r'^[^\'"]*(([\'"])[^\'"]*\2)*[^\'"]*[,(]\s*\*.*[A-Za-z$_][A-Za-z0-9$_]*\s*\)', line):
+					# normal line with args, we need to check if it has *args
+					args = state.get_args(line, False, False)
+					if args and args[-1][0] == '*':
+						function = line.split('(')[0]
+						if function.find('.') != -1:
+							obj = function.rsplit('.', 1)[0].split('[')[0]
+						else:
+							obj = 'this'
+						# handle *args
+						line = '%s.apply(%s, %s)\n' % (\
+							function,
+							obj,
+							to_star_args(args[0:]))
+				line = line.replace('self.', 'this.')
+				line = add_new_keyword(line)
+				state.write_buffer(line)
+		elif line[:6] != 'class ':
+			line = add_new_keyword(line)
+			if line.find('def') != -1 and re.search(r'\bdef\b', line):
+				# find() filters out the first 90% of the cases, and the expensive regex
+				# is only performed on the last few cases to keep the compiler fast
+				
+				# function definition, has to handle normal functions as well as anonymous ones
+				fun_def = re.split(r'\bdef\b', line)
+				fun_name, fun_args = state.parse_fun(fun_def[1], False)
+				
+				# handle *args for function declaration
+				post_declaration = []
+				if fun_args and fun_args[-1][0] == '*':
+					count = 0
+					for arg in fun_args[:-1]:
+						post_declaration.append('%s = arguments[%s]' % (arg, count))
+						count += 1
+					post_declaration.append('%s = [].slice.call(arguments, %s)' % (fun_args[-1][1:], count))
+					fun_args = ''
+					
+				state.write_buffer(fun_def[0]+'def%s%s' % (fun_name, set_args(fun_args)))
+				
+				# finalize *args logic, if any
+				for post_line in post_declaration:
+					state.write_buffer(state.get_indent(line) + state.basic_indent + post_line + '\n')
+			else:
+				# regular line
+				
+				# the first check is a quick naive check, making sure that there is a * char
+				# between parentheses
+				# the second check is a regex designed to filter out the remaining 1% of false
+				# positives, this check is much smarter, checking that there is a ', *word)'
+				# pattern preceded by even number of quotes (meaning it's unquoted)
+				if line.find('(') < line.find('*') < line.find(')') \
+				and re.match(r'^[^\'"]*(([\'"])[^\'"]*\2)*[^\'"]*[,(]\s*\*.*[A-Za-z$_][A-Za-z0-9$_]*\s*\)', line):
+					args = to_star_args(state.get_args(line, False, False))
+					if function.find('.') != -1:
+						obj = function.rsplit('.', 1)[0].split('[')[0]
+					else:
+						obj = 'this'
+					line = re.sub('\(.*\)' , '.apply(%s, %s)' % (obj, args), line)
+				
+				state.write_buffer(state.get_arg_dump(line))
+				state.write_buffer(line)
+
+	# begin parsing file
 	with open(file_name, 'r') as input:
 		# check for easy to spot errors/quirks we require
 		if not verify_code(file_name, input, global_object_list):
@@ -503,235 +748,16 @@ def parse_file(file_name, handler = ObjectLiteralHandler()):
 				lstrip_line = line.lstrip()
 				state.multiline_content = ''
 					
-			# stage 2:
-			# add an extra indent if needed, perform post-function-defition logic
-			is_nonempty_line = len(lstrip_line) > 1 or \
-				len(lstrip_line) == 1 and lstrip_line[0] != '\n'
-			if function_indent == state.get_indent(line):
-				for post_line in post_function:
-					state.write_buffer(post_line)
-				post_function = []
-				function_indent = None
-			
-			# Convert an except to the format accepted by Pyvascript
-			is_except_line = False
-			if lstrip_line.startswith('except') or \
-					lstrip_line.startswith('finally'):
-				is_except_line = True
-			
-			if is_except_line or (exception_stack and is_nonempty_line):
-				line, lstrip_line, exception_stack = \
-					make_exception_updates(line, lstrip_line,
-										   exception_stack, state)
-			
-			# stage 3:
-			if line.find('def') != -1 and line.find('def') < line.find(' and ') < line.find(':') \
-			and re.match('^(\s*)(def\s*\(.*\))\s+and\s+([A-Za-z_$][A-Za-z0-9_$]*\(.*\)):$', line):
-				# handle declaration and call at the same time
-				groups = re.match('^(\s*)(def\s*\(.*\))\s+and\s+([A-Za-z_$][A-Za-z0-9_$]*\(.*\)):$', line).groups()
-				line = groups[0] + groups[1] + ':\n'
-				indentation = groups[0]
-				if state.inclass:
-					indentation = indentation[len(state.indent):] # dedent
-				post_function.append('%s%s\n' % (indentation, wrap_chained_call('.%s' % groups[2])))
-				function_indent = groups[0]
-			if need_indent:
-				need_indent = False
-				state.indent = state.basic_indent
-			if line[:5] == 'from ' or line[:7] == 'import ':
-				import_module(line, handler)
-				continue
-			if line[:6] == 'class ':
-				# class definition
-				# this is where we do our 'magic', creating 'bad' Python that PyvaScript naively translates
-				# into good JavaScript
-				initdef = False
-				state.reset()
-				state.inclass = True
-				class_data = line[6:].split('(')
-				if len(class_data) == 1: #no inheritance
-					state.class_name = class_data[0][:-2] #remove the colon and newline from the end
-				else:
-					state.class_name = class_data[0]
-					state.parent = class_data[1][:-3] #assume single inheritance, remove '):'
-					post_init_dump += '%s.prototype = new %s()\n' % (state.class_name, state.parent)
-				class_list.append(state.class_name)
-				need_indent = True
-			elif line[0] not in (' ', '\t', '\n'):
-				#line starts with a non-space character
-				if post_init_dump:
-					state.write_buffer(post_init_dump)
-					post_init_dump = ''
-				state.inclass = False
-				
-			# convert list comprehensions
-			# don't bother performing expensive regex unless the line actually has 'for' keyword in it
-			if line.find(' for ') != -1:
-				line = convert_list_comprehension(line)
-
-			# handle JavaScript-like chaining
-			if state.file_buffer and state.file_buffer[-1] == '\n' and lstrip_line and lstrip_line[0] == '.':
-				if state.inclass:
-					line = line[len(state.indent):] # dedent
-				state.write_buffer(line.split('.')[0] + wrap_chained_call(lstrip_line))
-				continue
-
-			# process the code as if it's part of a class
-			# Again, we do more 'magic' here so that we can call parent (and non-parent, removing most of
-			# the need for multiple inheritance) methods.
-			if state.inclass and line[:6] != 'class ':
-				if line.lstrip()[:12] == 'def __init__':
-					# constructor definition
-					initdef = True
-					if state.parent is not None:
-						post_init_dump += '%s.prototype.constructor = %s\n' % (state.class_name, state.class_name)
-					init_args = state.get_args(line)
-					state.write_buffer('def %s%s' % (state.class_name, set_args(init_args)))
-				elif line[:len(state.indent)+4] == state.indent + 'def ':
-					# method definition
-					if not initdef:
-						#assume that __init__ will be the first method declared, if it is declared
-						if state.parent is not None:
-							post_init_dump += '%s.prototype.constructor = %s\n' % (state.class_name, state.class_name)
-							inherited = '%s.prototype.constructor.call(this);' % state.parent
-						else:
-							inherited = ''
-						state.write_buffer('JS(\'%s = function() {%s};\')\n' % (state.class_name, inherited))
-						initdef = True
-					if post_init_dump:
-						state.write_buffer(post_init_dump)
-						post_init_dump = ''
-					method_name, method_args = state.parse_fun(lstrip_line[4:])
-					
-					# handle *args for function declaration
-					post_declaration = []
-					if method_args and method_args[-1][0] == '*':
-						count = 0
-						for arg in method_args[:-1]:
-							post_declaration.append('%s = arguments[%s]' % (arg, count))
-							count += 1
-						post_declaration.append('%s = [].slice.call(arguments, %s)' % (method_args[-1][1:], count))
-						method_args = ''
-					
-					state.write_buffer('%s.prototype.%s = def%s' % (state.class_name, method_name, set_args(method_args)))
-					
-					# finalize *args logic, if any
-					for post_line in post_declaration:
-						state.write_buffer(state.get_indent(line) + post_line + '\n')
-				elif line.find('def') and re.search(r'\bdef\b', line):
-					# normal or anonymous function definition that just happens to be inside a class
-					line = line[len(state.indent):] # dedent by 1 because we're inside a class
-					fun_def = re.split(r'\bdef\b', line)
-					fun_name, fun_args = state.parse_fun(fun_def[1], False)
-					
-					# handle *args for function declaration
-					post_declaration = []
-					if fun_args and fun_args[-1][0] == '*':
-						count = 0
-						for arg in fun_args[:-1]:
-							post_declaration.append('%s = arguments[%s]' % (arg, count))
-							count += 1
-						post_declaration.append('%s = [].slice.call(arguments, %s)' % (fun_args[-1][1:], count))
-						fun_args = ''
-						
-					state.write_buffer(fun_def[0]+'def%s%s' % (fun_name, set_args(fun_args)))
-					
-					# finalize *args logic, if any
-					for post_line in post_declaration:
-						state.write_buffer(state.get_indent(line) + state.basic_indent + post_line + '\n')
-				else:
-					# regular line
-					line = line[len(state.indent):] # dedent by 1 because we're inside a class
-					state.write_buffer(state.get_arg_dump(line))
-					
-					if line.find('.__init__') != -1:
-						line = line.replace('.__init__(', '.prototype.constructor.call(')
-					elif invokes_method_from_another_class(line):
-						# method call of another class
-						indent = state.get_indent(line)
-						parts = line.split('.')
-						parent_method = parts[1].split('(')[0]
-						parent_args = state.get_args(line, False)
-						
-						if parent_args[-1][0] == '*':
-							# handle *args
-							line = '%s%s.prototype.%s.apply(%s, %s)\n' % (\
-								indent,
-								parts[0].strip(),
-								parent_method,
-								parent_args[0],
-								to_star_args(parent_args[1:]))
-						else:
-							line = '%s%s.prototype.%s.call(%s' % (\
-								indent, 
-								parts[0].strip(),
-								parent_method,
-								set_args(parent_args)[1:-2]+'\n')
-					elif line.find('(') < line.find('*') < line.find(')') \
-					and re.match(r'^[^\'"]*(([\'"])[^\'"]*\2)*[^\'"]*[,(]\s*\*.*[A-Za-z$_][A-Za-z0-9$_]*\s*\)', line):
-						# normal line with args, we need to check if it has *args
-						args = state.get_args(line, False, False)
-						if args and args[-1][0] == '*':
-							function = line.split('(')[0]
-							if function.find('.') != -1:
-								obj = function.rsplit('.', 1)[0].split('[')[0]
-							else:
-								obj = 'this'
-							# handle *args
-							line = '%s.apply(%s, %s)\n' % (\
-								function,
-								obj,
-								to_star_args(args[0:]))
-					line = line.replace('self.', 'this.')
-					line = add_new_keyword(line)
-					state.write_buffer(line)
-			elif line[:6] != 'class ':
-				line = add_new_keyword(line)
-				if line.find('def') != -1 and re.search(r'\bdef\b', line):
-					# find() filters out the first 90% of the cases, and the expensive regex
-					# is only performed on the last few cases to keep the compiler fast
-					
-					# function definition, has to handle normal functions as well as anonymous ones
-					fun_def = re.split(r'\bdef\b', line)
-					fun_name, fun_args = state.parse_fun(fun_def[1], False)
-					
-					# handle *args for function declaration
-					post_declaration = []
-					if fun_args and fun_args[-1][0] == '*':
-						count = 0
-						for arg in fun_args[:-1]:
-							post_declaration.append('%s = arguments[%s]' % (arg, count))
-							count += 1
-						post_declaration.append('%s = [].slice.call(arguments, %s)' % (fun_args[-1][1:], count))
-						fun_args = ''
-						
-					state.write_buffer(fun_def[0]+'def%s%s' % (fun_name, set_args(fun_args)))
-					
-					# finalize *args logic, if any
-					for post_line in post_declaration:
-						state.write_buffer(state.get_indent(line) + state.basic_indent + post_line + '\n')
-				else:
-					# regular line
-					
-					# the first check is a quick naive check, making sure that there is a * char
-					# between parentheses
-					# the second check is a regex designed to filter out the remaining 1% of false
-					# positives, this check is much smarter, checking that there is a ', *word)'
-					# pattern preceded by even number of quotes (meaning it's unquoted)
-					if line.find('(') < line.find('*') < line.find(')') \
-					and re.match(r'^[^\'"]*(([\'"])[^\'"]*\2)*[^\'"]*[,(]\s*\*.*[A-Za-z$_][A-Za-z0-9$_]*\s*\)', line):
-						args = to_star_args(state.get_args(line, False, False))
-						if function.find('.') != -1:
-							obj = function.rsplit('.', 1)[0].split('[')[0]
-						else:
-							obj = 'this'
-						line = re.sub('\(.*\)' , '.apply(%s, %s)' % (obj, args), line)
-					
-					state.write_buffer(state.get_arg_dump(line))
-					state.write_buffer(line)
-	if post_init_dump:
-		state.write_buffer(post_init_dump)
-		post_init_dump = ''
+			# stages 2+ are performed inside parse_line() logic, this is to allow function
+			# shorthands: 
+			#	def(a, b): return a+b
+			#	def(a, b): a += b; return a
+			parse_line(line, state)
+	
+	# end of file, write any unwritten code to buffer
+	if state.post_init_dump:
+		state.write_buffer(state.post_init_dump)
+		state.post_init_dump = ''
 	
 	state.file_buffer = handler.start(state.file_buffer)
 	try:

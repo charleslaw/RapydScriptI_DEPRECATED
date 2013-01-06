@@ -357,6 +357,8 @@ YQLError = function(message) {
   this.message = message;
 };
 
+YQLError.prototype = new Error();
+YQLError.prototype.constructor = YQLError;
 YQL = function(query, callback, diagnostics) {
   var doNothing;
   if (typeof diagnostics === "undefined") {diagnostics = false};
@@ -368,8 +370,6 @@ YQL = function(query, callback, diagnostics) {
   this.diagnostics = diagnostics;
 };
 
-YQLError.prototype = new Error();
-YQLError.prototype.constructor = YQLError;
 YQL.prototype.fetch = (function() {
   var encodedQuery, main, scriptEl, uid, url;
   if ((!this.query)) {
