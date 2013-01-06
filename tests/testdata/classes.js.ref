@@ -1,0 +1,24 @@
+/* This file was auto-generated using RapydScript */
+Human = function() {
+  this.name = "human";
+};
+
+Boy = function() {Human.prototype.constructor.call(this);};
+Boy.prototype = new Human();
+Boy.prototype.constructor = Boy;
+Boy.prototype.talk = (function() {
+  console.log("hi");
+});
+Animal = function(name) {
+  this.name = name;
+};
+
+Animal.prototype.getName = (function() {
+  console.log(this.name);
+});
+Dog = function() {
+  Animal.prototype.constructor.call("dog");
+};
+
+Dog.prototype = new Animal();
+Dog.prototype.constructor = Dog;

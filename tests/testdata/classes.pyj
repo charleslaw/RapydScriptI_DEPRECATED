@@ -1,0 +1,17 @@
+class Human:
+	def __init__(self):
+		self.name = 'human'
+
+class Boy(Human):
+	def talk(self):
+		console.log('hi')
+
+class Animal:
+	def __init__(self, name):
+		self.name = name
+	def getName(self):
+		console.log(self.name)
+
+class Dog(Animal):
+	def __init__(self):
+		Animal.__init__('dog')
