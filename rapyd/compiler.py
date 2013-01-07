@@ -21,6 +21,40 @@ def find_all(line, sub, remove_escaped=False):
 				matches.remove(index)
 	return matches
 
+def pop_while_inside(arr1, arr2, pop_arr2=True):
+	"""
+	Keep popping from arr1 while its values are less than arr2[1].
+	arr2[0] and arr2[1] will also be popped
+	"""
+	count = 0
+	if pop_arr2:
+		arr2.pop(0)
+	try:
+		while arr1.pop(0) < arr2[0]:
+			count += 1
+	finally:
+		if pop_arr2:
+			arr2.pop(0)
+	return count
+
+def terminates_inside_comment(line):
+	"""
+	Returns True if string terminates before comment ("|') closes
+	"""
+	single = find_all(line, "'", True)
+	double = find_all(line, '"', True)
+
+	try:
+		if min(single[0], double[0]) == single[0]:
+			pop_while_inside(double, single)
+		else:
+			pop_while_inside(single, double)
+	except IndexError:
+		if (len(single) + len(double))%2:
+			return True
+		else:
+			return False
+
 class State:
 	def __init__(self, file_name):
 	
@@ -119,44 +153,12 @@ class State:
 		allows RapydScript preprocessor to ignore doc-strings and multi-line
 		strings, which could otherwise get mutilated or trigger a false error.
 		"""
-		# helper methods only relevant to this function
-		def pop_while_inside(arr1, arr2, pop_arr2=True):
-			"""
-			Keep popping from arr1 while its values are less than arr2[1].
-			arr2[0] and arr2[1] will also be popped
-			"""
-			count = 0
-			if pop_arr2:
-				arr2.pop(0)
-			try:
-				while arr1.pop(0) < arr2[0]:
-					count += 1
-			finally:
-				if pop_arr2:
-					arr2.pop(0)
-			return count
-	
+		
+		# helper method only relevant to this function
 		def check_for_valid_multiline_quote(comment_type, triggering_list, other_list, sub):
 			"""
 			Checks if this line starts a valid comment, and updates state accordingly
 			"""
-			def terminates_inside_comment(line):
-				"""
-				Returns True if string terminates before comment ("|') closes
-				"""
-				single = find_all(line, "'", True)
-				double = find_all(line, '"', True)
-	
-				try:
-					if min(single[0], double[0]) == single[0]:
-						pop_while_inside(double, single)
-					else:
-						pop_while_inside(single, double)
-				except IndexError:
-					if (len(single) + len(double))%2:
-						return True
-					else:
-						return False
 	
 			triggering_list.pop(0)
 			if not terminates_inside_comment(sub):
@@ -747,12 +749,36 @@ def parse_file(file_name, handler = ObjectLiteralHandler()):
 				line = state.multiline_content + line
 				lstrip_line = line.lstrip()
 				state.multiline_content = ''
+			# separate lines at semi-colons:
+			sub_lines = line.rstrip().split(';')
+			final_lines = []
+			indent = state.get_indent(line)
+			inside_string = False
+			for sub_line in sub_lines:
+				if inside_string:
+					# continuing to stitch a string from before
+					final_lines[-1] += ';' + sub_line
+					if not terminates_inside_comment(final_lines[-1]):
+						inside_string = False
+				elif terminates_inside_comment(sub_line):
+					# this is a string, stitch it back together
+					if inside_string:
+						final_lines[-1] += ';' + sub_line
+					else:
+						final_lines.append(sub_line)
+					inside_string = True
+				else:
+					# this is a sub-line, apply same indent as the main line
+					lstrip_sub_line = sub_line.lstrip()
+					if lstrip_sub_line:
+						final_lines.append(indent + lstrip_sub_line)
 					
 			# stages 2+ are performed inside parse_line() logic, this is to allow function
 			# shorthands: 
 			#	def(a, b): return a+b
 			#	def(a, b): a += b; return a
-			parse_line(line, state)
+			for line in final_lines:
+				parse_line(line + '\n', state)
 	
 	# end of file, write any unwritten code to buffer
 	if state.post_init_dump:
@@ -763,6 +789,7 @@ def parse_file(file_name, handler = ObjectLiteralHandler()):
 	try:
 		global_buffer += finalize_source(state.file_buffer, handler)
 	except:
+		print state.file_buffer
 		print "Parse Error in %s:\n" % file_name
 		raise
 	return global_buffer

@@ -1,0 +1,22 @@
+# regular function
+def add(a, b):
+	return a+b
+
+# anonymous function
+mult = def(a, b):
+	return a*b
+
+# blank function
+def():
+	pass
+
+# multiline functions, implicit tuple returns
+quadratic1 = def(a, b, c):
+	root = Math.sqrt(b*b-4*a*c)
+	x0 = (-b+root)/(2*a)
+	x1 = (-b-root)/(2*a)
+	return x0, x1
+
+# short-hand multiline
+quadratic2 = def(a, b, c):
+	root = Math.sqrt(b*b-4*a*c); x0 = (-b+root)/(2*a); x1 = (-b-root)/(2*a); return x0, x1
