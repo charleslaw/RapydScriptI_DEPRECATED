@@ -4,35 +4,35 @@ JSON = (JSON || {
 });
 if ((!JSON.stringify)) {
   
-  JSON.stringify = function(obj) {
-    var t = typeof (obj);
-    if (t != "object" || obj === null) {
-      // simple data type
-      if (t == "string")
-        obj = '"' + obj + '"';
-      if (t == "function")
-        return; // return undefined
-      else
-        return String(obj);
-    } else {
-      // recurse array or object
-      var n, v, json = []
-      var arr = (obj && obj.constructor == Array);
-      for (n in obj) {
-        v = obj[n];
-        t = typeof (v);
-        if (t != "function" && t != "undefined") {
-          if (t == "string")
-            v = '"' + v + '"';
-          else if ((t == "object" || t == "function") && v !== null)
-            v = JSON.stringify(v);
-          json.push((arr ? "" : '"' + n + '":') + String(v));
-        }
-      }
-      return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}");
-    }
-  };
-  
+	JSON.stringify = function(obj) {
+		var t = typeof (obj);
+		if (t != "object" || obj === null) {
+			// simple data type
+			if (t == "string")
+				obj = '"' + obj + '"';
+			if (t == "function")
+				return; // return undefined
+			else
+				return String(obj);
+		} else {
+			// recurse array or object
+			var n, v, json = []
+			var arr = (obj && obj.constructor == Array);
+			for (n in obj) {
+				v = obj[n];
+				t = typeof (v);
+				if (t != "function" && t != "undefined") {
+					if (t == "string")
+						v = '"' + v + '"';
+					else if ((t == "object" || t == "function") && v !== null)
+						v = JSON.stringify(v);
+					json.push((arr ? "" : '"' + n + '":') + String(v));
+				}
+			}
+			return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}");
+		}
+	};
+	
 }
 
 str = JSON.stringify;
@@ -90,56 +90,56 @@ print = function() {
 
 
 isinstance = function(item, cls) {
-  var cls_item, isnumber;
-  if (cls instanceof Array) {
-    var _$tmp13_data = _$pyva_iter(cls);
-    var _$tmp14_len = _$tmp13_data.length;
-    for (var _$tmp15_index = 0; _$tmp15_index < _$tmp14_len; _$tmp15_index++) {
-      cls_item = _$tmp13_data[_$tmp15_index];
+	var cls_item, isnumber;
+	if (cls instanceof Array) {
+		var _$tmp13_data = _$pyva_iter(cls);
+		var _$tmp14_len = _$tmp13_data.length;
+		for (var _$tmp15_index = 0; _$tmp15_index < _$tmp14_len; _$tmp15_index++) {
+			cls_item = _$tmp13_data[_$tmp15_index];
 
-      if (isinstance(item, cls_item)) {
-        return true;
-      }
+			if (isinstance(item, cls_item)) {
+				return true;
+			}
 
-    }
+		}
 
-    return false;
-  }
+		return false;
+	}
 
-  if ((cls === list)) {
-    cls = Array;
-  } else if ((cls === dict)) {
-    cls = Object;
-  } else if ((cls === str)) {
-    cls = String;
-  } else if (((cls === _$pyva_int) || (cls === _$pyva_float))) {
-    isnumber = (item.constructor === Number.prototype.constructor);
-    return (isnumber && (cls(item) == item));
-  } else {
-    return item instanceof cls;
-  }
+	if ((cls === list)) {
+		cls = Array;
+	} else if ((cls === dict)) {
+		cls = Object;
+	} else if ((cls === str)) {
+		cls = String;
+	} else if (((cls === _$pyva_int) || (cls === _$pyva_float))) {
+		isnumber = (item.constructor === Number.prototype.constructor);
+		return (isnumber && (cls(item) == item));
+	} else {
+		return item instanceof cls;
+	}
 
-  return (item.constructor === cls.prototype.constructor);
+	return (item.constructor === cls.prototype.constructor);
 };
 _$pyva_iter = function(iter_object) {
-  var key_list;
-  if (((iter_object.callee && (typeof iter_object['length'] != "undefined")) || isinstance(iter_object, list))) {
-    return iter_object;
-  }
+	var key_list;
+	if (((iter_object.callee && (typeof iter_object['length'] != "undefined")) || isinstance(iter_object, list))) {
+		return iter_object;
+	}
 
-  key_list = [];
-  for (var key in iter_object)
-  key_list.append(key);
-  return key_list;
+	key_list = [];
+	for (var key in iter_object)
+	key_list.append(key);
+	return key_list;
 };
 Function.prototype.bind = (function(owner) {
-  var bound, func;
-  func = this;
-  bound = function() {
-    return func.apply(owner, arguments);
-  };
+	var bound, func;
+	func = this;
+	bound = function() {
+		return func.apply(owner, arguments);
+	};
 
-  return bound;
+	return bound;
 });
 
 ValueError = function(message) {
@@ -212,31 +212,31 @@ Array.prototype.copy = (function() {
 });
 if ((!Array.prototype.map)) {
   
-  Array.prototype.map = function(callback, thisArg) {
-    var T, A, k;
-    if (this == null) {
-      throw new TypeError(" this is null or not defined");
-    }
-    var O = Object(this);
-    var len = O.length >>> 0;
-    if ({}.toString.call(callback) != "[object Function]") {
-      throw new TypeError(callback + " is not a function");
-    }
-    if (thisArg) {
-      T = thisArg;
-    }
-    A = new Array(len);
-    for (var k = 0; k < len; k++) {
-      var kValue, mappedValue;
-      if (k in O) {
-        kValue = O[k];
-        mappedValue = callback.call(T, kValue);
-        A[k] = mappedValue;
-      }
-    }
-    return A;
-  };
-  
+	Array.prototype.map = function(callback, thisArg) {
+		var T, A, k;
+		if (this == null) {
+			throw new TypeError(" this is null or not defined");
+		}
+		var O = Object(this);
+		var len = O.length >>> 0;
+		if ({}.toString.call(callback) != "[object Function]") {
+			throw new TypeError(callback + " is not a function");
+		}
+		if (thisArg) {
+			T = thisArg;
+		}
+		A = new Array(len);
+		for (var k = 0; k < len; k++) {
+			var kValue, mappedValue;
+			if (k in O) {
+				kValue = O[k];
+				mappedValue = callback.call(T, kValue);
+				A[k] = mappedValue;
+			}
+		}
+		return A;
+	};
+	
 }
 
 map = function(oper, arr) {
@@ -245,31 +245,31 @@ map = function(oper, arr) {
 
 if ((!Array.prototype.filter)) {
   
-  Array.prototype.filter = function(filterfun, thisArg) {
-    "use strict";
-    if (this == null) {
-      throw new TypeError(" this is null or not defined");
-    }
-    var O = Object(this);
-    var len = O.length >>> 0;
-    if ({}.toString.call(filterfun) != "[object Function]") {
-      throw new TypeError(filterfun + " is not a function");
-    }
-    if (thisArg) {
-      T = thisArg;
-    }
-    var A = [];
-    var thisp = arguments[1];
-    for (var k = 0; k < len; k++) {
-      if (k in O) {
-        var val = O[k]; // in case fun mutates this
-        if (filterfun.call(T, val))
-          A.push(val);
-      }
-    }
-    return A;
-  };
-  
+	Array.prototype.filter = function(filterfun, thisArg) {
+		"use strict";
+		if (this == null) {
+			throw new TypeError(" this is null or not defined");
+		}
+		var O = Object(this);
+		var len = O.length >>> 0;
+		if ({}.toString.call(filterfun) != "[object Function]") {
+			throw new TypeError(filterfun + " is not a function");
+		}
+		if (thisArg) {
+			T = thisArg;
+		}
+		var A = [];
+		var thisp = arguments[1];
+		for (var k = 0; k < len; k++) {
+			if (k in O) {
+				var val = O[k]; // in case fun mutates this
+				if (filterfun.call(T, val))
+					A.push(val);
+			}
+		}
+		return A;
+	};
+	
 }
 
 filter = function(oper, arr) {
@@ -297,15 +297,15 @@ if ((typeof(Object.getOwnPropertyNames) !== "function")) {
     var keys;
     keys = [];
     
-    for (var x in hash) {
-      // A for in will iterate over members on the prototype
-      // chain as well, but Object.getOwnPropertyNames returns
-      // only those directly on the object, so use hasOwnProperty.
-      if (hash.hasOwnProperty(x)) {
-        keys.push(x);
-      }
-    }
-    
+		for (var x in hash) {
+			// A for in will iterate over members on the prototype
+			// chain as well, but Object.getOwnPropertyNames returns
+			// only those directly on the object, so use hasOwnProperty.
+			if (hash.hasOwnProperty(x)) {
+				keys.push(x);
+			}
+		}
+		
     return keys;
   });
 } else {

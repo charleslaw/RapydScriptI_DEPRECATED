@@ -43,12 +43,13 @@ def terminates_inside_comment(line):
 	"""
 	single = find_all(line, "'", True)
 	double = find_all(line, '"', True)
-
+	
 	try:
-		if min(single[0], double[0]) == single[0]:
-			pop_while_inside(double, single)
-		else:
-			pop_while_inside(single, double)
+		while single[0] and double[0]:
+			if min(single[0], double[0]) == single[0]:
+				pop_while_inside(double, single)
+			else:
+				pop_while_inside(single, double)
 	except IndexError:
 		if (len(single) + len(double))%2:
 			return True
@@ -192,7 +193,7 @@ class State:
 			self.docstring = True
 
 imported_files = []
-def import_module(line, handler):
+def import_module(line):
 	tokens = line.split()
 	if not ((len(tokens) == 2 and tokens[0] == 'import') or \
 			(len(tokens) == 4 and tokens[0] == 'from' and tokens[2] == 'import')):
@@ -200,14 +201,14 @@ def import_module(line, handler):
 	
 	if tokens[1] not in imported_files:
 		try:
-			parse_file(tokens[1].replace('.', '/') +'.pyj', handler)
+			parse_file(tokens[1].replace('.', '/') +'.pyj')
 		except IOError:
 			# couldn't find the file in local directory, check RapydScript lib directory
 			cur_dir = os.getcwd()
 			try:
 				# we have to rely on __file__, because cwd could be different if invoked by another script
 				os.chdir(os.path.dirname(__file__))
-				parse_file(tokens[1].replace('.', '/') +'.pyj', handler)
+				parse_file(tokens[1].replace('.', '/') +'.pyj')
 			except IOError:
 				raise ImportError("Can't import %s, module doesn't exist" % tokens[1])
 			finally:
@@ -421,42 +422,7 @@ def make_exception_updates(line, lstrip_line, state):
 	lstrip_line = line.lstrip()
 	return line, lstrip_line
 
-
-class ObjectLiteralHandler:
-
-	def __init__(self, offset=0):
-		self.object_literal_function_defs = {}
-		self.starting_offset = self.offset = offset
-	
-	def start(self, source):
-		# PyvaScript breaks on function definitions inside dictionaries/object literals
-		# we rip them out and translate them independently, replacing with temporary placeholders
-		items = re.findall('(?P<indent>\n\s*)["\']?[A-Za-z0-9_$]+["\']?\s*:\s*(?P<main>def\s*\([A-Za-z0-9_=, ]*\):.*?),(?=((?P=indent)(?!\s))|\s*})', source, re.M + re.DOTALL)
-		offset = 0
-		for count, item in enumerate(items):
-			hash_val = '$rapyd$_internal_var%s' % str(count+self.offset).zfill(20)
-			
-			# apply proper indent, split function into pythonic multi-line version and convert it
-			# we do recursive substitution here to allow object literal declaration inside other functions
-			function = item[1].replace(item[0],'\n').replace('\r', '')
-			handler = ObjectLiteralHandler(self.offset)
-			function = handler.start(function)
-			function = Translator.parse(Grammar.parse(function)).replace('\n', item[0]).rstrip()
-			function = handler.finalize(function)
-			
-			self.object_literal_function_defs[hash_val] = function
-			source = source.replace(item[1], hash_val)
-			offset += 1 + handler.offset - handler.starting_offset
-		self.offset += offset
-		return source
-		
-	def finalize(self, source):
-		for hash_key in self.object_literal_function_defs.keys():
-			source = source.replace(hash_key, self.object_literal_function_defs[hash_key])
-		source = source.replace('\t', '  ') # PyvaScript uses 2 spaces as indent, minor
-		return source
-
-def parse_file(file_name, handler = ObjectLiteralHandler()):
+def parse_file(file_name):
 	# parse a single file into global namespace
 	global global_buffer
 	state = State(file_name)
@@ -498,7 +464,7 @@ def parse_file(file_name, handler = ObjectLiteralHandler()):
 			state.post_function.append('%s%s\n' % (indentation, wrap_chained_call('.%s' % groups[2])))
 			function_indent = groups[0]
 		if line[:5] == 'from ' or line[:7] == 'import ':
-			import_module(line, handler)
+			import_module(line)
 			return
 		if state.need_indent:
 			state.indent = state.basic_indent
@@ -790,20 +756,17 @@ def parse_file(file_name, handler = ObjectLiteralHandler()):
 		state.write_buffer(state.post_init_dump)
 		state.post_init_dump = ''
 	
-	state.file_buffer = handler.start(state.file_buffer)
 	try:
-		global_buffer += finalize_source(state.file_buffer, handler)
+		global_buffer += finalize_source(state.file_buffer)
 	except:
-		print state.file_buffer
 		print "Parse Error in %s:\n" % file_name
 		raise
 	return global_buffer
 
-def finalize_source(source, handler):
+def finalize_source(source):
 	g = Grammar.parse(source)
 
 	output = Translator.parse(g)
-	output = handler.finalize(output) #insert previously removed functions back in
 	#PyvaScript seems to be buggy with self replacement sometimes, let's fix that
 	output = re.sub(r'\bself\b', 'this', output)
 	output = bind_chained_calls(output)
