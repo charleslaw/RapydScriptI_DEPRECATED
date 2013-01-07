@@ -525,7 +525,7 @@ ColorSwatch = function() {
 };
 
 main = function() {
-  var $about, $brushWidget, $colorPicker, $colorPickers, $fill, $menus, $stroke, $swatch, $tools, _$rapyd_tuple$_, about, callback, darken, dwg, exportDwg, hideMenus, idtag, invert, lighten, makeHandler, makeMenu, makeMode, makeReset, newDwg, onChange, popupUnder, redo, removeBlue, removeGreen, removeRed, resetid, setFill, setStroke, triggerChange, undo;
+  var $about, $brushWidget, $colorPicker, $colorPickers, $fill, $menus, $stroke, $swatch, $tools, _$rapyd_tuple$_, callback, dwg, hideMenus, idtag, makeHandler, makeMenu, makeMode, makeReset, onChange, popupUnder, resetid, setFill, setStroke, triggerChange;
   dwg = new Drawing();
   onChange = (function() {
     dwg.setWidth($(this).val());
@@ -633,55 +633,44 @@ main = function() {
   $(document).click(hideMenus);
   $menus.menu().removeClass("ui-widget");
   $(".menubar-item").each(makeMenu);
-  newDwg = (function() {
+  $("#menubar-menu-item-new").click((function() {
     dwg.clear();
-  });
-  $("#menubar-menu-item-new").click(newDwg);
-  exportDwg = (function() {
+  }));
+  $("#menubar-menu-item-export-to-image").click((function() {
     var url;
     url = dwg.exportDwg();
     window.open(url, "_blank");
-  });
-  $("#menubar-menu-item-export-to-image").click(exportDwg);
-  undo = (function() {
+  }));
+  $("#menubar-menu-item-undo").click((function() {
     dwg.undo();
-  });
-  $("#menubar-menu-item-undo").click(undo);
-  redo = (function() {
+  }));
+  $("#menubar-menu-item-redo").click((function() {
     dwg.redo();
-  });
-  $("#menubar-menu-item-redo").click(redo);
-  invert = (function() {
+  }));
+  $("#menubar-menu-item-invert-colors").click((function() {
     dwg.invert();
-  });
-  $("#menubar-menu-item-invert-colors").click(invert);
-  removeRed = (function() {
+  }));
+  $("#menubar-menu-item-red-filter").click((function() {
     dwg.redFilter();
-  });
-  $("#menubar-menu-item-red-filter").click(removeRed);
-  removeGreen = (function() {
+  }));
+  $("#menubar-menu-item-green-filter").click((function() {
     dwg.greenFilter();
-  });
-  $("#menubar-menu-item-green-filter").click(removeGreen);
-  removeBlue = (function() {
+  }));
+  $("#menubar-menu-item-blue-filter").click((function() {
     dwg.blueFilter();
-  });
-  $("#menubar-menu-item-blue-filter").click(removeBlue);
-  darken = (function() {
+  }));
+  $("#menubar-menu-item-darken").click((function() {
     dwg.darken();
-  });
-  $("#menubar-menu-item-darken").click(darken);
-  lighten = (function() {
+  }));
+  $("#menubar-menu-item-lighten").click((function() {
     dwg.lighten();
-  });
-  $("#menubar-menu-item-lighten").click(lighten);
+  }));
   $about = $("#about").dialog({
     "modal": true
   });
-  about = (function() {
+  $("#menubar-menu-item-about").click((function() {
     $about.dialog("open");
-  });
-  $("#menubar-menu-item-about").click(about);
+  }));
   window.oncontextmenu = (function() {
     return false;
   });
