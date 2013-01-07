@@ -20,3 +20,6 @@ quadratic1 = def(a, b, c):
 # short-hand multiline
 quadratic2 = def(a, b, c):
 	root = Math.sqrt(b*b-4*a*c); x0 = (-b+root)/(2*a); x1 = (-b-root)/(2*a); return x0, x1
+
+# inline functions
+quadratic2 = def(a, b, c): root = Math.sqrt(b*b-4*a*c); x0 = (-b+root)/(2*a); x1 = (-b-root)/(2*a); return x0, x1

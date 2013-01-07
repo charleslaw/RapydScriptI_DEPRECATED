@@ -24,3 +24,10 @@ quadratic2 = (function(a, b, c) {
   x1 = (((-b) - root) / (2 * a));
   return [x0, x1];
 });
+quadratic2 = (function(a, b, c) {
+  var root, x0, x1;
+  root = Math.sqrt(((b * b) - ((4 * a) * c)));
+  x0 = (((-b) + root) / (2 * a));
+  x1 = (((-b) - root) / (2 * a));
+  return [x0, x1];
+});

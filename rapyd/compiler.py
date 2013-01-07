@@ -749,6 +749,11 @@ def parse_file(file_name, handler = ObjectLiteralHandler()):
 				line = state.multiline_content + line
 				lstrip_line = line.lstrip()
 				state.multiline_content = ''
+			# separate inline function definitions ( def(x): return x*x ) into proper functions
+			if line.find('def') and re.search(r'\bdef\(', line):
+				pair = line.split('):')
+				parse_line(pair[0]+'):\n', state)
+				line = state.get_indent(pair[0])+state.basic_indent+pair[1].lstrip()
 			# separate lines at semi-colons:
 			sub_lines = line.rstrip().split(';')
 			final_lines = []
