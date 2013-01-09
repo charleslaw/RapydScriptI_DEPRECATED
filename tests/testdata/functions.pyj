@@ -23,3 +23,24 @@ quadratic2 = def(a, b, c):
 
 # inline functions
 quadratic2 = def(a, b, c): root = Math.sqrt(b*b-4*a*c); x0 = (-b+root)/(2*a); x1 = (-b-root)/(2*a); return x0, x1
+
+# function callbacks
+takes2Funcs(
+	def(x, y): return x+y
+	,
+	def(x, y): return x*y
+)
+
+takes2Funcs(def(x, y): return x+y;, def(x, y): return x*y;)
+
+# function map
+math_ops = {
+	add:	def(a, b): return a+b;,
+	sub:	def(a, b): return a-b;,
+	mul:	def(a, b): return a*b;,
+	div:	def(a, b): return a/b;,
+	roots:	def(a, b, c):
+		r = Math.sqrt(b*b - 4*a*c)
+		d = 2*a
+		return (-b + r)/d, (-b - r)/d
+}

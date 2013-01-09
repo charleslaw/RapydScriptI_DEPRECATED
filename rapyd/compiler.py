@@ -427,13 +427,75 @@ def parse_file(file_name):
 	global global_buffer
 	state = State(file_name)
 	
-	# declare function for parsing a single line
-	def parse_line(line, state):
+	# Each line goes through the following 5 stages. The order is important, we don't want to 
+	# start interpreting the line until we know all of its contents.
+	
+	# stage 0: standardize input and check if any processing is required
+	# stage 1: stitching multi-line logic and multi-line strings together (unifying lines)
+	# stage 2: split lines at semi-colons and inlined functions (separating lines)
+	# stage 3: strip empty and doc-string lines, perform any 'to-do' logic inferred from previous line
+	# stage 4: processing/interpreting the line
+	
+	# stage 2:
+	# split lines at semi-colons and inlined functions (separating lines)
+	# also triggers stage 3 when done
+	def stage2(line, state):
+		lstrip_line = line.lstrip()
+		# separate inline function definitions ( def(x): return x*x ) into proper functions
+		pair = None
+		if line.find('def') and re.search(r'\bdef\(', line):
+			pair = line.split('):')
+			stage3(pair[0]+'):\n', state)
+			line = state.get_indent(pair[0])+state.basic_indent+pair[1].lstrip()
+		# separate lines at semi-colons:
+		sub_lines = line.rstrip().split(';')
+		final_lines = []
+		indent = state.get_indent(line)
+		inside_string = False
+		for sub_line in sub_lines:
+			if inside_string:
+				# continuing to stitch a string from before
+				final_lines[-1] += ';' + sub_line
+				if not terminates_inside_comment(final_lines[-1]):
+					inside_string = False
+			elif terminates_inside_comment(sub_line):
+				# this is a string, stitch it back together
+				if inside_string:
+					final_lines[-1] += ';' + sub_line
+				else:
+					final_lines.append(sub_line)
+				inside_string = True
+			else:
+				# this is a sub-line, apply same indent as the main line
+				lstrip_sub_line = sub_line.lstrip()
+				if lstrip_sub_line:
+					final_lines.append(indent + lstrip_sub_line)
+		
+		# stages 3+ are performed inside stage3() logic, this is to allow function
+		# shorthands: 
+		#	def(a, b): return a+b
+		#	def(a, b): a += b; return a
+		
+		# send 2nd group to stage 3
+		for line_chunk in final_lines:
+			stage3(line_chunk + '\n', state)
+		
+		# send the rest back to beginning of stage 2
+		# this will occur in case of multiple inline functions:
+		# func1(def(a, b): return a+b;, def(c, d): return c*d)
+		if pair and len(pair) > 2:
+			stage2('):'.join(pair[2:]), state)
+	
+	# stages 3+4:
+	# finalizes line processing
+	# stage 3: strip empty and doc-string lines, perform any 'to-do' logic inferred from previous line
+	# stage 4: processing/interpreting the line
+	def stage3(line, state):
 	
 		# we can't simply pass in old lstrip_line since the line could have been split
 		lstrip_line = line.lstrip()
 	
-		# stage 2:
+		# stage 3:
 		# add an extra indent if needed, perform post-function-definition logic
 		is_nonempty_line = len(lstrip_line) > 1 or \
 			len(lstrip_line) == 1 and lstrip_line[0] != '\n'
@@ -452,7 +514,7 @@ def parse_file(file_name):
 		if is_except_line or (state.exception_stack and is_nonempty_line):
 			line, lstrip_line = make_exception_updates(line, lstrip_line, state)
 		
-		# stage 3:
+		# stage 4:
 		if line.find('def') != -1 and line.find('def') < line.find(' and ') < line.find(':') \
 		and re.match('^(\s*)(def\s*\(.*\))\s+and\s+([A-Za-z_$][A-Za-z0-9_$]*\(.*\)):$', line):
 			# handle declaration and call at the same time
@@ -674,10 +736,10 @@ def parse_file(file_name):
 			state.line_num += 1
 			state.line_content = line
 
+			# stages 0+1 are performed in the loop itself, since they're not recursive like later stages
+			
 			# stage 0: standardize input and check if any processing is required
-			# stage 1: stitching multi-line logic and multi-line strings together
-			# stage 2: strip empty and doc-string lines, perform any 'to-do' logic inferred from previous line
-			# stage 3: processing/interpreting the line
+			# stage 1: stitching multi-line logic and multi-line strings together (unifying lines)
 			
 			# stage 0:
 			# standardize input and check if any processing is required
@@ -713,43 +775,9 @@ def parse_file(file_name):
 			else:
 				# finished stitching
 				line = state.multiline_content + line
-				lstrip_line = line.lstrip()
 				state.multiline_content = ''
-			# separate inline function definitions ( def(x): return x*x ) into proper functions
-			if line.find('def') and re.search(r'\bdef\(', line):
-				pair = line.split('):')
-				parse_line(pair[0]+'):\n', state)
-				line = state.get_indent(pair[0])+state.basic_indent+pair[1].lstrip()
-			# separate lines at semi-colons:
-			sub_lines = line.rstrip().split(';')
-			final_lines = []
-			indent = state.get_indent(line)
-			inside_string = False
-			for sub_line in sub_lines:
-				if inside_string:
-					# continuing to stitch a string from before
-					final_lines[-1] += ';' + sub_line
-					if not terminates_inside_comment(final_lines[-1]):
-						inside_string = False
-				elif terminates_inside_comment(sub_line):
-					# this is a string, stitch it back together
-					if inside_string:
-						final_lines[-1] += ';' + sub_line
-					else:
-						final_lines.append(sub_line)
-					inside_string = True
-				else:
-					# this is a sub-line, apply same indent as the main line
-					lstrip_sub_line = sub_line.lstrip()
-					if lstrip_sub_line:
-						final_lines.append(indent + lstrip_sub_line)
-					
-			# stages 2+ are performed inside parse_line() logic, this is to allow function
-			# shorthands: 
-			#	def(a, b): return a+b
-			#	def(a, b): a += b; return a
-			for line in final_lines:
-				parse_line(line + '\n', state)
+				
+			stage2(line, state)
 	
 	# end of file, write any unwritten code to buffer
 	if state.post_init_dump:
