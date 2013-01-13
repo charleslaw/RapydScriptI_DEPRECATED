@@ -515,8 +515,9 @@ def parse_file(file_name):
 			line, lstrip_line = make_exception_updates(line, lstrip_line, state)
 		
 		# stage 4:
-		if line.find('def') != -1 and line.find('def') < line.find(' and ') < line.find(':') \
-		and re.match('^(\s*)(def\s*\(.*\))\s+and\s+([A-Za-z_$][A-Za-z0-9_$]*\(.*\)):$', line):
+		if line.find('def') != -1 and line.find('def') < line.find(' and ') < line.find(':') and \
+				not lstrip_line.startswith('.while') and \
+				re.match('^(\s*)(def\s*\(.*\))\s+and\s+([A-Za-z_$][A-Za-z0-9_$]*\(.*\)):$', line):
 			# handle declaration and call at the same time
 			groups = re.match('^(\s*)(def\s*\(.*\))\s+and\s+([A-Za-z_$][A-Za-z0-9_$]*\(.*\)):$', line).groups()
 			line = groups[0] + groups[1] + ':\n'
@@ -565,7 +566,8 @@ def parse_file(file_name):
 			line = convert_list_comprehension(line)
 
 		# handle JavaScript-like chaining
-		if state.file_buffer and state.file_buffer[-1] == '\n' and lstrip_line and lstrip_line[0] == '.':
+		if state.file_buffer and state.file_buffer[-1] == '\n' and \
+				lstrip_line and not lstrip_line.startswith('.while') and lstrip_line[0] == '.':
 			if state.inclass:
 				line = line[len(state.indent):] # dedent
 			state.write_buffer(line.split('.')[0] + wrap_chained_call(lstrip_line))

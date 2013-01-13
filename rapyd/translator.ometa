@@ -3,6 +3,7 @@ grammar = stmt*:s -> '%s\n' % '\n'.join(s)
 block = ~~[anything*] !(self.indent()):i [stmt*:s] !(self.dedent()) -> self.make_block(s, i)
 funcblock = ~~[anything*] !(self.indent()):i [stmt*:s] !(self.dedent()) -> self.make_func_block(s, i)
 stmt = (  ['while' while:e]
+        | ['dowhile' dowhile:e]
         | ['if' if:e]
         | ['for' for:e]
         | ['try' try:e]
@@ -68,6 +69,7 @@ return          -> 'return'
 raise    expr:x -> 'throw %s' % x
 
 while expr:cond block:body -> 'while (%s) %s' % (cond, ''.join(body))
+dowhile block:body expr:cond -> 'do %s while %s' % (''.join(body), cond)
 
 if [expr:cond block:t] [([expr:c block:b] -> (c, b))*:ei] block?:e -> self.make_if(cond, t, ei, e)
 ifexpr expr:cond expr:t expr:f -> '(%s ? %s : %s)' % (cond, t, f)

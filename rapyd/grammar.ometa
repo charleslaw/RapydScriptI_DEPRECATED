@@ -17,7 +17,7 @@ line      = emptyline*:e indentation stmt:s optspace (vspace | end) -> s
 line_rest = (~vspace :x)*:x -> ''.join(x)
 
 stmt = pass | global | nonlocal | continue | break | return | raise | while
-     | del | if | def | for | try | augassign | assign
+     | del | if | def | for | try | augassign | assign | dowhile
 
 global = "global" mandspace innercsv('name'):names -> ['global', names]
 nonlocal = "nonlocal" mandspace innercsv('name'):names -> ['nonlocal', names]
@@ -143,6 +143,7 @@ elif  = emptyline* indentation "elif" ifcond:cond optspace ':' block:body -> [co
 else  = emptyline* indentation "else" optspace ':' block:body -> body
 
 while = "while" ifcond:cond optspace ':' block:body -> ['while', cond, body]
+dowhile = "do:" block:body emptyline* indentation ".while" ifcond:cond -> ['dowhile', body, cond]
 
 for   = "for" mandspace possibleunpackedtuple('get'):var mandspace "in" mandspace (rngop | possibleunpackedtuple('expr')):data optspace ':' block:body -> ['for', var, data, body]
 
