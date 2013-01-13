@@ -1,0 +1,25 @@
+
+#Test a normal regex
+s = r'abc'
+
+#Test the different modifiers
+s = r'abc'i
+s = r'abc'm
+s = r'abc's
+s = r'abc'x
+s = r'abc'imsx
+r = r'abc'mim
+
+#Test the different string tokens
+s = r"abc"
+s = r'''abc'''
+s = r"""abc"""
+s = r"abc"m
+s = r'''abc'''s
+s = r"""abc"""x
+
+#Make sure simple strings still work
+s = 'abc'
+s = "abc"
+s = '''abc'''
+s = """abc"""

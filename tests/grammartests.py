@@ -516,6 +516,21 @@ class Test(PyvaTest):
         }
         """)
 
+    def test_simple_prototype(self):
+        self.check("""
+        x.prototype = {
+            'add': def(self, a, b, c):
+                return 1 + 2
+            ,
+        }
+        """, """
+        x.prototype = {
+          "add": (function(a, b, c) {
+            return (1 + 2);
+          })
+        };
+        """)
+
     def test_multi_line_lambda(self):
         self.check("""
         x.prototype = {

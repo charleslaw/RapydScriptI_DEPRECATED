@@ -1,0 +1,18 @@
+/* This file was auto-generated using RapydScript */
+s = /abc/;
+s = /abc/i;
+s = /abc/m;
+s = /abc/s;
+s = /abc/x;
+s = /abc/imsx;
+r = /abc/mim;
+s = /abc/;
+s = /abc/;
+s = /abc/;
+s = /abc/m;
+s = /abc/s;
+s = /abc/x;
+s = "abc";
+s = "abc";
+s = "abc";
+s = "abc";

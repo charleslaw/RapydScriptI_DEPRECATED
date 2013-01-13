@@ -39,6 +39,7 @@ name      :n       -> self.get_name(n)
 number    :n       -> str(n)
 hexnumber :n       -> hex(n)
 string    :s       -> json.dumps(s)
+rstring   :rs :m   -> '/%s/%s' % (json.dumps(rs)[1:-1], ''.join(m))
 
 new  expr:c                  -> 'new %s' % c
 

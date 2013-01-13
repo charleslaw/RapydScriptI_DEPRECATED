@@ -86,6 +86,7 @@ get = get:obj optspace '.' optspace name:n           -> ['getattr', obj, n]
     | immediate
 
 immediate = number
+          | rstring
           | string
           | list
           | tuple
@@ -103,9 +104,15 @@ iskeyword :x = ?(self.is_keyword(x))
 name         = iname:n ~iskeyword(n)       -> ['name', n]
 
 escaped_char = '\\' :x -> ('\\' + x).decode('string_escape')
-string3 :e = match_string(e) (escaped_char | ~(?(len(e) != 3) vspace | match_string(e)) anything)*:c match_string(e) -> ''.join(c)
-string2 = string3('"""') | string3("'''") | string3('"') | string3("'")
-string = (string2:s optspace -> s)+:s -> ['string', ''.join(s)]
+string4 :e = match_string(e) (escaped_char | ~(?(len(e) != 3) vspace | match_string(e)) anything)*:c match_string(e) -> ''.join(c)
+string3 = string4('"""') | string4("'''") | string4('"') | string4("'")
+string2 = (string3:s optspace -> s)+:s -> ''.join(s)
+rmodifiers = "i" -> 'i'
+            |"m" -> 'm'
+            |"s" -> 's'
+            |"x" -> 'x'
+rstring =  "r" string2:rs (rmodifiers)*:m  ->  ['rstring', rs, m]
+string = string2:s -> ['string', s]
 
 hexdigit     = letterOrDigit:x !(self.hex_digits.find(x.lower())):v ?(v >= 0)  -> v
 hexlit       = hexlit:n hexdigit:d                                             -> (n * 16 + d)
