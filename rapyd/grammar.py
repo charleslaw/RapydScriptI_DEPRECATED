@@ -167,17 +167,17 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
         self.global_vars = set()
 
     def translate_cmp(self, x, op, y):
-    	if op == 'not in':
-    		#special case
-    		return '!(%s in %s)' % (x, y)
-    	else:
+        if op == 'not in':
+            #special case
+            return '!(%s in %s)' % (x, y)
+        else:
             return '(%s %s %s)' % (x, self.binop_map.get(op, op), y)
 
     def make_chained_cmp(self, l, r):
-    	"""
-    	build a chained comparison - this is not intended to handle
-    	single comparions because it adds unnecessary extra variables
-    	"""
+        """
+        build a chained comparison - this is not intended to handle
+        single comparions because it adds unnecessary extra variables
+        """
         comps = iter(r)
         comp = comps.next()
         
@@ -188,7 +188,7 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
             final_comp = '(%s and %s)' % \
                 (final_comp, self.translate_cmp(prev_var, comp[0], comp[1]))
             prev_var = comp[1]
-    	return final_comp
+        return final_comp
 
     def pop_vars(self):
         self.local_vars, self.nonlocal_vars, self.global_vars = self.var_stack.pop()
@@ -221,11 +221,11 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
         return ' '.join(expr)
 
     def make_try(self, body, err, finbody):
-    	expr = ['try %s' % body]
-    	if err is not None:
-    		expr.append('catch(%s) %s' % (err[0], err[1]))
-    	if finbody is not None:
-    		expr.append('finally %s' % finbody)
+        expr = ['try %s' % body]
+        if err is not None:
+            expr.append('catch(%s) %s' % (err[0], err[1]))
+        if finbody is not None:
+            expr.append('finally %s' % finbody)
         return ' '.join(expr)
 
     def make_for(self, var, data, body):
