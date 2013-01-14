@@ -3,6 +3,8 @@ syntax: glob
 
 *.pyc
 *.tmp
+*.orig
 rapydscript.egg-info/*
 build/*
 dist/*
+tests/testdata/*.js
