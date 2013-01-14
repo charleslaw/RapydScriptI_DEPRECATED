@@ -1,0 +1,37 @@
+# test each type of comparison
+a is b
+b is not c
+c in d
+d not in e
+d <= f
+f >= g
+g < h
+h > i
+i != j
+j == k
+
+#test each type of comparion chained together
+a is b and b is not c or c in d and d not in e or d <= f and \
+    f >= g or g < h and h > i or i != j and j == k
+
+
+#test a non-chained if statement
+if a:
+    tmp = 1
+
+
+#test a simple comparison
+if 4 > a:
+    tmp = 1
+
+#test the simplest chained comparion
+if a < 4 < 6:
+    tmp = 1
+
+#test a more complex chained comparion
+if 4 < a < 6 < b+1 < 9:
+    tmp = 1
+
+#test chaining each type of comparion
+if a is b is not c in d not in e <= f >= g < h > i != j == k:
+    a = 1

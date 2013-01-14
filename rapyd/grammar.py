@@ -166,6 +166,30 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
         self.nonlocal_vars = set()
         self.global_vars = set()
 
+    def translate_cmp(self, x, op, y):
+    	if op == 'not in':
+    		#special case
+    		return '!(%s in %s)' % (x, y)
+    	else:
+            return '(%s %s %s)' % (x, self.binop_map.get(op, op), y)
+
+    def make_chained_cmp(self, l, r):
+    	"""
+    	build a chained comparison - this is not intended to handle
+    	single comparions because it adds unnecessary extra variables
+    	"""
+        comps = iter(r)
+        comp = comps.next()
+        
+        final_comp = self.translate_cmp(l, comp[0], comp[1])
+        prev_var = comp[1]
+
+        for comp in comps:
+            final_comp = '(%s and %s)' % \
+                (final_comp, self.translate_cmp(prev_var, comp[0], comp[1]))
+            prev_var = comp[1]
+    	return final_comp
+
     def pop_vars(self):
         self.local_vars, self.nonlocal_vars, self.global_vars = self.var_stack.pop()
 

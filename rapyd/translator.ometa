@@ -31,10 +31,11 @@ del     expr:x            -> 'delete %s' % x
 unop     'not' ['call' ['name' 'hasattr'] [expr:obj expr:attr]] -> '(typeof %s[%s] == "undefined")' % (obj, attr)
 unop     :op expr:x        -> '(%s%s)' % (self.op_map.get(op, op), x)
 
-binop    'not in' expr:x expr:y -> '!(%s in %s)' % (x, y)
 binop    'to' expr:x expr:y -> 'range(%s, %s+1)' % (x, y)
 binop    'til' expr:x expr:y -> 'range(%s, %s)' % (x, y)
-binop    :op expr:x expr:y -> '(%s %s %s)' % (x, self.binop_map.get(op, op), y)
+binop    :op expr:x expr:y -> '(%s %s %s)' % (x, op, y)
+cmpop    expr:l [([:op expr:y] -> (op, y)):r] -> self.translate_cmp(l, r[0], r[1])
+cmpop    expr:l [([:op expr:y] -> (op, y))+:r] -> self.make_chained_cmp(l, r)
 
 name      :n       -> self.get_name(n)
 number    :n       -> str(n)

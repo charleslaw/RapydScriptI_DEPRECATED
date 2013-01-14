@@ -1,0 +1,32 @@
+/* This file was auto-generated using RapydScript */
+(a === b);
+(b !== c);
+(c in d);
+!(d in e);
+(d <= f);
+(f >= g);
+(g < h);
+(h > i);
+(i != j);
+(j == k);
+((((((a === b) && (b !== c)) || ((c in d) && !(d in e))) || ((d <= f) && (f >= g))) || ((g < h) && (h > i))) || ((i != j) && (j == k)));
+if (a) {
+  tmp = 1;
+}
+
+if ((4 > a)) {
+  tmp = 1;
+}
+
+if (((a < 4) and (4 < 6))) {
+  tmp = 1;
+}
+
+if (((((4 < a) and (a < 6)) and (6 < (b + 1))) and ((b + 1) < 9))) {
+  tmp = 1;
+}
+
+if (((((((((((a === b) and (b !== c)) and (c in d)) and !(d in e)) and (e <= f)) and (f >= g)) and (g < h)) and (h > i)) and (i != j)) and (j == k))) {
+  a = 1;
+}
+
