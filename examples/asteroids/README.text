@@ -15,7 +15,9 @@ The asteroids game was originally written as a Pyjs (formally Pyjamas) example. 
 	Download Time: 1.3 sec vs  17 sec
 	LOC:             700   vs   32900
 
-It is also worth noting that there are multiple cache files generated for Pyjs so the footprint on the server is even larger.
+It is also worth noting that there are currently 6 cache files generated for Pyjs so the app takes significantly more storage space.
+
+Example in action: [RapydScript Asteroids](http://pyjeon.pythonanywhere.com/static/asteroids/index.html)
 
 
 Pyjs Asteroids
@@ -24,4 +26,5 @@ The Pyjs Asteroids game builds to approximately 1200kb for a single cache file. 
 
 For developers, Pyjs can make applications appear slow and use more bandwidth to transfer. It is also worth noting that Pyjs generates 6 cache files that all must be deployed.
 
-Example in Action: [Pyjs Example](http://pyjeon.pythonanywhere.com/docsgen/static/examples/pyjsasteroids/compiled/Space.html)
+Example in Action: [Pyjs Example](http://pyjeon.pythonanywhere.com/static/examples/pyjsasteroids/compiled/Space.html)
+
