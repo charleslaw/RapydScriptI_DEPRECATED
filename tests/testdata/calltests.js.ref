@@ -1,4 +1,0 @@
-/* This file was auto-generated using RapydScript */
-a = [];
-b = typeof(a);
-b = a.length;

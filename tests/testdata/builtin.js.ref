@@ -1,0 +1,42 @@
+/* This file was auto-generated using RapydScript */
+a = [];
+b = {
+  
+};
+a1 = list();
+b1 = dict();
+a2 = new Array();
+b2 = new Object();
+d = range(1, 15+1);
+e = range(5, 7);
+f = range(6, 8);
+c = typeof(a);
+c = a.length;
+c = a.length;
+c = !!("string");
+c = parseInt("123");
+c = parseFloat("1.5");
+c = str(5);
+var _$tmp1_data = _$pyva_iter([1, 2, 3, 4]);
+var _$tmp2_len = _$tmp1_data.length;
+for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
+  i = _$tmp1_data[_$tmp3_index];
+
+  print(i);
+}
+
+var _$tmp4_end = d.length;
+for (i = 0; i < _$tmp4_end; i++) {
+  print(i);
+}
+
+var _$tmp5_data = _$pyva_iter(enumerate(d));
+var _$tmp6_len = _$tmp5_data.length;
+for (var _$tmp7_index = 0; _$tmp7_index < _$tmp6_len; _$tmp7_index++) {
+  _$rapyd$_tuple = _$tmp5_data[_$tmp7_index];
+  i = _$rapyd$_tuple[0];
+  j = _$rapyd$_tuple[1];
+
+  print(i, j);
+}
+

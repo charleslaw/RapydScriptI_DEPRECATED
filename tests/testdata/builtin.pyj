@@ -1,0 +1,37 @@
+# primitive
+a = []
+b = {}
+a1 = list()
+b1 = dict()
+a2 = Array()
+b2 = Object()
+
+# implicit range
+d = [1 to 15]
+e = [5 til 7]
+f = range(6, 8)
+
+# test type --> typeof
+c = type(a)
+
+# test len --> length
+c = len(a)
+c = a.length
+
+# typecasting
+c = bool('string')
+c = int('123')
+c = float('1.5')
+c = str(5)
+
+# for loops
+for i in [1,2,3,4]:
+	print(i)
+
+for i in range(len(d)):
+	print(i)
+
+for i, j in enumerate(d):
+	print(i, j)
+
+

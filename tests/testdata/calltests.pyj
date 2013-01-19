@@ -1,7 +1,0 @@
-# test type --> typeof
-a = []
-b = type(a)
-
-
-# test len --> length
-b = len(a)
