@@ -200,7 +200,7 @@ class StockChart:
 			if not len(cols):
 				# this is the first symbol, create rows and append date
 				for item in data[1:]:
-					rows.append([new Date(item['col0']), float(item['col4'])])
+					rows.append([Date(item['col0']), float(item['col4'])])
 			else:
 				# rows have already been generated, just append to them
 				for index, item in enumerate(data[1:]):
@@ -246,7 +246,7 @@ def main():
 	$start = $('#start-date').datepicker({'onSelect': triggerChange})
 	$end = $('#end-date').datepicker({'onSelect': triggerChange})
 	$start.datepicker('setDate', -90)
-	$end.datepicker('setDate', new Date())
+	$end.datepicker('setDate', Date())
 	
 	symbols = []
 	$stocks = $('#stock-input')

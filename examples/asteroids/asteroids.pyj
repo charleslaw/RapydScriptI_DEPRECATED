@@ -45,7 +45,7 @@ class View:
 
 		self.img = [None, None, None]
 		for i in range(3):
-			main.img[i] = new Image()
+			main.img[i] = Image()
 			main.img[i].src = imgsrcs[i]
 			main.img[i].onload = def():
 				main.number_images_loaded += 1

@@ -1,17 +1,39 @@
 class Human:
 	def __init__(self):
 		self.name = 'human'
+	def talk(self, word):
+		console.log(word)
 
 class Boy(Human):
 	def talk(self):
-		console.log('hi')
+		# parent function
+		Human.talk('hi')
 
 class Animal:
 	def __init__(self, name):
 		self.name = name
 	def getName(self):
 		console.log(self.name)
+	def talk(self):
+		# calling function from foreign 'parent'
+		Human.talk('animals don\'t talk')
 
 class Dog(Animal):
 	def __init__(self):
 		Animal.__init__('dog')
+
+# object creation
+bob = Human()
+ted = Boy()
+clyde = Dog()
+test = NotClass()
+
+# internal JavaScript 'classes'
+a = Image()
+b = RegExp('^.*$')
+
+# instance vs class property
+clyde.talk()
+Dog.talk()
+a.src = 'a.png'
+Image.src = 'b.png'

@@ -3,11 +3,14 @@ Human = function() {
   this.name = "human";
 };
 
+Human.prototype.talk = (function(word) {
+  console.log(word);
+});
 Boy = function() {Human.prototype.constructor.call(this);};
 Boy.prototype = new Human();
 Boy.prototype.constructor = Boy;
 Boy.prototype.talk = (function() {
-  console.log("hi");
+  Human.prototype.talk.call("hi");
 });
 Animal = function(name) {
   this.name = name;
@@ -16,9 +19,22 @@ Animal = function(name) {
 Animal.prototype.getName = (function() {
   console.log(this.name);
 });
+Animal.prototype.talk = (function() {
+  Human.prototype.talk.call("animals don't talk");
+});
 Dog = function() {
   Animal.prototype.constructor.call("dog");
 };
 
 Dog.prototype = new Animal();
 Dog.prototype.constructor = Dog;
+bob = new Human();
+ted = new Boy();
+clyde = new Dog();
+test = NotClass();
+a = new Image();
+b = new RegExp("^.*$");
+clyde.talk();
+Dog.talk();
+a.src = "a.png";
+Image.src = "b.png";

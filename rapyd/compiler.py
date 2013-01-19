@@ -6,7 +6,10 @@ from grammar import Grammar, Translator, compile
 from codecheck import verify_code
 from exceptions import update_exception_indent_data, process_exception_line
 
-class_list = []
+# treat native JavaScript objects like classes
+class_list = ['Image', 'RegExp', 'Error', 'Object', 'String', 'Array', 'Number', 'Function', 'Date', 'Boolean',
+				'ArrayBuffer', 'DataView', 'Float32Array', 'Float64Array', 'Int16Array', 'Int32Array', 'Int8Array',
+				'Uint16Array', 'Uint32Array', 'Uint8Array', 'Uint8ClampedArray']
 global_object_list = {}
 global_buffer = ''
 
@@ -550,7 +553,8 @@ def parse_file(file_name):
 			else:
 				state.class_name = class_data[0]
 				state.parent = class_data[1][:-3] #assume single inheritance, remove '):'
-				state.post_init_dump += '%s.prototype = new %s()\n' % (state.class_name, state.parent)
+				if state.parent in class_list:
+					state.post_init_dump += '%s.prototype = new %s()\n' % (state.class_name, state.parent)
 			class_list.append(state.class_name)
 			state.need_indent = True # don't set the indent yet, it might not be available if this is the first line
 		elif line[0] not in (' ', '\t', '\n'):
