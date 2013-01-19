@@ -22,6 +22,10 @@ class Dog(Animal):
 	def __init__(self):
 		Animal.__init__('dog')
 
+class Test(NotClass):
+	def t(self):
+		pass
+
 # object creation
 bob = Human()
 ted = Boy()

@@ -553,8 +553,10 @@ def parse_file(file_name):
 			else:
 				state.class_name = class_data[0]
 				state.parent = class_data[1][:-3] #assume single inheritance, remove '):'
+				new_prefix = ''
 				if state.parent in class_list:
-					state.post_init_dump += '%s.prototype = new %s()\n' % (state.class_name, state.parent)
+					new_prefix = 'new '
+				state.post_init_dump += '%s.prototype = %s%s()\n' % (state.class_name, new_prefix, state.parent)
 			class_list.append(state.class_name)
 			state.need_indent = True # don't set the indent yet, it might not be available if this is the first line
 		elif line[0] not in (' ', '\t', '\n'):
