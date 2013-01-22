@@ -11,7 +11,7 @@ dedent      = !(self.dedent())
 
 comment  = '#' line_rest:c -> ['comment', c]
 emptyline = hspace* ('\\')? vspace
-block     = emptyline+ indent stmt:s optspace (vspace | end) line*:l dedent -> [s] + l
+block     = optspace comment?:c vspace indent stmt:s optspace (vspace | end) line*:l dedent -> [c] if c else [] + [s] + l
 block     = optspace stmt:s optspace ~~(vspace | end) -> [s]
 line      = emptyline* indentation stmt:s optspace (vspace | end) -> s
 line_rest = (~vspace :x)*:x -> ''.join(x)
@@ -142,8 +142,8 @@ commentlines = emptyline -> None
 ifcond = mandspace expr:cond -> cond
        | optspace '(' expr:cond ')' -> cond
 if    = "if" ifcond:cond optspace ':' block:body elif*:ei else?:e -> ['if', [cond, body]] + [ei] + ([e] if e else [])
-elif  = emptyline (commentlines)*:cmts indentation "elif" ifcond:cond optspace ':' block:body -> [cmts, cond, body]
-else  = emptyline (commentlines)*:cmts indentation "else" optspace ':' block:body -> [cmts, body]
+elif  = (commentlines)*:cmts indentation "elif" ifcond:cond optspace ':' block:body -> [cmts, cond, body]
+else  = (commentlines)*:cmts indentation "else" optspace ':' block:body -> [cmts, body]
 
 while = "while" ifcond:cond optspace ':' block:body -> ['while', cond, body]
 dowhile = "do:" block:body emptyline* indentation ".while" ifcond:cond -> ['dowhile', body, cond]
@@ -154,8 +154,8 @@ def   = "def" !(self.get_indent()):i mandspace !(self.indent_stack.append(i)) na
 deflambda = "def" !(self.get_indent()):i ~~(hspace | '(') !(self.enter_deflambda(i)) optspace '(' csv('name'):args ')' optspace ':' block:body !(self.leave_deflambda()) -> ['func', None, args, body]
 lambda = "lambda" mandspace csv('name'):args optspace ':' expr:e -> ['func', None, args, [e]]
 
-finally_block = emptyline (commentlines)*:cmts indentation "finally" optspace ':' block:body -> [cmts, body]
-except_block  = emptyline (commentlines)*:cmts indentation "except" mandspace name:err optspace ':' block:body -> [cmts, err, body]
+finally_block = (commentlines)*:cmts indentation "finally" optspace ':' block:body -> [cmts, body]
+except_block  = (commentlines)*:cmts indentation "except" mandspace name:err optspace ':' block:body -> [cmts, err, body]
 try = "try" optspace ':' block:body except_block:exc finally_block:fin -> ['try', body, 'except', exc, 'finally', fin]
     | "try" optspace ':' block:body except_block:exc -> ['try', body, 'except', exc]
     | "try" optspace ':' block:body finally_block:fin -> ['try', body, 'finally', fin]
