@@ -85,6 +85,9 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
         'unicode': 'str',
     }
 
+    #class variable indicating whether comments are allowed or not
+    allowcomments = False
+
     def __init__(self, *args, **kwargs):
         super(Translator, self).__init__(*args, **kwargs)
         self.indentation = 0
@@ -93,6 +96,17 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
         self.global_vars = set()
         self.var_stack = []
         self.temp_var_id = 0
+
+    @classmethod
+    def parse(cls, *args, **kwargs):
+        if 'debug_flag' in kwargs:
+            #Set allowcomments to the debug flag
+            cls.allowcomments = bool(kwargs['debug_flag'])
+            #Remove the debug flag keyword
+            del kwargs['debug_flag']
+        else:
+            cls.allowcomments = False
+        return super(Translator, cls).parse(*args, **kwargs)
 
     def get_name(self, name):
         if name == 'self' and name not in self.global_vars:
@@ -126,6 +140,18 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
         var_names = var_list_str[1:-1].split(',')
         var_names = [var_name.strip() for var_name in var_names]
         return var_names
+
+    def make_comment(self, c):
+        if self.allowcomments:
+            return '//%s' % c
+        else:
+            return None
+
+    def make_stmts(self, ss):
+        """
+        Filter out None statements - these are currently filtered out comments
+        """
+        return [s for s in ss if s is not None]
 
     def make_eq(self, var, val):
         indent = '  ' * self.indentation
@@ -213,19 +239,33 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
         sep = ',\n%s' % indentstr
         return '{\n%s%s\n%s}' % (indentstr, sep.join(items), '  ' * (indentation - 1))
 
+    def comments_str(self, raw_comments):
+    	comments = []
+    	for comment in raw_comments:
+    	    if comment and comment[0]=='comment':
+    	    	comments.append('%s//%s' % ('  ' *self.indentation, comment[1]))
+
+    	if comments:
+            return '\n%s\n%s' % ('\n'.join(comments), '  '  * self.indentation)
+        else:
+            return ''
+
     def make_if(self, cond, block, elifexprs, elseblock):
         expr = ['if (%s) %s' % (cond, block)]
-        expr.extend('else if (%s) %s' % x for x in elifexprs)
-        if elseblock:
-            expr.append('else %s' % elseblock)
+        for elifexpr in elifexprs:
+            comments = self.comments_str(elifexpr[0])
+            expr.append('%selse if (%s) %s' % (comments, elifexpr[1], elifexpr[2]))
+        if elseblock and elseblock[1]:
+            comments = self.comments_str(elseblock[0])
+            expr.append('%selse %s' % (comments, elseblock[1]))
         return ' '.join(expr)
 
-    def make_try(self, body, err, finbody):
+    def make_try(self, body, catch, fin):
         expr = ['try %s' % body]
-        if err is not None:
-            expr.append('catch(%s) %s' % (err[0], err[1]))
-        if finbody is not None:
-            expr.append('finally %s' % finbody)
+        if catch is not None:
+            expr.append('catch(%s) %s' % (catch[1], catch[2]))
+        if fin is not None:
+            expr.append('finally %s' % fin[1])
         return ' '.join(expr)
 
     def make_for(self, var, data, body):

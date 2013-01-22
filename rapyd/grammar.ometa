@@ -10,14 +10,14 @@ indent      = hspace*:i ?(len(i) > self.indent_stack[-1]) !(self.indent_stack.ap
 dedent      = !(self.dedent())
 
 comment  = '#' line_rest:c -> ['comment', c]
-emptyline = hspace* ('\\' | comment)?:c vspace
+emptyline = hspace* ('\\')? vspace
 block     = emptyline+ indent stmt:s optspace (vspace | end) line*:l dedent -> [s] + l
 block     = optspace stmt:s optspace ~~(vspace | end) -> [s]
-line      = emptyline*:e indentation stmt:s optspace (vspace | end) -> s
+line      = emptyline* indentation stmt:s optspace (vspace | end) -> s
 line_rest = (~vspace :x)*:x -> ''.join(x)
 
 stmt = pass | global | nonlocal | continue | break | return | raise | while
-     | del | if | def | for | try | augassign | assign | dowhile
+     | del | if | def | for | try | augassign | assign | dowhile | comment
 
 global = "global" mandspace innercsv('name'):names -> ['global', names]
 nonlocal = "nonlocal" mandspace innercsv('name'):names -> ['nonlocal', names]
@@ -137,11 +137,13 @@ dictexpr  = ( name:k | string:k ) optspace ':' optspace expr:v -> ['dictkv', k, 
 
 ifexpr = innerifexpr:t mandspace "if" mandspace innerifexpr:cond mandspace "else" mandspace expr:f -> ['ifexpr', cond, t, f]
 
+commentlines = emptyline -> None
+             | indentation comment:c vspace -> c
 ifcond = mandspace expr:cond -> cond
        | optspace '(' expr:cond ')' -> cond
 if    = "if" ifcond:cond optspace ':' block:body elif*:ei else?:e -> ['if', [cond, body]] + [ei] + ([e] if e else [])
-elif  = emptyline* indentation "elif" ifcond:cond optspace ':' block:body -> [cond, body]
-else  = emptyline* indentation "else" optspace ':' block:body -> body
+elif  = emptyline (commentlines)*:cmts indentation "elif" ifcond:cond optspace ':' block:body -> [cmts, cond, body]
+else  = emptyline (commentlines)*:cmts indentation "else" optspace ':' block:body -> [cmts, body]
 
 while = "while" ifcond:cond optspace ':' block:body -> ['while', cond, body]
 dowhile = "do:" block:body emptyline* indentation ".while" ifcond:cond -> ['dowhile', body, cond]
@@ -152,12 +154,10 @@ def   = "def" !(self.get_indent()):i mandspace !(self.indent_stack.append(i)) na
 deflambda = "def" !(self.get_indent()):i ~~(hspace | '(') !(self.enter_deflambda(i)) optspace '(' csv('name'):args ')' optspace ':' block:body !(self.leave_deflambda()) -> ['func', None, args, body]
 lambda = "lambda" mandspace csv('name'):args optspace ':' expr:e -> ['func', None, args, [e]]
 
-try = "try" optspace ':' block:body
-      emptyline* indentation "except" mandspace name:err optspace ':' block:errbody
-      (emptyline* indentation "finally" optspace ':' block)?:finbody
-      -> ['try', body, [err, errbody]] + ([finbody] if finbody else [])
-    | "try" optspace ':' block:body
-      emptyline* indentation "finally" optspace ':' block:finbody
-      -> ['try', body, finbody]
-
+finally_block = emptyline (commentlines)*:cmts indentation "finally" optspace ':' block:body -> [cmts, body]
+except_block  = emptyline (commentlines)*:cmts indentation "except" mandspace name:err optspace ':' block:body -> [cmts, err, body]
+try = "try" optspace ':' block:body except_block:exc finally_block:fin -> ['try', body, 'except', exc, 'finally', fin]
+    | "try" optspace ':' block:body except_block:exc -> ['try', body, 'except', exc]
+    | "try" optspace ':' block:body finally_block:fin -> ['try', body, 'finally', fin]
+    
 

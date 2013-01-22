@@ -1,7 +1,8 @@
-grammar = stmt*:s -> '%s\n' % '\n'.join(s)
+grammar = stmts:s -> '%s\n' % '\n'.join(s)
 
-block = ~~[anything*] !(self.indent()):i [stmt*:s] !(self.dedent()) -> self.make_block(s, i)
-funcblock = ~~[anything*] !(self.indent()):i [stmt*:s] !(self.dedent()) -> self.make_func_block(s, i)
+block = ~~[anything*] !(self.indent()):i [stmts:s] !(self.dedent()) -> self.make_block(s, i)
+funcblock = ~~[anything*] !(self.indent()):i [stmts:s] !(self.dedent()) -> self.make_func_block(s, i)
+stmts = stmt*:ss -> self.make_stmts(ss)
 stmt = (  ['while' while:e]
         | ['dowhile' dowhile:e]
         | ['if' if:e]
@@ -12,6 +13,7 @@ stmt = (  ['while' while:e]
      | ['nonlocal' [expr*:names]] !(self.register_nonlocals(names)) -> ''
      | ['pass'] -> ''
      | ['call' ~~(['name' 'JS'] anything*) call:e] -> e
+     | ['comment' :c]    -> self.make_comment(c)
      | expr:e            -> '%s;' % e
 expr = [:t apply(t):ans] -> ans
 
@@ -72,7 +74,7 @@ raise    expr:x -> 'throw %s' % x
 while expr:cond block:body -> 'while (%s) %s' % (cond, ''.join(body))
 dowhile block:body expr:cond -> 'do %s while %s' % (''.join(body), cond)
 
-if [expr:cond block:t] [([expr:c block:b] -> (c, b))*:ei] block?:e -> self.make_if(cond, t, ei, e)
+if [expr:cond block:t] [([:cmts expr:c block:b] -> (cmts, c, b))*:ei] ([:cmts block:b] -> (cmts, b))?:e -> self.make_if(cond, t, ei, e)
 ifexpr expr:cond expr:t expr:f -> '(%s ? %s : %s)' % (cond, t, f)
 
 isliteral = ~~[('name' | 'number' | 'hexnumber' | 'string') anything*] -> True
@@ -87,5 +89,5 @@ for expr:var !(self.register_var(var))
 func funcstmt:f -> '(%s)' % f
 funcstmt !(self.push_vars()) :name [expr*:args] !(self.register_globals(args)) funcblock:body !(self.pop_vars()) -> self.make_func(name, args, body)
 
-try block:body ([expr:err block:errbody] -> (err, errbody))?:catch block?:finbody -> self.make_try(body, catch, finbody)
+try block:body ('except' [:cmts expr:err block:b]->[cmts, err, b])?:catch ('finally' [:cmts block:b]->[cmts, b])?:fin -> self.make_try(body, catch, fin)
 
