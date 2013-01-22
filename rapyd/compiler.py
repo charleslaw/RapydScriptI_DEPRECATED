@@ -67,7 +67,6 @@ class State:
 		self.incomment = False		# identifies if we're currently in multi-line string (used to prevent parsing strings)
 		self.docstring = False		# true if multi-line string is not assigned to anything (used as a docstring)
 		self.comment_type = None	# if in string, identifies the quote type that started the string
-		self.exception_stack = []	# current exception stack (used when processing try/except blocks)
 		
 		# current class info
 		self.inclass = False		# True if we're currently inside a class definition
@@ -82,6 +81,10 @@ class State:
 		self.arg_dump = []			# contains code used to set optional arguments in case they're not passed in
 		self.function_indent = None	# indentation level of this particular function
 		self.post_function = []		# store 'to-do' logic to perform after function definition
+        
+        # current exception info
+		self.exception_stack = []	# current exception stack (used when processing try/except blocks)
+		self.comment_dump = []      # if in a exception block, save the comments for later processing/indentation fixing
 		
 		# current file statistics
 		self.basic_indent = ''		# basic indent marker used by the file (a sequence of whitespace characters)
@@ -353,6 +356,21 @@ def bind_chained_calls(source):
 	source = re.sub(r';\s*\n*\s*<<_rapydscript_bind_>>', '', source, re.MULTILINE) # handle semi-colon binding
 	return re.sub(r'}\s*\n*\s*<<_rapydscript_bind_>>', '}', source, re.MULTILINE) # handle block binding
 
+def print_exception_comments(state, exception_info, added_indent, test_equal=False):
+
+	source_indent = exception_info['source_indent']				
+	remove_inds = []
+	for j in xrange(len(state.comment_dump)):
+		comment = state.comment_dump[j]
+		comment_indent = state.get_indent(comment)
+		comment_indent_size = len(comment_indent)
+		if (comment_indent_size > source_indent) or \
+				(test_equal and (comment_indent_size == source_indent)):
+			state.write_buffer(added_indent)
+			state.write_buffer(comment.lstrip())
+			remove_inds.append(j)
+	for remove_ind in reversed(remove_inds):
+		del state.comment_dump[remove_ind]
 
 def make_exception_updates(line, lstrip_line, state):
 
@@ -397,6 +415,13 @@ def make_exception_updates(line, lstrip_line, state):
 				state.write_buffer('%s%s = %s\n'% \
 				(exception_info['code_indent'], exception_info['var_name'], exception_info['exception_var']))
 
+	# Print any exceptions before the indent
+	if state.exception_stack:
+		added_indent = exception_info['code_indent']
+
+		print_exception_comments(state, exception_info, added_indent)
+
+
 	# Print and remove exited exceptions
 	# Test whitespace to see if we got ouside an except block
 	is_except_line = lstrip_line.startswith('except')
@@ -414,6 +439,18 @@ def make_exception_updates(line, lstrip_line, state):
 							(exited_exception['if_block_indent'],
 							exited_exception['code_indent'],
 							exited_exception['exception_var']))
+				#print all comments
+				for comment in state.comment_dump:
+					state.write_buffer(comment)
+				state.comment_dump = []
+			else:
+				if state.exception_stack:
+					added_indent = state.exception_stack[-1]['code_indent']
+				else:
+					added_indent = state.indent
+				
+				print_exception_comments(state, exited_exception, added_indent,
+										test_equal=True)
 		else:
 			# did not exit the except block, so stop trying
 			break
@@ -514,7 +551,8 @@ def parse_file(file_name):
 				lstrip_line.startswith('finally'):
 			is_except_line = True
 		
-		if is_except_line or (state.exception_stack and is_nonempty_line):
+		if is_except_line or (state.comment_dump or 
+							  (state.exception_stack and is_nonempty_line)):
 			line, lstrip_line = make_exception_updates(line, lstrip_line, state)
 		
 		# stage 4:
@@ -761,7 +799,10 @@ def parse_file(file_name):
 				if state.inclass and len(line) > len(lstrip_line):
 					line = line[len(state.basic_indent):]
 				if not state.docstring:
-					state.write_buffer(line)
+					if not state.exception_stack:
+						state.write_buffer(line)
+					else:
+						state.comment_dump.append(line)
 				continue
 			state.docstring = False
 			

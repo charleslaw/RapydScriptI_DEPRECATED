@@ -4,24 +4,43 @@ bad_list = None
 
 #Test the different ways of catching exceptions
 try:
+    #comments1a1
     bad_list.fake_call()
+    #comments1a2
 except:
+    #comments1b1
     print('Test 1: Got an exception')
+    #comments1b2
 
+#comments
 try:
+    #comments2a1
     bad_list.fake_call()
+    #comments2a2
 except TypeError:
+    #comments2b1
     print('Test 2: Got an exception')
+    #comments2b2
 
+#comments
 try:
+    #comments3a1
     bad_list.fake_call()
+    #comments3a2
 except as e:
+    #comments3b1
     print('Test 3: Got an exception' + str(e))
+    #comments3b2
 
+#comments
 try:
+    #comments4a1
     bad_list.fake_call()
+    #comments4a2
 except TypeError as e:
+    #comments4b1
     print('Test 4: Got an exception' + str(e))
+    #comments4b2
 
 
 
@@ -77,25 +96,45 @@ class ExceptClass:
     
     #Test the different ways of catching exceptions
     def test_exceptions(self):
+        #c0
         try:
+            #c01a
             bad_list.fake_call()
+            #c01b
         except:
+            #c02a
             print('Test 8: Got an exception')
+            #c02b
         
+        #c1
         try:
+            #c11a
             bad_list.fake_call()
+            #c11b
         except TypeError:
+            #c12a
             print('Test 9: Got an exception')
+            #c12a
         
+        #c2
         try:
+            #c21a
             bad_list.fake_call()
+            #c21b
         except as e:
+            #c22a
             print('Test 10: Got an exception' + str(e))
+            #c22b
         
+        #c3
         try:
+            #c31a
             bad_list.fake_call()
+            #c31b
         except TypeError as e:
+            #c32a
             print('Test 11: Got an exception' + str(e))
+            #c32b
         
         #Multiple catches
         try:
@@ -135,6 +174,7 @@ class ExceptClass:
                     print("Test 14: unexpected error")
                 except as c:
                     print("Test 14: Step 3" + str(c))
+            #findme
 
 
 
