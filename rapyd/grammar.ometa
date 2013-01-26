@@ -13,11 +13,13 @@ comment  = '#' line_rest:c -> ['comment', c]
 emptyline = hspace* ('\\')? vspace
 block     = optspace comment?:c vspace indent stmt:s optspace (vspace | end) line*:l dedent -> [c] if c else [] + [s] + l
 block     = optspace stmt:s optspace ~~(vspace | end) -> [s]
-line      = emptyline* indentation stmt:s optspace (vspace | end) -> s
+indented_statement = indentation stmt:s -> s
+random_indentation_comment = hspace* comment:s -> s
+line      = emptyline* (indented_statement|random_comment):s optspace (vspace | end) -> s
 line_rest = (~vspace :x)*:x -> ''.join(x)
 
 stmt = pass | global | nonlocal | continue | break | return | raise | while
-     | del | if | def | for | try | augassign | assign | dowhile | comment
+     | del | if | def | for | try | augassign | assign | dowhile
 
 global = "global" mandspace innercsv('name'):names -> ['global', names]
 nonlocal = "nonlocal" mandspace innercsv('name'):names -> ['nonlocal', names]

@@ -843,7 +843,7 @@ def parse_file(file_name):
 def finalize_source(source):
 	g = Grammar.parse(source)
 
-	output = Translator.parse(g)
+	output = Translator.parse(g, debug_flag=True)
 	#PyvaScript seems to be buggy with self replacement sometimes, let's fix that
 	output = re.sub(r'\bself\b', 'this', output)
 	output = bind_chained_calls(output)
