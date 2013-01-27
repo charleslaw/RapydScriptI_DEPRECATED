@@ -6,16 +6,21 @@ optspace  = ?(self.parenthesis) (hspace | '\\'? vspace | comment)* | (hspace | '
 mandspace = ?(self.parenthesis) (hspace | '\\'? vspace | comment)+ | (hspace | '\\' vspace)+ comment?
 
 indentation = hspace*:i ?(len(i) == self.indent_stack[-1])
+dedentation = hspace*:i ?(len(i) < self.indent_stack[-1])
+comment_indentation = hspace*:i ?(len(i) >= self.indent_stack[-1])
 indent      = hspace*:i ?(len(i) > self.indent_stack[-1]) !(self.indent_stack.append(len(i)))
 dedent      = !(self.dedent())
 
 comment  = '#' line_rest:c -> ['comment', c]
 emptyline = hspace* ('\\')? vspace
-block     = optspace comment?:c vspace indent stmt:s optspace (vspace | end) line*:l dedent -> [c] if c else [] + [s] + l
+block     = optspace comment?:c vspace ~~(indent) line*:l emptyline* dedent -> [c] if c else [] + l
 block     = optspace stmt:s optspace ~~(vspace | end) -> [s]
 indented_statement = indentation stmt:s -> s
-random_indentation_comment = hspace* comment:s -> s
-line      = emptyline* (indented_statement|random_comment):s optspace (vspace | end) -> s
+indented_comment = comment_indentation comment:s -> s
+safe_unindented_comment = dedentation comment:s ~~(unrestricted_line* indented_statement) -> s
+unrestricted_line = emptyline 
+                  | hspace* comment vspace
+line      = emptyline* (indented_comment|safe_unindented_comment|indented_statement):s optspace (vspace | end) -> s
 line_rest = (~vspace :x)*:x -> ''.join(x)
 
 stmt = pass | global | nonlocal | continue | break | return | raise | while
