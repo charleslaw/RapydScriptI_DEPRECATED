@@ -246,7 +246,7 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
                 if comment and comment[0]=='comment':
                     comments.append('%s//%s' % ('  ' *self.indentation, comment[1]))
 
-    	if comments:
+        if comments:
             return '\n%s\n%s' % ('\n'.join(comments), '  '  * self.indentation)
         else:
             return ''
