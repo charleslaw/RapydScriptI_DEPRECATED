@@ -13,14 +13,15 @@ dedent      = !(self.dedent())
 
 comment  = '#' line_rest:c -> ['comment', c]
 emptyline = hspace* ('\\')? vspace
-block     = optspace comment?:c vspace ~~(indent) line*:l emptyline* dedent -> [c] if c else [] + l
-block     = optspace stmt:s optspace ~~(vspace | end) -> [s]
+block     = optspace comment?:c vspace unrestricted_line*:ul ~~(indent) real_line:s line*:l emptyline* dedent -> [c] if c else [] + ul + [s] + l
+          | optspace stmt:s optspace ~~(vspace | end) -> [s]
 indented_statement = indentation stmt:s -> s
 indented_comment = comment_indentation comment:s -> s
 safe_unindented_comment = dedentation comment:s ~~(unrestricted_line* indented_statement) -> s
 unrestricted_line = emptyline 
-                  | hspace* comment vspace
+                  | hspace* comment:c vspace -> c
 line      = emptyline* (indented_comment|safe_unindented_comment|indented_statement):s optspace (vspace | end) -> s
+real_line = emptyline* indented_statement:s optspace (vspace | end) -> s
 line_rest = (~vspace :x)*:x -> ''.join(x)
 
 stmt = pass | global | nonlocal | continue | break | return | raise | while
