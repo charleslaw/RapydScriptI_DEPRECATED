@@ -146,7 +146,7 @@ dictexpr  = ( name:k | string:k ) optspace ':' optspace expr:v -> ['dictkv', k, 
 ifexpr = innerifexpr:t mandspace "if" mandspace innerifexpr:cond mandspace "else" mandspace expr:f -> ['ifexpr', cond, t, f]
 
 commentlines = emptyline -> None
-             | indentation comment:c vspace -> c
+             | hspace* comment:c vspace -> c
 ifcond = mandspace expr:cond -> cond
        | optspace '(' expr:cond ')' -> cond
 if    = "if" ifcond:cond optspace ':' block:body elif*:ei else?:e -> ['if', [cond, body]] + [ei] + ([e] if e else [])

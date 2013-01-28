@@ -240,10 +240,11 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
         return '{\n%s%s\n%s}' % (indentstr, sep.join(items), '  ' * (indentation - 1))
 
     def comments_str(self, raw_comments):
-    	comments = []
-    	for comment in raw_comments:
-    	    if comment and comment[0]=='comment':
-    	    	comments.append('%s//%s' % ('  ' *self.indentation, comment[1]))
+        comments = []
+        if self.allowcomments:
+            for comment in raw_comments:
+                if comment and comment[0]=='comment':
+                    comments.append('%s//%s' % ('  ' *self.indentation, comment[1]))
 
     	if comments:
             return '\n%s\n%s' % ('\n'.join(comments), '  '  * self.indentation)
