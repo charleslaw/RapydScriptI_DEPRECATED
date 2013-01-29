@@ -780,6 +780,8 @@ def parse_file(file_name, debug=False):
 			sys.exit()
 	
 		input.seek(0)
+		if state.debug:
+			state.write_buffer('\n\n##########################\n#Parsing File: %s\n##########################\n' % file_name)
 		for line in input:
 			state.line_num += 1
 			state.line_content = line
@@ -797,19 +799,18 @@ def parse_file(file_name, debug=False):
 			if state.debug:
 				state.write_buffer('#%d:\t%s' % (state.line_num, line))
 			lstrip_line = line.lstrip()
-			# check if pre-processing is required
-			previously_comment = state.incomment
-			state.update_incomment_state(line)
 			# strip comments (we'll strip them later anyway in normal mode, and they're redundant in debug)
 			if lstrip_line and lstrip_line[0] == '#':
 				continue
+			# check if pre-processing is required
+			previously_comment = state.incomment
+			state.update_incomment_state(line)
 			if state.incomment or previously_comment:
 				if state.inclass and len(line) > len(lstrip_line):
 					line = line[len(state.basic_indent):]
 				if not state.docstring:
 					if not state.exception_stack:
 						state.comment_buffer += line
-						#state.write_buffer(line)
 					else:
 						state.comment_dump.append(line)
 				continue
