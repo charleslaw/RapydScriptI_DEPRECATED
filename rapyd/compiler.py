@@ -781,7 +781,10 @@ def parse_file(file_name, debug=False):
 	
 		input.seek(0)
 		if state.debug:
-			state.write_buffer('\n\n##########################\n#Parsing File: %s\n##########################\n' % file_name)
+			decor = '//////////////////////////////////////////////////////////////////////'
+			top_strip = 'JS("""\n\n%s\n%s""")' % (decor, decor)
+			btm_strip = 'JS("""%s\n%s\n""")' % (decor, decor)
+			state.write_buffer('\n%s\n#Parsing File: %s\n%s\n' % (top_strip, file_name, btm_strip))
 		for line in input:
 			state.line_num += 1
 			state.line_content = line
