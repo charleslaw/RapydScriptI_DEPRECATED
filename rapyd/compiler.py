@@ -854,7 +854,8 @@ def parse_file(file_name, debug=False):
 
 	try:
 		global_buffer += finalize_source(state.file_buffer, state.debug)
-		global_buffer += '//Finished parsing %s\n' % file_name
+		if state.debug:
+			global_buffer += '//Finished parsing %s\n' % file_name
 	except:
 		print "Parse Error in %s:\n" % file_name
 		raise
