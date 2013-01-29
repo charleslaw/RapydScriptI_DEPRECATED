@@ -60,13 +60,15 @@ def terminates_inside_comment(line):
 			return False
 
 class State:
-	def __init__(self, file_name):
+	def __init__(self, file_name, debug):
 	
 		# basic info about current state
+		self.debug = debug			# identify whether the output should include extra annotation for debugging purposes
 		self.indent = ''			# current indent offset (currently only used by class)
 		self.incomment = False		# identifies if we're currently in multi-line string (used to prevent parsing strings)
 		self.docstring = False		# true if multi-line string is not assigned to anything (used as a docstring)
 		self.comment_type = None	# if in string, identifies the quote type that started the string
+		self.comment_buffer = ''	# temporarily stores content of multiline comments
 		
 		# current class info
 		self.inclass = False		# True if we're currently inside a class definition
@@ -82,9 +84,9 @@ class State:
 		self.function_indent = None	# indentation level of this particular function
 		self.post_function = []		# store 'to-do' logic to perform after function definition
         
-        # current exception info
+		# current exception info
 		self.exception_stack = []	# current exception stack (used when processing try/except blocks)
-		self.comment_dump = []      # if in a exception block, save the comments for later processing/indentation fixing
+		self.comment_dump = []		# if in a exception block, save the comments for later processing/indentation fixing
 		
 		# current file statistics
 		self.basic_indent = ''		# basic indent marker used by the file (a sequence of whitespace characters)
@@ -143,7 +145,7 @@ class State:
 			basic_indent = self.basic_indent
 			line_num = self.line_num
 			file_buffer = self.file_buffer
-		self.__init__(self.file_name)
+		self.__init__(self.file_name, self.debug)
 		if not full_reset:
 			self.indent = indent
 			self.basic_indent = basic_indent
@@ -199,7 +201,7 @@ class State:
 			self.docstring = True
 
 imported_files = []
-def import_module(line):
+def import_module(line, state):
 	tokens = line.split()
 	if not ((len(tokens) == 2 and tokens[0] == 'import') or \
 			(len(tokens) == 4 and tokens[0] == 'from' and tokens[2] == 'import')):
@@ -207,14 +209,14 @@ def import_module(line):
 	
 	if tokens[1] not in imported_files:
 		try:
-			parse_file(tokens[1].replace('.', '/') +'.pyj')
+			parse_file(tokens[1].replace('.', '/') +'.pyj', state.debug)
 		except IOError:
 			# couldn't find the file in local directory, check RapydScript lib directory
 			cur_dir = os.getcwd()
 			try:
 				# we have to rely on __file__, because cwd could be different if invoked by another script
 				os.chdir(os.path.dirname(__file__))
-				parse_file(tokens[1].replace('.', '/') +'.pyj')
+				parse_file(tokens[1].replace('.', '/') +'.pyj', state.debug)
 			except IOError:
 				raise ImportError("Can't import %s, module doesn't exist" % tokens[1])
 			finally:
@@ -462,10 +464,10 @@ def make_exception_updates(line, lstrip_line, state):
 	lstrip_line = line.lstrip()
 	return line, lstrip_line
 
-def parse_file(file_name):
+def parse_file(file_name, debug=False):
 	# parse a single file into global namespace
 	global global_buffer
-	state = State(file_name)
+	state = State(file_name, debug)
 	
 	# Each line goes through the following 5 stages. The order is important, we don't want to 
 	# start interpreting the line until we know all of its contents.
@@ -568,7 +570,7 @@ def parse_file(file_name):
 			state.post_function.append('%s%s\n' % (indentation, wrap_chained_call('.%s' % groups[2])))
 			function_indent = groups[0]
 		if line[:5] == 'from ' or line[:7] == 'import ':
-			import_module(line)
+			import_module(line, state)
 			return
 		if state.need_indent:
 			state.indent = state.basic_indent
@@ -791,19 +793,29 @@ def parse_file(file_name):
 			# standardize input and check if any processing is required
 			# convert DOS to UNIX format (handles files written in Windows)
 			line = line.replace('\r','')
+			# log original line to output if in debug mode
+			if state.debug:
+				state.write_buffer('#%d:\t%s' % (state.line_num, line))
 			lstrip_line = line.lstrip()
 			# check if pre-processing is required
 			previously_comment = state.incomment
 			state.update_incomment_state(line)
-			if state.incomment or (lstrip_line and lstrip_line[0] == '#') or previously_comment:
+			# strip comments (we'll strip them later anyway in normal mode, and they're redundant in debug)
+			if lstrip_line and lstrip_line[0] == '#':
+				continue
+			if state.incomment or previously_comment:
 				if state.inclass and len(line) > len(lstrip_line):
 					line = line[len(state.basic_indent):]
 				if not state.docstring:
 					if not state.exception_stack:
-						state.write_buffer(line)
+						state.comment_buffer += line
+						#state.write_buffer(line)
 					else:
 						state.comment_dump.append(line)
 				continue
+			elif not state.incomment and state.comment_buffer:
+				state.write_buffer(state.comment_buffer)
+				state.comment_buffer = ''
 			state.docstring = False
 			
 			# stage 1:
@@ -832,18 +844,18 @@ def parse_file(file_name):
 	if state.post_init_dump:
 		state.write_buffer(state.post_init_dump)
 		state.post_init_dump = ''
-	
+
 	try:
-		global_buffer += finalize_source(state.file_buffer)
+		global_buffer += finalize_source(state.file_buffer, state.debug)
 	except:
 		print "Parse Error in %s:\n" % file_name
 		raise
 	return global_buffer
 
-def finalize_source(source):
+def finalize_source(source, debug):
 	g = Grammar.parse(source)
 
-	output = Translator.parse(g, debug_flag=False)
+	output = Translator.parse(g, debug_flag=debug)
 	#PyvaScript seems to be buggy with self replacement sometimes, let's fix that
 	output = re.sub(r'\bself\b', 'this', output)
 	output = bind_chained_calls(output)

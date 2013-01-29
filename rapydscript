@@ -29,6 +29,8 @@ parser.add_argument('--recompile', dest='recompile', action='store_true', defaul
 					help='Rerun all tests, rebuild all examples and stdlib. You should ALWAYS \
 					re-run this option before any commit. You should also manually test that each \
 					example works after rerunning this.')
+parser.add_argument('--debug', dest='debug', action='store_true', default=False,
+					help='Add line-by-line annotations into the final output.')
 
 args = parser.parse_args()
 
@@ -70,7 +72,7 @@ if __name__ == "__main__":
 		if base_dir:
 			os.chdir(base_dir)
 
-		source = parse_file(orig_file)
+		source = parse_file(orig_file, args.debug)
 		with open(filename + '.js', 'w') as new_file:
 			if not args.no_ack:
 				new_file.write('/* This file was auto-generated using RapydScript */\n')
