@@ -221,18 +221,21 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
 
     def make_block(self, stmts, indentation):
         indentstr = '  ' * indentation
-        sep = '\n%s' % indentstr
-        return '{\n%s%s\n%s}' % (indentstr, sep.join(stmts), '  ' * (indentation - 1))
+        line_list = []
+        for stmt in stmts:
+            if stmt.startswith('//'):
+                line_list.append(stmt)
+            else:
+                line_list.append('%s%s' % (indentstr, stmt))
+        return '{\n%s\n%s}' % ('\n'.join(line_list), '  ' * (indentation - 1))
 
     def make_func_block(self, stmts, indentation):
-        indentstr = '  ' * indentation
-        sep = '\n%s' % indentstr
         if self.local_vars:
-            vars = ', '.join(sorted(self.local_vars))
-            var = '%svar %s;\n%s' % (indentstr, vars, indentstr)
+            vars_str = ', '.join(sorted(self.local_vars))
+            var_stmt = ['var %s;' % vars_str]
         else:
-            var = indentstr
-        return '{\n%s%s\n%s}' % (var, sep.join(stmts), '  ' * (indentation - 1))
+            var_stmt = []
+        return self.make_block(var_stmt+stmts, indentation)
 
     def make_dict(self, items, indentation):
         indentstr = '  ' * indentation
@@ -244,7 +247,7 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
         if self.allowcomments:
             for comment in raw_comments:
                 if comment and comment[0]=='comment':
-                    comments.append('%s//%s' % ('  ' *self.indentation, comment[1]))
+                    comments.append('//%s' % comment[1])
 
         if comments:
             return '\n%s\n%s' % ('\n'.join(comments), '  '  * self.indentation)

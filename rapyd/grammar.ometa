@@ -6,8 +6,6 @@ optspace  = ?(self.parenthesis) (hspace | '\\'? vspace | comment)* | (hspace | '
 mandspace = ?(self.parenthesis) (hspace | '\\'? vspace | comment)+ | (hspace | '\\' vspace)+ comment?
 
 indentation = hspace*:i ?(len(i) == self.indent_stack[-1])
-dedentation = hspace*:i ?(len(i) < self.indent_stack[-1])
-comment_indentation = hspace*:i ?(len(i) >= self.indent_stack[-1])
 indent      = hspace*:i ?(len(i) > self.indent_stack[-1]) !(self.indent_stack.append(len(i)))
 dedent      = !(self.dedent())
 
@@ -16,11 +14,9 @@ emptyline = hspace* ('\\')? vspace
 block     = optspace comment?:c vspace unrestricted_line*:ul ~~(indent) real_line:s line*:l emptyline* dedent -> [c] if c else [] + ul + [s] + l
           | optspace stmt:s optspace ~~(vspace | end) -> [s]
 indented_statement = indentation stmt:s -> s
-indented_comment = comment_indentation comment:s -> s
-safe_unindented_comment = dedentation comment:s ~~(unrestricted_line* indented_statement) -> s
 unrestricted_line = emptyline 
-                  | hspace* comment:c vspace -> c
-line      = emptyline* (indented_comment|safe_unindented_comment|indented_statement):s optspace (vspace | end) -> s
+                  | comment:c vspace -> c
+line      = emptyline* (comment|indented_statement):s optspace (vspace | end) -> s
 real_line = emptyline* indented_statement:s optspace (vspace | end) -> s
 line_rest = (~vspace :x)*:x -> ''.join(x)
 
@@ -146,7 +142,7 @@ dictexpr  = ( name:k | string:k ) optspace ':' optspace expr:v -> ['dictkv', k, 
 ifexpr = innerifexpr:t mandspace "if" mandspace innerifexpr:cond mandspace "else" mandspace expr:f -> ['ifexpr', cond, t, f]
 
 commentlines = emptyline -> None
-             | hspace* comment:c vspace -> c
+             | comment:c vspace -> c
 ifcond = mandspace expr:cond -> cond
        | optspace '(' expr:cond ')' -> cond
 if    = "if" ifcond:cond optspace ':' block:body elif*:ei else?:e -> ['if', [cond, body]] + [ei] + ([e] if e else [])
