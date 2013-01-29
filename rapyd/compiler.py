@@ -533,6 +533,7 @@ def parse_file(file_name, debug=False):
 	# stage 3: strip empty and doc-string lines, perform any 'to-do' logic inferred from previous line
 	# stage 4: processing/interpreting the line
 	def stage3(line, state):
+		global global_buffer
 	
 		# we can't simply pass in old lstrip_line since the line could have been split
 		lstrip_line = line.lstrip()
@@ -570,6 +571,8 @@ def parse_file(file_name, debug=False):
 			state.post_function.append('%s%s\n' % (indentation, wrap_chained_call('.%s' % groups[2])))
 			function_indent = groups[0]
 		if line[:5] == 'from ' or line[:7] == 'import ':
+			if state.debug:
+				global_buffer += '//Encountered import statement in %s: %s\n' % (file_name, line)
 			import_module(line, state)
 			return
 		if state.need_indent:
@@ -851,6 +854,7 @@ def parse_file(file_name, debug=False):
 
 	try:
 		global_buffer += finalize_source(state.file_buffer, state.debug)
+		global_buffer += '//Finished parsing %s\n' % file_name
 	except:
 		print "Parse Error in %s:\n" % file_name
 		raise
