@@ -125,9 +125,14 @@ class ValueError(Error):
 # Python str object
 ###########################################################
 class str(String):
-	"""This emulates Python str in JavaScript"""
-	def __init__(self, elem):
+	"""
+	This emulates Python str in JavaScript. The extra hackery here with
+	toString() and valueOf() is needed because of poorly supported
+	inheritance with native JavaScript objects
+	"""
+	def __init__(self, elem=""):
 		String.__init__(self, JSON.stringify(elem))
+		self._str = elem
 
 	def strip(self):
 		return self.trim()
@@ -155,12 +160,20 @@ class str(String):
 			return s
 		return String.replace(self, RegExp(orig, 'g'), sub)
 
+	def toString(self):
+		return self._str
+
+	def valueOf(self):
+		return self._str
+
 
 ###########################################################
 # Python list object
 ###########################################################
 class list(Array):
-	"""This class emulates a Python list in JavaScript"""
+	"""
+	This class emulates a Python list in JavaScript
+	"""
 	def __init__(self, iterable):
 		for elem in iterable:
 			Array.push(self, elem)
@@ -263,7 +276,9 @@ def filter(oper, arr):
 # this hack because of poor/inconsistent ECMAScript 'standard'
 JS('var _$rapyd$_getOwnProps = Object.getOwnPropertyNames')
 class dict(Object):
-	"""This class emulates a Python dict in JavaScript"""
+	"""
+	This class emulates a Python dict in JavaScript
+	"""
 	def __init__(self, hashlike):
 		for key in hashlike:
 			self[key] = hashlike[key]
@@ -271,7 +286,7 @@ class dict(Object):
 	def keys(self):
 		if type(_$rapyd$_getOwnProps) is 'function':
 			# normal browsers
-			_$rapyd$_getOwnProps(self)
+			return _$rapyd$_getOwnProps(self)
 		else:
 			# IE and older browsers
 			keys = []
@@ -291,12 +306,13 @@ class dict(Object):
 		# using class' method instead of object's allows us to use these methods on other hashable types
 		for key in dict.keys(self):
 			vals.push(self[key])
+		return vals
 
 	def items(self):
 		items = []
 		# using class' method instead of object's allows us to use these methods on other hashable types
 		for key in dict.keys(self):
-			items.append((key, self[key]))
+			items.push((key, self[key]))
 		return items
 
 	def copy(self):

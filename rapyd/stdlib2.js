@@ -117,9 +117,10 @@ ValueError = function(message) {
 
 ValueError.prototype = new Error();
 ValueError.prototype.constructor = ValueError;
-"This emulates Python str in JavaScript";
 str = function(elem) {
+  if (typeof elem === "undefined") {elem = ""};
   String.prototype.constructor.call(this, JSON.stringify(elem));
+  this._str = elem;
 };
 
 str.prototype = new String();
@@ -159,7 +160,12 @@ str.prototype.replace = (function(orig, sub, n) {
 
   return String.prototype.replace.call(this, new RegExp(orig, "g"), sub);
 });
-"This class emulates a Python list in JavaScript";
+str.prototype.toString = (function() {
+  return this._str;
+});
+str.prototype.valueOf = (function() {
+  return this._str;
+});
 list = function(iterable) {
   var elem;
   var _$tmp2_data = _$rapyd$_iter(iterable);
@@ -274,7 +280,6 @@ filter = function(oper, arr) {
 };
 
 var _$rapyd$_getOwnProps = Object.getOwnPropertyNames
-"This class emulates a Python dict in JavaScript";
 dict = function(hashlike) {
   var key;
   var _$tmp5_data = _$rapyd$_iter(hashlike);
@@ -292,7 +297,7 @@ dict.prototype.constructor = dict;
 dict.prototype.keys = (function() {
   var keys;
   if ((typeof(_$rapyd$_getOwnProps) === "function")) {
-    _$rapyd$_getOwnProps(this);
+    return _$rapyd$_getOwnProps(this);
   } else {
     keys = [];
     
@@ -317,6 +322,7 @@ dict.prototype.values = (function() {
     vals.push(this[key]);
   }
 
+  return vals;
 });
 dict.prototype.items = (function() {
   var items, key;
@@ -326,7 +332,7 @@ dict.prototype.items = (function() {
   for (var _$tmp13_index = 0; _$tmp13_index < _$tmp12_len; _$tmp13_index++) {
     key = _$tmp11_data[_$tmp13_index];
 
-    items.append([key, this[key]]);
+    items.push([key, this[key]]);
   }
 
   return items;
