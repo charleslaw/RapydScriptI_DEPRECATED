@@ -273,6 +273,7 @@ filter = function(oper, arr) {
   return new list(arr.filter(oper));
 };
 
+var _$rapyd$_getOwnProps = Object.getOwnPropertyNames
 "This class emulates a Python dict in JavaScript";
 dict = function(hashlike) {
   var key;
@@ -290,9 +291,8 @@ dict.prototype = new Object();
 dict.prototype.constructor = dict;
 dict.prototype.keys = (function() {
   var keys;
-  has_getOwnProperties_impl = typeof(Object.getOwnPropertyNames);
-  if ((has_getOwnProperties_impl === "function")) {
-    return Object.getOwnPropertyNames(this);
+  if ((_$rapyd$_getOwnProps === "function")) {
+    _$rapyd$_getOwnProps(this);
   } else {
     keys = [];
     

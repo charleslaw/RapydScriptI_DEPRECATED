@@ -259,6 +259,9 @@ def filter(oper, arr):
 ###########################################################
 # Python dict object
 ###########################################################
+# getOwnPropertyNames is not on Object's prototype chain for some reason, so we have to use
+# this hack because of poor/inconsistent ECMAScript 'standard'
+JS('var _$rapyd$_getOwnProps = Object.getOwnPropertyNames')
 class dict(Object):
 	"""This class emulates a Python dict in JavaScript"""
 	def __init__(self, hashlike):
@@ -266,14 +269,9 @@ class dict(Object):
 			self[key] = hashlike[key]
 
 	def keys(self):
-		# TODO: temporary JS workaround until new classes get setup
-		#if type(Object.getOwnPropertyNames) is 'function':
-		JS('has_getOwnProperties_impl = typeof(Object.getOwnPropertyNames);')
-		if has_getOwnProperties_impl is 'function':
+		if _$rapyd$_getOwnProps is 'function':
 			# normal browsers
-			# TODO: same temporary workaround
-			#return Object.getOwnPropertyNames(self)
-			JS('return Object.getOwnPropertyNames(this);')
+			_$rapyd$_getOwnProps(self)
 		else:
 			# IE and older browsers
 			keys = []
