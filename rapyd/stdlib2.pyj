@@ -79,7 +79,7 @@ def reversed(arr):
 
 # Python's print() function
 def print(*args):
-	output = str(args)
+	output = JSON.stringify(args)
 	console.log(output.substr(1, output.length-2))	# strip brackets
 
 # RapydScript's replacements for older PyvaScript functions

@@ -79,7 +79,7 @@ reversed = function(arr) {
 print = function() {
   var args, output;
   args = [].slice.call(arguments, 0);
-  output = str(args);
+  output = JSON.stringify(args);
   console.log(output.substr(1, (output.length - 2)));
 };
 
