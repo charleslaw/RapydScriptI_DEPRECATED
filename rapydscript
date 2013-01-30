@@ -42,12 +42,17 @@ if __name__ == "__main__":
 		# with it, I will have to parse STDERR for 'OK' message.
 		print "Tests: ", result[1].split('\n')[-2]
 
-		# recompile stdlib
+		# recompile stdlib and stdlib2
 		result = Popen('./rapydscript rapyd/stdlib.pyj', stdout=PIPE, stderr=PIPE, shell=True).communicate()
 		if result[1]:
 			print ''.join(result)
 		else:
 			print "stdlib:  OK"
+		result = Popen('./rapydscript rapyd/stdlib2.pyj', stdout=PIPE, stderr=PIPE, shell=True).communicate()
+		if result[1]:
+			print ''.join(result)
+		else:
+			print "stdlib2:  OK"
 
 		# recompile examples
 		dir_loc = 'examples'
