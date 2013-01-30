@@ -701,7 +701,7 @@ def parse_file(file_name, debug=False):
 					
 					if parent_args[-1][0] == '*':
 						# handle *args
-						line = '%s%s.prototype.%s.apply(%s, %s)\n' % (\
+						line = '%s%s.prototype.%s.apply(%s, %s)' % (\
 							indent,
 							parts[0].strip(),
 							parent_method,
@@ -709,13 +709,16 @@ def parse_file(file_name, debug=False):
 							to_star_args(parent_args[1:]))
 					else:
 						line = '%s%s.prototype.%s.call(%s' % (\
-							indent, 
+							indent,
 							parts[0].strip(),
 							parent_method,
-							set_args(parent_args)[1:-2]+'\n')
+							set_args(parent_args)[1:-2])
+					if state.line_content.rstrip()[-1] == ':':
+						line += ':'
+					line += '\n'
 				elif line.find('(') < line.find('*') < line.find(')') \
 				and re.match(r'^[^\'"]*(([\'"])[^\'"]*\2)*[^\'"]*[,(]\s*\*.*[A-Za-z$_][A-Za-z0-9$_]*\s*\)', line):
-					# normal line with args, we need to check if it has *args
+					# normal call with args, we need to check if it has *args
 					args = state.get_args(line, False, False)
 					if args and args[-1][0] == '*':
 						function = line.split('(')[0]
@@ -724,10 +727,13 @@ def parse_file(file_name, debug=False):
 						else:
 							obj = 'this'
 						# handle *args
-						line = '%s.apply(%s, %s)\n' % (\
+						line = '%s.apply(%s, %s)' % (\
 							function,
 							obj,
 							to_star_args(args[0:]))
+					if state.line_content.rstrip()[-1] == ':':
+						line += ':'
+					line += '\n'
 				line = line.replace('self.', 'this.')
 				line = add_new_keyword(line)
 				state.write_buffer(line)
