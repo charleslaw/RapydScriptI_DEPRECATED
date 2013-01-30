@@ -306,7 +306,7 @@ Drawing = function() {
       } else if ((main._mode == SELECT)) {
         clear(tmpCtx);
         if ((selection !== null)) {
-          var _$tmp1_data = _$pyva_iter(points);
+          var _$tmp1_data = _$rapyd$_iter(points);
           var _$tmp2_len = _$tmp1_data.length;
           for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
             point = _$tmp1_data[_$tmp3_index];
@@ -574,7 +574,7 @@ main = function() {
   });
   setStroke("black");
   $colorPickers = $(".colorpicker");
-  var _$tmp1_data = _$pyva_iter([[$stroke, "#fg-color", "#no-stroke", setStroke], [$fill, "#bg-color", "#no-fill", setFill]]);
+  var _$tmp1_data = _$rapyd$_iter([[$stroke, "#fg-color", "#no-stroke", setStroke], [$fill, "#bg-color", "#no-fill", setFill]]);
   var _$tmp2_len = _$tmp1_data.length;
   for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
     _$rapyd$_tuple = _$tmp1_data[_$tmp3_index];

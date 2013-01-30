@@ -47,13 +47,6 @@ if not JSON.stringify:
 	};
 	""")
 
-# Pythonic shortcut for converting an object to string
-str = JSON.stringify
-
-# Pythonic wrapper around JavaScript's length attribute
-def len(item):
-	return item.length
-
 # Python's range() function
 def range(a, b, step):
 	A = []
@@ -89,52 +82,22 @@ def print(*args):
 	output = str(args)
 	console.log(output.substr(1, output.length-2))	# strip brackets
 
-
-###########################################################
-# PyvaScript's Functions
-###########################################################
+# RapydScript's replacements for older PyvaScript functions
 JS("""
 isinstance = function(item, cls) {
-	var cls_item, isnumber;
-	if (cls instanceof Array) {
-		var _$tmp13_data = _$rapyd$_iter(cls);
-		var _$tmp14_len = _$tmp13_data.length;
-		for (var _$tmp15_index = 0; _$tmp15_index < _$tmp14_len; _$tmp15_index++) {
-			cls_item = _$tmp13_data[_$tmp15_index];
-
-			if (isinstance(item, cls_item)) {
-				return true;
-			}
-
-		}
-
-		return false;
-	}
-
-	if ((cls === list)) {
-		cls = Array;
-	} else if ((cls === dict)) {
-		cls = Object;
-	} else if ((cls === str)) {
-		cls = String;
-	} else if (((cls === _$pyva_int) || (cls === _$pyva_float))) {
-		isnumber = (item.constructor === Number.prototype.constructor);
-		return (isnumber && (cls(item) == item));
-	} else {
-		return item instanceof cls;
-	}
-
-	return (item.constructor === cls.prototype.constructor);
+	return item instanceof cls;
 };
 _$rapyd$_iter = function(iter_object) {
-	var key_list;
-	if (((iter_object.callee && (typeof iter_object['length'] != "undefined")) || isinstance(iter_object, list))) {
+	if (iter_object instanceof Array) {
 		return iter_object;
 	}
 
-	key_list = [];
-	for (var key in iter_object)
-	key_list.append(key);
+	var key_list = [];
+	for (var key in iter_object) {
+		if (iter_object.hasOwnProperty(key)) {
+			key_list.push(iter_object[key]);
+		}
+	}
 	return key_list;
 };
 Function.prototype.bind = (function(owner) {
@@ -159,48 +122,77 @@ class ValueError(Error):
 
 
 ###########################################################
-# String Methods
+# Python str object
 ###########################################################
-String.prototype.strip = String.prototype.trim
-String.prototype.lstrip = String.prototype.trimLeft
-String.prototype.rstrip = String.prototype.trimRight
-String.prototype.join = def(iterable):
-	return iterable.join(self)
-String.prototype.zfill = def(size):
-	s = self
-	while s.length < size:
-		s = "0" + s
-	return s
+class str(String):
+	"""This emulates Python str in JavaScript"""
+	def __init__(self, elem):
+		String.__init__(self, JSON.stringify(elem))
+
+	def strip(self):
+		return self.trim()
+
+	def lstrip(self):
+		return self.trimLeft()
+
+	def rstrip(self):
+		return self.trimRight()
+
+	def join(self, iterable):
+		return iterable.join(self)
+
+	def zfill(self, size):
+		s = self # create a copy
+		while s.length < size:
+			s = '0' + s
+		return s
+
+	def replace(self, orig, sub, n):
+		if n:
+			s = self
+			for n in range(len(n)):
+				s = String.replace(s, orig, sub)
+			return s
+		return String.replace(self, RegExp(orig, 'g'), sub)
 
 
 ###########################################################
-# Array Methods
+# Python list object
 ###########################################################
-def list(iterable):
-	result = []
-	for i in iterable:
-		result.append(i)
-	return result
-Array.prototype.append = Array.prototype.push
-Array.prototype.find = Array.prototype.indexOf
-Array.prototype.index = def(index):
-	val = self.find(index)
-	if val == -1:
-		raise ValueError(str(index) + " is not in list")
-	return val
-Array.prototype.insert = def(index, item):
-	self.splice(index, 0, item)
-Array.prototype.pop = def(index):
-	if not arguments.length:
-		index = self.length-1
-	return self.splice(index, 1)[0]
-Array.prototype.extend = def(array2):
-	self.push.apply(self, array2)
-Array.prototype.remove = def(item):
-	index = self.find(item)
-	self.splice(index, 1)
-Array.prototype.copy = def():
-	return self.slice(0)
+class list(Array):
+	"""This class emulates a Python list in JavaScript"""
+	def __init__(self, iterable):
+		for elem in iterable:
+			Array.push(self, elem)
+
+	def append(self, elem):
+		self.push(elem)
+
+	def find(self, elem):
+		return self.indexOf(elem)
+
+	def index(self, elem):
+		val = self.find(elem)
+		if val == -1:
+			raise ValueError(str(elem) + " is not in list")
+		return val
+
+	def insert(self, index, elem):
+		self.splice(index, 0, elem)
+
+	def pop(self, index=len(self)-1):
+		return self.splice(index, 1)[0]
+
+	def extend(self, list2):
+		self.push(*list2)
+
+	def remove(self, elem):
+		index = self.find(elem)
+		self.pop(index)
+
+	def copy(self):
+		return list(self)
+
 if not Array.prototype.map:
 	# declare map() method for older browsers
 	JS("""
@@ -230,7 +222,8 @@ if not Array.prototype.map:
 	};
 	""")
 def map(oper, arr):
-	return arr.map(oper)
+	return list(arr.map(oper))
+
 if not Array.prototype.filter:
 	# declare filter() method for older browsers
 	JS("""
@@ -260,56 +253,58 @@ if not Array.prototype.filter:
 	};
 	""")
 def filter(oper, arr):
-	return arr.filter(oper)
+	return list(arr.filter(oper))
 
 
 ###########################################################
-# Dictionary Methods
+# Python dict object
 ###########################################################
-# dict (this is a bit of a hack for now, to avoid overwriting the Object)
-# the methods below must be used via dict.method(object) instead of object.method()
-def dict(iterable):
-	result = {}
-	for key in iterable:
-		result[key] = iterable[key]
-	return result
+class dict(Object):
+	"""This class emulates a Python dict in JavaScript"""
+	def __init__(self, hashlike):
+		for key in hashlike:
+			self[key] = hashlike[key]
 
-if typeof(Object.getOwnPropertyNames) is not "function":
-	# IE and older browsers
-	dict.keys = def(hash):
-		keys = []
+	def keys(self):
+		# TODO: temporary JS workaround until new classes get setup
+		#if type(Object.getOwnPropertyNames) is 'function':
+		JS('has_getOwnProperties_impl = typeof(Object.getOwnPropertyNames);')
+		if has_getOwnProperties_impl is 'function':
+			# normal browsers
+			# TODO: same temporary workaround
+			#return Object.getOwnPropertyNames(self)
+			JS('return Object.getOwnPropertyNames(this);')
+		else:
+			# IE and older browsers
+			keys = []
 
-		# Use a standard for in loop
-		JS("""
-		for (var x in hash) {
-			// A for in will iterate over members on the prototype
-			// chain as well, but Object.getOwnPropertyNames returns
-			// only those directly on the object, so use hasOwnProperty.
-			if (hash.hasOwnProperty(x)) {
-				keys.push(x);
+			# Use a standard for in loop
+			JS("""
+			for (var x in hash) {
+				if (this.hasOwnProperty(x)) {
+					keys.push(x);
+				}
 			}
-		}
-		""")
-		return keys
-else:
-	# normal browsers
-	dict.keys = def(hash):
-		return Object.getOwnPropertyNames(hash)
+			""")
+			return keys
 
-dict.values = def(hash):
-	vals = []
-	for key in dict.keys(hash):
-		vals.append(hash[key])
-	return vals
+	def values(self):
+		vals = []
+		# using class' method instead of object's allows us to use these methods on other hashable types
+		for key in dict.keys(self):
+			vals.push(self[key])
 
-dict.items = def(hash):
-	items = []
-	for key in dict.keys(hash):
-		items.append((key, hash[key]))
-	return items
+	def items(self):
+		items = []
+		# using class' method instead of object's allows us to use these methods on other hashable types
+		for key in dict.keys(self):
+			items.append((key, self[key]))
+		return items
 
-dict.copy = dict
+	def copy(self):
+		return dict(self)
 
-dict.clear = def(hash):
-	for key in dict.keys(hash):
-		del hash[key]
+	def clear(self):
+		# using class' method instead of object's allows us to use these methods on other hashable types
+		for key in dict.keys(self):
+			del self[key]

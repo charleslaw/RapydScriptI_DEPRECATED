@@ -35,11 +35,6 @@ if ((!JSON.stringify)) {
 	
 }
 
-str = JSON.stringify;
-len = function(item) {
-  return item.length;
-};
-
 range = function(a, b, step) {
   var A;
   A = [];
@@ -90,46 +85,19 @@ print = function() {
 
 
 isinstance = function(item, cls) {
-	var cls_item, isnumber;
-	if (cls instanceof Array) {
-		var _$tmp13_data = _$rapyd$_iter(cls);
-		var _$tmp14_len = _$tmp13_data.length;
-		for (var _$tmp15_index = 0; _$tmp15_index < _$tmp14_len; _$tmp15_index++) {
-			cls_item = _$tmp13_data[_$tmp15_index];
-
-			if (isinstance(item, cls_item)) {
-				return true;
-			}
-
-		}
-
-		return false;
-	}
-
-	if ((cls === list)) {
-		cls = Array;
-	} else if ((cls === dict)) {
-		cls = Object;
-	} else if ((cls === str)) {
-		cls = String;
-	} else if (((cls === _$pyva_int) || (cls === _$pyva_float))) {
-		isnumber = (item.constructor === Number.prototype.constructor);
-		return (isnumber && (cls(item) == item));
-	} else {
-		return item instanceof cls;
-	}
-
-	return (item.constructor === cls.prototype.constructor);
+	return item instanceof cls;
 };
 _$rapyd$_iter = function(iter_object) {
-	var key_list;
-	if (((iter_object.callee && (typeof iter_object['length'] != "undefined")) || isinstance(iter_object, list))) {
+	if (iter_object instanceof Array) {
 		return iter_object;
 	}
 
-	key_list = [];
-	for (var key in iter_object)
-	key_list.append(key);
+	var key_list = [];
+	for (var key in iter_object) {
+		if (iter_object.hasOwnProperty(key)) {
+			key_list.push(iter_object[key]);
+		}
+	}
 	return key_list;
 };
 Function.prototype.bind = (function(owner) {
@@ -149,13 +117,26 @@ ValueError = function(message) {
 
 ValueError.prototype = new Error();
 ValueError.prototype.constructor = ValueError;
-String.prototype.strip = String.prototype.trim;
-String.prototype.lstrip = String.prototype.trimLeft;
-String.prototype.rstrip = String.prototype.trimRight;
-String.prototype.join = (function(iterable) {
+"This emulates Python str in JavaScript";
+str = function(elem) {
+  String.prototype.constructor.call(this, JSON.stringify(elem));
+};
+
+str.prototype = new String();
+str.prototype.constructor = str;
+str.prototype.strip = (function() {
+  return this.trim();
+});
+str.prototype.lstrip = (function() {
+  return this.trimLeft();
+});
+str.prototype.rstrip = (function() {
+  return this.trimRight();
+});
+str.prototype.join = (function(iterable) {
   return iterable.join(this);
 });
-String.prototype.zfill = (function(size) {
+str.prototype.zfill = (function(size) {
   var s;
   s = this;
   while ((s.length < size)) {
@@ -164,51 +145,67 @@ String.prototype.zfill = (function(size) {
 
   return s;
 });
-list = function(iterable) {
-  var i, result;
-  result = [];
-  var _$tmp1_data = _$rapyd$_iter(iterable);
-  var _$tmp2_len = _$tmp1_data.length;
-  for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
-    i = _$tmp1_data[_$tmp3_index];
+str.prototype.replace = (function(orig, sub, n) {
+  var s;
+  if (n) {
+    s = this;
+    var _$tmp1_end = n.length;
+    for (n = 0; n < _$tmp1_end; n++) {
+      s = String.prototype.replace.call(s, orig, sub);
+    }
 
-    result.append(i);
+    return s;
   }
 
-  return result;
+  return String.prototype.replace.call(this, new RegExp(orig, "g"), sub);
+});
+"This class emulates a Python list in JavaScript";
+list = function(iterable) {
+  var elem;
+  var _$tmp2_data = _$rapyd$_iter(iterable);
+  var _$tmp3_len = _$tmp2_data.length;
+  for (var _$tmp4_index = 0; _$tmp4_index < _$tmp3_len; _$tmp4_index++) {
+    elem = _$tmp2_data[_$tmp4_index];
+
+    Array.prototype.push.call(this, elem);
+  }
+
 };
 
-Array.prototype.append = Array.prototype.push;
-Array.prototype.find = Array.prototype.indexOf;
-Array.prototype.index = (function(index) {
+list.prototype = new Array();
+list.prototype.constructor = list;
+list.prototype.append = (function(elem) {
+  this.push(elem);
+});
+list.prototype.find = (function(elem) {
+  return this.indexOf(elem);
+});
+list.prototype.index = (function(elem) {
   var val;
-  val = this.find(index);
+  val = this.find(elem);
   if ((val == (-1))) {
-    throw new ValueError((str(index) + " is not in list"));
+    throw new ValueError((new str(elem) + " is not in list"));
   }
 
   return val;
 });
-Array.prototype.insert = (function(index, item) {
-  this.splice(index, 0, item);
+list.prototype.insert = (function(index, elem) {
+  this.splice(index, 0, elem);
 });
-Array.prototype.pop = (function(index) {
-  if ((!arguments.length)) {
-    index = (this.length - 1);
-  }
-
+list.prototype.pop = (function(index) {
+  if (typeof index === "undefined") {index = len(this)-1};
   return this.splice(index, 1)[0];
 });
-Array.prototype.extend = (function(array2) {
-  this.push.apply(this, array2);
+list.prototype.extend = (function(list2) {
+  this.push.apply(this, [].concat(list2));
 });
-Array.prototype.remove = (function(item) {
+list.prototype.remove = (function(elem) {
   var index;
-  index = this.find(item);
-  this.splice(index, 1);
+  index = this.find(elem);
+  this.pop(index);
 });
-Array.prototype.copy = (function() {
-  return this.slice(0);
+list.prototype.copy = (function() {
+  return new list(this);
 });
 if ((!Array.prototype.map)) {
   
@@ -240,7 +237,7 @@ if ((!Array.prototype.map)) {
 }
 
 map = function(oper, arr) {
-  return arr.map(oper);
+  return new list(arr.map(oper));
 };
 
 if ((!Array.prototype.filter)) {
@@ -273,82 +270,78 @@ if ((!Array.prototype.filter)) {
 }
 
 filter = function(oper, arr) {
-  return arr.filter(oper);
+  return new list(arr.filter(oper));
 };
 
-dict = function(iterable) {
-  var key, result;
-  result = {
-    
-  };
-  var _$tmp4_data = _$rapyd$_iter(iterable);
-  var _$tmp5_len = _$tmp4_data.length;
-  for (var _$tmp6_index = 0; _$tmp6_index < _$tmp5_len; _$tmp6_index++) {
-    key = _$tmp4_data[_$tmp6_index];
+"This class emulates a Python dict in JavaScript";
+dict = function(hashlike) {
+  var key;
+  var _$tmp5_data = _$rapyd$_iter(hashlike);
+  var _$tmp6_len = _$tmp5_data.length;
+  for (var _$tmp7_index = 0; _$tmp7_index < _$tmp6_len; _$tmp7_index++) {
+    key = _$tmp5_data[_$tmp7_index];
 
-    result[key] = iterable[key];
+    this[key] = hashlike[key];
   }
 
-  return result;
 };
 
-if ((typeof(Object.getOwnPropertyNames) !== "function")) {
-  dict.keys = (function(hash) {
-    var keys;
+dict.prototype = new Object();
+dict.prototype.constructor = dict;
+dict.prototype.keys = (function() {
+  var keys;
+  has_getOwnProperties_impl = typeof(Object.getOwnPropertyNames);
+  if ((has_getOwnProperties_impl === "function")) {
+    return Object.getOwnPropertyNames(this);
+  } else {
     keys = [];
     
 		for (var x in hash) {
-			// A for in will iterate over members on the prototype
-			// chain as well, but Object.getOwnPropertyNames returns
-			// only those directly on the object, so use hasOwnProperty.
-			if (hash.hasOwnProperty(x)) {
+			if (this.hasOwnProperty(x)) {
 				keys.push(x);
 			}
 		}
 		
     return keys;
-  });
-} else {
-  dict.keys = (function(hash) {
-    return Object.getOwnPropertyNames(hash);
-  });
-}
-
-dict.values = (function(hash) {
-  var key, vals;
-  vals = [];
-  var _$tmp7_data = _$rapyd$_iter(dict.keys(hash));
-  var _$tmp8_len = _$tmp7_data.length;
-  for (var _$tmp9_index = 0; _$tmp9_index < _$tmp8_len; _$tmp9_index++) {
-    key = _$tmp7_data[_$tmp9_index];
-
-    vals.append(hash[key]);
   }
 
-  return vals;
 });
-dict.items = (function(hash) {
+dict.prototype.values = (function() {
+  var key, vals;
+  vals = [];
+  var _$tmp8_data = _$rapyd$_iter(dict.prototype.keys.call(this));
+  var _$tmp9_len = _$tmp8_data.length;
+  for (var _$tmp10_index = 0; _$tmp10_index < _$tmp9_len; _$tmp10_index++) {
+    key = _$tmp8_data[_$tmp10_index];
+
+    vals.push(this[key]);
+  }
+
+});
+dict.prototype.items = (function() {
   var items, key;
   items = [];
-  var _$tmp10_data = _$rapyd$_iter(dict.keys(hash));
-  var _$tmp11_len = _$tmp10_data.length;
-  for (var _$tmp12_index = 0; _$tmp12_index < _$tmp11_len; _$tmp12_index++) {
-    key = _$tmp10_data[_$tmp12_index];
+  var _$tmp11_data = _$rapyd$_iter(dict.prototype.keys.call(this));
+  var _$tmp12_len = _$tmp11_data.length;
+  for (var _$tmp13_index = 0; _$tmp13_index < _$tmp12_len; _$tmp13_index++) {
+    key = _$tmp11_data[_$tmp13_index];
 
-    items.append([key, hash[key]]);
+    items.append([key, this[key]]);
   }
 
   return items;
 });
-dict.copy = dict;
-dict.clear = (function(hash) {
+dict.prototype.copy = (function() {
+  return new dict(this);
+});
+dict.prototype.clear = (function() {
   var key;
-  var _$tmp13_data = _$rapyd$_iter(dict.keys(hash));
-  var _$tmp14_len = _$tmp13_data.length;
-  for (var _$tmp15_index = 0; _$tmp15_index < _$tmp14_len; _$tmp15_index++) {
-    key = _$tmp13_data[_$tmp15_index];
+  var _$tmp14_data = _$rapyd$_iter(dict.prototype.keys.call(this));
+  var _$tmp15_len = _$tmp14_data.length;
+  for (var _$tmp16_index = 0; _$tmp16_index < _$tmp15_len; _$tmp16_index++) {
+    key = _$tmp14_data[_$tmp16_index];
 
-    delete hash[key];
+    delete this[key];
   }
 
 });

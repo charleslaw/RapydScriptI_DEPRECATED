@@ -92,7 +92,7 @@ print = function() {
 isinstance = function(item, cls) {
 	var cls_item, isnumber;
 	if (cls instanceof Array) {
-		var _$tmp13_data = _$pyva_iter(cls);
+		var _$tmp13_data = _$rapyd$_iter(cls);
 		var _$tmp14_len = _$tmp13_data.length;
 		for (var _$tmp15_index = 0; _$tmp15_index < _$tmp14_len; _$tmp15_index++) {
 			cls_item = _$tmp13_data[_$tmp15_index];
@@ -121,7 +121,7 @@ isinstance = function(item, cls) {
 
 	return (item.constructor === cls.prototype.constructor);
 };
-_$pyva_iter = function(iter_object) {
+_$rapyd$_iter = function(iter_object) {
 	var key_list;
 	if (((iter_object.callee && (typeof iter_object['length'] != "undefined")) || isinstance(iter_object, list))) {
 		return iter_object;
@@ -167,7 +167,7 @@ String.prototype.zfill = (function(size) {
 list = function(iterable) {
   var i, result;
   result = [];
-  var _$tmp1_data = _$pyva_iter(iterable);
+  var _$tmp1_data = _$rapyd$_iter(iterable);
   var _$tmp2_len = _$tmp1_data.length;
   for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
     i = _$tmp1_data[_$tmp3_index];
@@ -281,7 +281,7 @@ dict = function(iterable) {
   result = {
     
   };
-  var _$tmp4_data = _$pyva_iter(iterable);
+  var _$tmp4_data = _$rapyd$_iter(iterable);
   var _$tmp5_len = _$tmp4_data.length;
   for (var _$tmp6_index = 0; _$tmp6_index < _$tmp5_len; _$tmp6_index++) {
     key = _$tmp4_data[_$tmp6_index];
@@ -317,7 +317,7 @@ if ((typeof(Object.getOwnPropertyNames) !== "function")) {
 dict.values = (function(hash) {
   var key, vals;
   vals = [];
-  var _$tmp7_data = _$pyva_iter(dict.keys(hash));
+  var _$tmp7_data = _$rapyd$_iter(dict.keys(hash));
   var _$tmp8_len = _$tmp7_data.length;
   for (var _$tmp9_index = 0; _$tmp9_index < _$tmp8_len; _$tmp9_index++) {
     key = _$tmp7_data[_$tmp9_index];
@@ -330,7 +330,7 @@ dict.values = (function(hash) {
 dict.items = (function(hash) {
   var items, key;
   items = [];
-  var _$tmp10_data = _$pyva_iter(dict.keys(hash));
+  var _$tmp10_data = _$rapyd$_iter(dict.keys(hash));
   var _$tmp11_len = _$tmp10_data.length;
   for (var _$tmp12_index = 0; _$tmp12_index < _$tmp11_len; _$tmp12_index++) {
     key = _$tmp10_data[_$tmp12_index];
@@ -343,7 +343,7 @@ dict.items = (function(hash) {
 dict.copy = dict;
 dict.clear = (function(hash) {
   var key;
-  var _$tmp13_data = _$pyva_iter(dict.keys(hash));
+  var _$tmp13_data = _$rapyd$_iter(dict.keys(hash));
   var _$tmp14_len = _$tmp13_data.length;
   for (var _$tmp15_index = 0; _$tmp15_index < _$tmp14_len; _$tmp15_index++) {
     key = _$tmp13_data[_$tmp15_index];
@@ -496,7 +496,7 @@ StockChart = function() {
     var _$rapyd_tuple$_, day, normalized, num, orig, row, stock;
     normalized = [];
     orig = rows[(rows.length - 1)];
-    var _$tmp4_data = _$pyva_iter(enumerate(rows));
+    var _$tmp4_data = _$rapyd$_iter(enumerate(rows));
     var _$tmp5_len = _$tmp4_data.length;
     for (var _$tmp6_index = 0; _$tmp6_index < _$tmp5_len; _$tmp6_index++) {
       _$rapyd$_tuple = _$tmp4_data[_$tmp6_index];
@@ -504,7 +504,7 @@ StockChart = function() {
       row = _$rapyd$_tuple[1];
 
       normalized.append([row[0]]);
-      var _$tmp1_data = _$pyva_iter(enumerate(row.slice(1)));
+      var _$tmp1_data = _$rapyd$_iter(enumerate(row.slice(1)));
       var _$tmp2_len = _$tmp1_data.length;
       for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
         _$rapyd$_tuple = _$tmp1_data[_$tmp3_index];
@@ -525,7 +525,7 @@ StockChart = function() {
     });
     return [name, (function(cols, rows) {
         var _$rapyd_tuple$_, alpha, avgs, col, idx, moving, row;
-        var _$tmp10_data = _$pyva_iter(enumerate(cols));
+        var _$tmp10_data = _$rapyd$_iter(enumerate(cols));
         var _$tmp11_len = _$tmp10_data.length;
         for (var _$tmp12_index = 0; _$tmp12_index < _$tmp11_len; _$tmp12_index++) {
           _$rapyd$_tuple = _$tmp10_data[_$tmp12_index];
@@ -542,7 +542,7 @@ StockChart = function() {
               moving = rows[(rows.length - 1)][(idx + 1)];
             }
 
-            var _$tmp7_data = _$pyva_iter(reversed(rows));
+            var _$tmp7_data = _$rapyd$_iter(reversed(rows));
             var _$tmp8_len = _$tmp7_data.length;
             for (var _$tmp9_index = 0; _$tmp9_index < _$tmp8_len; _$tmp9_index++) {
               row = _$tmp7_data[_$tmp9_index];
@@ -578,7 +578,7 @@ StockChart = function() {
     _$rapyd_tuple$_ = makeMovingAvg("", 15, true);
     tmp = _$rapyd_tuple$_[0];
     ema15 = _$rapyd_tuple$_[1];
-    var _$tmp17_data = _$pyva_iter(enumerate(cols));
+    var _$tmp17_data = _$rapyd$_iter(enumerate(cols));
     var _$tmp18_len = _$tmp17_data.length;
     for (var _$tmp19_index = 0; _$tmp19_index < _$tmp18_len; _$tmp19_index++) {
       _$rapyd$_tuple = _$tmp17_data[_$tmp19_index];
@@ -592,7 +592,7 @@ StockChart = function() {
         ups = [];
         downs = [];
         prev = rows[(rows.length - 1)][(idx + 1)];
-        var _$tmp13_data = _$pyva_iter(reversed(rows));
+        var _$tmp13_data = _$rapyd$_iter(reversed(rows));
         var _$tmp14_len = _$tmp13_data.length;
         for (var _$tmp15_index = 0; _$tmp15_index < _$tmp14_len; _$tmp15_index++) {
           row = _$tmp13_data[_$tmp15_index];
@@ -636,7 +636,7 @@ StockChart = function() {
 
     return [cols, rows];
   });
-  var _$tmp20_data = _$pyva_iter([["Normalize", normalize], makeMovingAvg("15-Day SMA", 15, false), makeMovingAvg("50-Day SMA", 50, false), makeMovingAvg("15-Day EMA", 15, true), makeMovingAvg("50-Day EMA", 50, true), ["15-Day RSI", rsi]]);
+  var _$tmp20_data = _$rapyd$_iter([["Normalize", normalize], makeMovingAvg("15-Day SMA", 15, false), makeMovingAvg("50-Day SMA", 50, false), makeMovingAvg("15-Day EMA", 15, true), makeMovingAvg("50-Day EMA", 50, true), ["15-Day RSI", rsi]]);
   var _$tmp21_len = _$tmp20_data.length;
   for (var _$tmp22_index = 0; _$tmp22_index < _$tmp21_len; _$tmp22_index++) {
     _$rapyd$_tuple = _$tmp20_data[_$tmp22_index];
@@ -660,7 +660,7 @@ StockChart.prototype.add = (function(symbol, data, cols, rows) {
   if (typeof rows === "undefined") {rows = this._rows};
   if ((data !== null)) {
     if ((!cols.length)) {
-      var _$tmp23_data = _$pyva_iter(data.slice(1));
+      var _$tmp23_data = _$rapyd$_iter(data.slice(1));
       var _$tmp24_len = _$tmp23_data.length;
       for (var _$tmp25_index = 0; _$tmp25_index < _$tmp24_len; _$tmp25_index++) {
         item = _$tmp23_data[_$tmp25_index];
@@ -669,7 +669,7 @@ StockChart.prototype.add = (function(symbol, data, cols, rows) {
       }
 
     } else {
-      var _$tmp26_data = _$pyva_iter(enumerate(data.slice(1)));
+      var _$tmp26_data = _$rapyd$_iter(enumerate(data.slice(1)));
       var _$tmp27_len = _$tmp26_data.length;
       for (var _$tmp28_index = 0; _$tmp28_index < _$tmp27_len; _$tmp28_index++) {
         _$rapyd$_tuple = _$tmp26_data[_$tmp28_index];
@@ -689,7 +689,7 @@ StockChart.prototype.redraw = (function() {
   var _$rapyd_tuple$_, col, cols, data, key, rows, val;
   cols = $.extend(true, [], this._cols);
   rows = $.extend(true, [], this._rows);
-  var _$tmp29_data = _$pyva_iter(dict.items(this._filters));
+  var _$tmp29_data = _$rapyd$_iter(dict.items(this._filters));
   var _$tmp30_len = _$tmp29_data.length;
   for (var _$tmp31_index = 0; _$tmp31_index < _$tmp30_len; _$tmp31_index++) {
     _$rapyd$_tuple = _$tmp29_data[_$tmp31_index];
@@ -706,7 +706,7 @@ StockChart.prototype.redraw = (function() {
 
   data = new google.visualization.DataTable();
   data.addColumn("date", "Date");
-  var _$tmp32_data = _$pyva_iter(cols);
+  var _$tmp32_data = _$rapyd$_iter(cols);
   var _$tmp33_len = _$tmp32_data.length;
   for (var _$tmp34_index = 0; _$tmp34_index < _$tmp33_len; _$tmp34_index++) {
     col = _$tmp32_data[_$tmp34_index];
@@ -732,7 +732,7 @@ main = function() {
     updateChart = (function(symbol, data) {
       var stock;
       chart.clear();
-      var _$tmp35_data = _$pyva_iter(stockFields);
+      var _$tmp35_data = _$rapyd$_iter(stockFields);
       var _$tmp36_len = _$tmp35_data.length;
       for (var _$tmp37_index = 0; _$tmp37_index < _$tmp36_len; _$tmp37_index++) {
         stock = _$tmp35_data[_$tmp37_index];
@@ -793,7 +793,7 @@ main = function() {
   onUpdate = (function(query) {
     var symbol, unique;
     
-    var _$tmp38_data = _$pyva_iter(query["results"]["row"]);
+    var _$tmp38_data = _$rapyd$_iter(query["results"]["row"]);
     var _$tmp39_len = _$tmp38_data.length;
     for (var _$tmp40_index = 0; _$tmp40_index < _$tmp39_len; _$tmp40_index++) {
       symbol = _$tmp38_data[_$tmp40_index];
@@ -813,7 +813,7 @@ main = function() {
 
   });
   $stocks.text("Loading Symbols from Stock Exchanges");
-  var _$tmp41_data = _$pyva_iter(exchanges);
+  var _$tmp41_data = _$rapyd$_iter(exchanges);
   var _$tmp42_len = _$tmp41_data.length;
   for (var _$tmp43_index = 0; _$tmp43_index < _$tmp42_len; _$tmp43_index++) {
     exchange = _$tmp41_data[_$tmp43_index];

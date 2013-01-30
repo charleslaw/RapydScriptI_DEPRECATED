@@ -92,7 +92,7 @@ print = function() {
 isinstance = function(item, cls) {
 	var cls_item, isnumber;
 	if (cls instanceof Array) {
-		var _$tmp13_data = _$pyva_iter(cls);
+		var _$tmp13_data = _$rapyd$_iter(cls);
 		var _$tmp14_len = _$tmp13_data.length;
 		for (var _$tmp15_index = 0; _$tmp15_index < _$tmp14_len; _$tmp15_index++) {
 			cls_item = _$tmp13_data[_$tmp15_index];
@@ -121,7 +121,7 @@ isinstance = function(item, cls) {
 
 	return (item.constructor === cls.prototype.constructor);
 };
-_$pyva_iter = function(iter_object) {
+_$rapyd$_iter = function(iter_object) {
 	var key_list;
 	if (((iter_object.callee && (typeof iter_object['length'] != "undefined")) || isinstance(iter_object, list))) {
 		return iter_object;
@@ -167,7 +167,7 @@ String.prototype.zfill = (function(size) {
 list = function(iterable) {
   var i, result;
   result = [];
-  var _$tmp1_data = _$pyva_iter(iterable);
+  var _$tmp1_data = _$rapyd$_iter(iterable);
   var _$tmp2_len = _$tmp1_data.length;
   for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
     i = _$tmp1_data[_$tmp3_index];
@@ -281,7 +281,7 @@ dict = function(iterable) {
   result = {
     
   };
-  var _$tmp4_data = _$pyva_iter(iterable);
+  var _$tmp4_data = _$rapyd$_iter(iterable);
   var _$tmp5_len = _$tmp4_data.length;
   for (var _$tmp6_index = 0; _$tmp6_index < _$tmp5_len; _$tmp6_index++) {
     key = _$tmp4_data[_$tmp6_index];
@@ -317,7 +317,7 @@ if ((typeof(Object.getOwnPropertyNames) !== "function")) {
 dict.values = (function(hash) {
   var key, vals;
   vals = [];
-  var _$tmp7_data = _$pyva_iter(dict.keys(hash));
+  var _$tmp7_data = _$rapyd$_iter(dict.keys(hash));
   var _$tmp8_len = _$tmp7_data.length;
   for (var _$tmp9_index = 0; _$tmp9_index < _$tmp8_len; _$tmp9_index++) {
     key = _$tmp7_data[_$tmp9_index];
@@ -330,7 +330,7 @@ dict.values = (function(hash) {
 dict.items = (function(hash) {
   var items, key;
   items = [];
-  var _$tmp10_data = _$pyva_iter(dict.keys(hash));
+  var _$tmp10_data = _$rapyd$_iter(dict.keys(hash));
   var _$tmp11_len = _$tmp10_data.length;
   for (var _$tmp12_index = 0; _$tmp12_index < _$tmp11_len; _$tmp12_index++) {
     key = _$tmp10_data[_$tmp12_index];
@@ -343,7 +343,7 @@ dict.items = (function(hash) {
 dict.copy = dict;
 dict.clear = (function(hash) {
   var key;
-  var _$tmp13_data = _$pyva_iter(dict.keys(hash));
+  var _$tmp13_data = _$rapyd$_iter(dict.keys(hash));
   var _$tmp14_len = _$tmp13_data.length;
   for (var _$tmp15_index = 0; _$tmp15_index < _$tmp14_len; _$tmp15_index++) {
     key = _$tmp13_data[_$tmp15_index];

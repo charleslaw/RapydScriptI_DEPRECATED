@@ -286,7 +286,7 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
                 unpack_str += '%s%s = %s[%d];\n' % \
                 (indentstr + '  ', var_list[i], RAPYD_PACKED_TUPLE, i)
             var = RAPYD_PACKED_TUPLE
-        init = 'var %s = _$pyva_iter(%s);\n%svar %s = %s.length;\n%s' % (
+        init = 'var %s = _$rapyd$_iter(%s);\n%svar %s = %s.length;\n%s' % (
             datavar, data, indentstr, lenvar, datavar, indentstr)
         body = body.replace('{', '{\n%s%s = %s[%s];\n%s'
                             % (indentstr + '  ', var, datavar, index, unpack_str), 1)

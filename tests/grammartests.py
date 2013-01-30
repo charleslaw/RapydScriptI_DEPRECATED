@@ -151,7 +151,7 @@ class TestTuplePackingUnpacking(PyvaTest):
             for vara,varb in input_list:
                 pass
             """, """
-            var _$tmp1_data = _$pyva_iter(input_list);
+            var _$tmp1_data = _$rapyd$_iter(input_list);
             var _$tmp2_len = _$tmp1_data.length;
             for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
               _$rapyd$_tuple = _$tmp1_data[_$tmp3_index];
@@ -165,7 +165,7 @@ class TestTuplePackingUnpacking(PyvaTest):
             for input in 'inputa', obj.call2(), vara, 9.2:
                 pass
             """, """
-            var _$tmp1_data = _$pyva_iter(["inputa", obj.call2(), vara, 9.2]);
+            var _$tmp1_data = _$rapyd$_iter(["inputa", obj.call2(), vara, 9.2]);
             var _$tmp2_len = _$tmp1_data.length;
             for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
               input = _$tmp1_data[_$tmp3_index];
@@ -193,7 +193,7 @@ class TestListComprehensions(PyvaTest):
 		for i in [4 til 10]:
 			pass
 		""","""
-		var _$tmp1_data = _$pyva_iter(range(4, 10));
+		var _$tmp1_data = _$rapyd$_iter(range(4, 10));
 		var _$tmp2_len = _$tmp1_data.length;
 		for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
 		  i = _$tmp1_data[_$tmp3_index];
@@ -492,7 +492,7 @@ class Test(PyvaTest):
         for i in x.y[10].z():
             f(i)
         """, """
-        var _$tmp1_data = _$pyva_iter(x.y[10].z());
+        var _$tmp1_data = _$rapyd$_iter(x.y[10].z());
         var _$tmp2_len = _$tmp1_data.length;
         for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
           i = _$tmp1_data[_$tmp3_index];
