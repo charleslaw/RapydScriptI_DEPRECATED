@@ -269,7 +269,7 @@ class dict(Object):
 			self[key] = hashlike[key]
 
 	def keys(self):
-		if _$rapyd$_getOwnProps is 'function':
+		if type(_$rapyd$_getOwnProps) is 'function':
 			# normal browsers
 			_$rapyd$_getOwnProps(self)
 		else:

@@ -291,7 +291,7 @@ dict.prototype = new Object();
 dict.prototype.constructor = dict;
 dict.prototype.keys = (function() {
   var keys;
-  if ((_$rapyd$_getOwnProps === "function")) {
+  if ((typeof(_$rapyd$_getOwnProps) === "function")) {
     _$rapyd$_getOwnProps(this);
   } else {
     keys = [];
