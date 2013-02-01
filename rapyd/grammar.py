@@ -211,10 +211,10 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
         prev_var = comp[1]
 
         for comp in comps:
-            final_comp = '(%s and %s)' % \
+            final_comp = '%s && %s' % \
                 (final_comp, self.translate_cmp(prev_var, comp[0], comp[1]))
             prev_var = comp[1]
-        return final_comp
+        return '(%s)' % final_comp
 
     def pop_vars(self):
         self.local_vars, self.nonlocal_vars, self.global_vars = self.var_stack.pop()

@@ -33,5 +33,5 @@ if 4 < a < 6 < b+1 < 9:
     tmp = 1
 
 #test chaining each type of comparion
-if a is b is not c in d not in e <= f >= g < h > i != j == k:
+if a is b is not c in d not in e <= f >= g < h > i != j == k or False:
     a = 1
