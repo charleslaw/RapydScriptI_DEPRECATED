@@ -112,9 +112,6 @@ isinstance = function(item, cls) {
 		cls = Object;
 	} else if ((cls === str)) {
 		cls = String;
-	} else if (((cls === _$pyva_int) || (cls === _$pyva_float))) {
-		isnumber = (item.constructor === Number.prototype.constructor);
-		return (isnumber && (cls(item) == item));
 	} else {
 		return item instanceof cls;
 	}
