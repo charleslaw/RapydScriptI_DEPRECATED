@@ -383,7 +383,9 @@ def make_exception_updates(line, lstrip_line, state):
 
 	# Get information about the current indent (account for class's)
 	indent = state.get_indent(line)
-	indent_size = len(indent) - len(state.indent)
+	indent_size = len(indent)
+	if state.inclass:
+		indent_size -= len(state.indent)
 
 
 	# Update any indent information
