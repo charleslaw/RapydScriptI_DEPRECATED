@@ -1,4 +1,5 @@
 /* This file was auto-generated using RapydScript */
+(function(){
 (a === b);
 (b !== c);
 (c in d);
@@ -30,3 +31,5 @@ if ((((a === b) && (b !== c) && (c in d) && !(d in e) && (e <= f) && (f >= g) &&
   a = 1;
 }
 
+
+}());

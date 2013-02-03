@@ -597,8 +597,10 @@ def parse_file(file_name, debug=False):
 				state.class_name = class_data[0]
 				state.parent = class_data[1][:-3] #assume single inheritance, remove '):'
 				new_prefix = ''
-				if state.parent in class_list:
-					new_prefix = 'new '
+				# TEMP: temporarily set to always-on due to current class limitations
+				#if state.parent in class_list:
+				#	new_prefix = 'new '
+				new_prefix = 'new '
 				state.post_init_dump += '%s.prototype = %s%s()\n' % (state.class_name, new_prefix, state.parent)
 			class_list.append(state.class_name)
 			state.need_indent = True # don't set the indent yet, it might not be available if this is the first line

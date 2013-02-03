@@ -1,4 +1,5 @@
 /* This file was auto-generated using RapydScript */
+(function(){
 Human = function() {
   this.name = "human";
 };
@@ -29,7 +30,7 @@ Dog = function() {
 Dog.prototype = new Animal();
 Dog.prototype.constructor = Dog;
 Test = function() {NotClass.prototype.constructor.call(this);};
-Test.prototype = NotClass();
+Test.prototype = new NotClass();
 Test.prototype.constructor = Test;
 Test.prototype.t = (function() {
   
@@ -44,3 +45,5 @@ clyde.talk();
 Dog.talk();
 a.src = "a.png";
 Image.src = "b.png";
+
+}());

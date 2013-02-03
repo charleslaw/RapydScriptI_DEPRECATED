@@ -1,4 +1,5 @@
 /* This file was auto-generated using RapydScript */
+(function(){
 JSON = (JSON || {
   
 });
@@ -821,3 +822,5 @@ main = function() {
 };
 
 $(document).ready(main);
+
+}());

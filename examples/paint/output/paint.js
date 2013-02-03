@@ -1,4 +1,5 @@
 /* This file was auto-generated using RapydScript */
+(function(){
 BRUSH = 0;
 ERASER = 1;
 LINE = 2;
@@ -677,3 +678,5 @@ main = function() {
 };
 
 $(document).ready(main);
+
+}());

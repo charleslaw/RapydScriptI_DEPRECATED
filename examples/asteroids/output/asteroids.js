@@ -1,4 +1,5 @@
 /* This file was auto-generated using RapydScript */
+(function(){
 JSON = (JSON || {
   
 });
@@ -741,3 +742,5 @@ runGame = function() {
   view = new View(CANVAS_DIM_X, CANVAS_DIM_Y, canvas);
 };
 
+
+}());

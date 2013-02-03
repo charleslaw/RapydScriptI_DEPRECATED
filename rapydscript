@@ -31,6 +31,9 @@ parser.add_argument('--recompile', dest='recompile', action='store_true', defaul
 					example works after rerunning this.')
 parser.add_argument('--debug', dest='debug', action='store_true', default=False,
 					help='Add line-by-line annotations into the final output.')
+parser.add_argument('--no-module-wrapper', dest='wrap_in_module', action='store_false', default=True,
+					help='Prevent output from being wrapped in a module pattern. Module pattern \
+					prevents variable collision with other JavaScript code.')
 
 args = parser.parse_args()
 
@@ -43,12 +46,12 @@ if __name__ == "__main__":
 		print "Tests: ", result[1].split('\n')[-2]
 
 		# recompile stdlib and stdlib2
-		result = Popen('./rapydscript rapyd/stdlib.pyj', stdout=PIPE, stderr=PIPE, shell=True).communicate()
+		result = Popen('./rapydscript --no-module-wrapper rapyd/stdlib.pyj', stdout=PIPE, stderr=PIPE, shell=True).communicate()
 		if result[1]:
 			print ''.join(result)
 		else:
 			print "stdlib:  OK"
-		result = Popen('./rapydscript rapyd/stdlib2.pyj', stdout=PIPE, stderr=PIPE, shell=True).communicate()
+		result = Popen('./rapydscript --no-module-wrapper rapyd/stdlib2.pyj', stdout=PIPE, stderr=PIPE, shell=True).communicate()
 		if result[1]:
 			print ''.join(result)
 		else:
@@ -81,5 +84,7 @@ if __name__ == "__main__":
 		with open(filename + '.js', 'w') as new_file:
 			if not args.no_ack:
 				new_file.write('/* This file was auto-generated using RapydScript */\n')
+			if args.wrap_in_module:
+				source = '(function(){\n%s\n}());' % source
 			new_file.write(source)
 		os.chdir(orig_dir)
