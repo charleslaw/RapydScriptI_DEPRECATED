@@ -450,8 +450,10 @@ def make_exception_updates(line, lstrip_line, state):
 			else:
 				if state.exception_stack:
 					added_indent = state.exception_stack[-1]['code_indent']
-				else:
+				elif state.inclass:
 					added_indent = state.indent
+				else:
+					added_indent = ''
 				
 				print_exception_comments(state, exited_exception, added_indent,
 										test_equal=True)
