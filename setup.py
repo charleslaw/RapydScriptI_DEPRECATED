@@ -32,7 +32,7 @@ See http://www.gnu.org/licenses/gpl-faq.html#WhatCaseIsOutputGPL.
 """
 
 setup(name='rapydscript',
-      version='0.0.1',
+      version='0.0.2',
       packages=['rapydscript'],
       package_data={'rapydscript': ['*.pyj', '*.ometa']},
       author='Alexander Tsepkov',
