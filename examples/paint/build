@@ -3,4 +3,4 @@
 # you can uncomment rapydml and rapydcss if you have them installed
 #rapydml paint.pyml && mv paint.html output/
 #rapydcss paint.sass && mv paint.css output/
-../../rapydscript paint.pyj && mv paint.js output/
+../../bin/rapydscript paint.pyj && mv paint.js output/
