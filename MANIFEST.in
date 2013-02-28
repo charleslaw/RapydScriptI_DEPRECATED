@@ -1,2 +1,4 @@
-include LICENSE
-include README.text
+include LICENSE README.text
+recursive-include rapyd *
+recursive-include tests *
+
