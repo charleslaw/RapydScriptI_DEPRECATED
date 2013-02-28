@@ -42,7 +42,7 @@ setup(name='rapydscript',
       platforms=['any'],
       license='GNU GPL3',
       install_requires=[],
-      scripts=['rapydscript'],
+      scripts=['bin/rapydscript'],
       test_suite = "tests"
 )
 
