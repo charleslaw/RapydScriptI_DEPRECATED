@@ -49,7 +49,7 @@ def test_generator(test_name):
         #delete any output old output files
         delete_test_output(test_name)
         #run rapydscript
-        p = Popen(['./rapydscript', '%s/%s.pyj'%(DATA_DIR, test_name)])
+        p = Popen(['./bin/rapydscript', '%s/%s.pyj'%(DATA_DIR, test_name)])
         p.communicate() #wait for rapydscript to run
         #check the output files were generated
         for check_ext, test in (('js', 'Javascript'), ):

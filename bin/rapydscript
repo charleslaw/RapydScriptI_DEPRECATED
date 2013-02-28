@@ -4,7 +4,7 @@ import re, os
 import argparse
 from subprocess import Popen, PIPE
 import pipes
-from rapyd.compiler import parse_file, finalize_source
+from rapydscript.compiler import parse_file, finalize_source
 
 class ShellError(Exception):
 	"""
@@ -46,12 +46,12 @@ if __name__ == "__main__":
 		print "Tests: ", result[1].split('\n')[-2]
 
 		# recompile stdlib and stdlib2
-		result = Popen('./rapydscript --no-module-wrapper rapyd/stdlib.pyj', stdout=PIPE, stderr=PIPE, shell=True).communicate()
+		result = Popen('./bin/rapydscript --no-module-wrapper rapydscript/stdlib.pyj', stdout=PIPE, stderr=PIPE, shell=True).communicate()
 		if result[1]:
 			print ''.join(result)
 		else:
 			print "stdlib:  OK"
-		result = Popen('./rapydscript --no-module-wrapper rapyd/stdlib2.pyj', stdout=PIPE, stderr=PIPE, shell=True).communicate()
+		result = Popen('./bin/rapydscript --no-module-wrapper rapydscript/stdlib2.pyj', stdout=PIPE, stderr=PIPE, shell=True).communicate()
 		if result[1]:
 			print ''.join(result)
 		else:

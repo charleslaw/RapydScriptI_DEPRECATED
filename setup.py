@@ -33,15 +33,15 @@ See http://www.gnu.org/licenses/gpl-faq.html#WhatCaseIsOutputGPL.
 
 setup(name='rapydscript',
       version='0.0.1',
-      packages=['rapyd', 'rapyd.pymeta'],
-      package_data={'rapyd': ['*.pyj', '*.ometa']},
+      packages=['rapydscript'],
+      package_data={'rapydscript': ['*.pyj', '*.ometa']},
       author='Alexander Tsepkov',
       url='http://rapydscript.pyjeon.com',
       description=DESCRIPTION,
       long_description=LONG_DESCRIPTION,
       platforms=['any'],
       license='GNU GPL3',
-      install_requires=[],
+      install_requires=['pymeta2>=0.0.0'],
       scripts=['bin/rapydscript'],
       test_suite = "tests"
 )

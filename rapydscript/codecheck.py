@@ -1,6 +1,6 @@
 import re
 import string
-from rapyd.exceptions import EXCEPT_REGEX
+from rapydscript.exceptions import EXCEPT_REGEX
 
 
 def warn(file_name, line_num, message, error_type = 'ERROR'):

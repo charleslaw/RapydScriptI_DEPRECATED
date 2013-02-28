@@ -3,7 +3,7 @@
 # python tests/grammartests.py
 
 import unittest
-from rapyd.grammar import compile
+from rapydscript.grammar import compile
 from textwrap import dedent
 
 class PyvaTest(unittest.TestCase):
