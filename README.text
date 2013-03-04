@@ -35,7 +35,11 @@ Now run the following to install RapydScript:
 
 	wget http://bitbucket.org/pyjeon/rapydscript/get/tip.zip; unzip tip.zip; cd pyjeon-rapydscript*; sudo python setup.py install; cd ..; rm tip.zip
 
+Alternatively, you can also install RapydScript from PIP repository.
+
 If you're using OSX, you can probably use the same commands (let me know if that's not the case). If you're using Windows, just download the files I linked to in the above URLs and install them in a similar manner.
+
+To run rapydscript without installing it, you will need to set your `PYTHONPATH` to point to the `rapydscript_unpack_location/rapydscript` directory.
 
 
 Compilation
