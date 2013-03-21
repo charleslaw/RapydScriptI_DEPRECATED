@@ -124,41 +124,41 @@ class ValueError(Error):
 ###########################################################
 # Python str object
 ###########################################################
-class str(String):
+class str:
 	"""
 	This emulates Python str in JavaScript. The extra hackery here with
 	toString() and valueOf() is needed because of poorly supported
 	inheritance with native JavaScript objects
 	"""
 	def __init__(self, elem=""):
-		String.__init__(self, JSON.stringify(elem))
-		self._str = elem
+		JS("this._str = String(elem)")
 
 	def strip(self):
-		return self.trim()
+		return str(self._str.trim())
 
 	def lstrip(self):
-		return self.trimLeft()
+		return str(self._str.trimLeft())
 
 	def rstrip(self):
-		return self.trimRight()
+		return str(self._str.trimRight())
 
 	def join(self, iterable):
-		return iterable.join(self)
+		return str(iterable.join(self._str))
 
 	def zfill(self, size):
 		s = self # create a copy
 		while s.length < size:
 			s = '0' + s
-		return s
+		return str(s)
 
 	def replace(self, orig, sub, n):
 		if n:
 			s = self
 			for n in range(len(n)):
 				s = String.replace(s, orig, sub)
-			return s
-		return String.replace(self, RegExp(orig, 'g'), sub)
+		else:
+			s = String.replace(self, RegExp(orig, 'g'), sub)
+		return str(s)
 
 	def toString(self):
 		return self._str

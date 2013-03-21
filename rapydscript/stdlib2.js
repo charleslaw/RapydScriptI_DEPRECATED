@@ -119,23 +119,20 @@ ValueError.prototype = new Error();
 ValueError.prototype.constructor = ValueError;
 str = function(elem) {
   if (typeof elem === "undefined") {elem = ""};
-  String.prototype.constructor.call(this, JSON.stringify(elem));
-  this._str = elem;
+  this._str = String(elem)
 };
 
-str.prototype = new String();
-str.prototype.constructor = str;
 str.prototype.strip = (function() {
-  return this.trim();
+  return new str(this._str.trim());
 });
 str.prototype.lstrip = (function() {
-  return this.trimLeft();
+  return new str(this._str.trimLeft());
 });
 str.prototype.rstrip = (function() {
-  return this.trimRight();
+  return new str(this._str.trimRight());
 });
 str.prototype.join = (function(iterable) {
-  return iterable.join(this);
+  return new str(iterable.join(this._str));
 });
 str.prototype.zfill = (function(size) {
   var s;
@@ -144,7 +141,7 @@ str.prototype.zfill = (function(size) {
     s = ("0" + s);
   }
 
-  return s;
+  return new str(s);
 });
 str.prototype.replace = (function(orig, sub, n) {
   var s;
@@ -155,10 +152,11 @@ str.prototype.replace = (function(orig, sub, n) {
       s = String.prototype.replace.call(s, orig, sub);
     }
 
-    return s;
+  } else {
+    s = String.prototype.replace.call(this, new RegExp(orig, "g"), sub);
   }
 
-  return String.prototype.replace.call(this, new RegExp(orig, "g"), sub);
+  return new str(s);
 });
 str.prototype.toString = (function() {
   return this._str;
