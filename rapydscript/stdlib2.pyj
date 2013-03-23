@@ -206,6 +206,11 @@ class list(Array):
 	def copy(self):
 		return list(self)
 
+	def toSource(self):
+		# a method needed only for Firefox, otherwise it craps out
+		# this is a bit of a hack now, stringify doesn't return correct array representation
+		return '[' + self + ']'
+
 if not Array.prototype.map:
 	# declare map() method for older browsers
 	JS("""

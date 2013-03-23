@@ -211,6 +211,9 @@ list.prototype.remove = (function(elem) {
 list.prototype.copy = (function() {
   return new list(this);
 });
+list.prototype.toSource = (function() {
+  return (("[" + this) + "]");
+});
 if ((!Array.prototype.map)) {
   
 	Array.prototype.map = function(callback, thisArg) {
