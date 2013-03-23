@@ -164,6 +164,7 @@ String.prototype.zfill = (function(size) {
 });
 list = function(iterable) {
   var i, result;
+  if (typeof iterable === "undefined") {iterable = []};
   result = [];
   var _$tmp1_data = _$rapyd$_iter(iterable);
   var _$tmp2_len = _$tmp1_data.length;

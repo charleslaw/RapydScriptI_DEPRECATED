@@ -173,7 +173,7 @@ String.prototype.zfill = def(size):
 ###########################################################
 # Array Methods
 ###########################################################
-def list(iterable):
+def list(iterable=[]):
 	result = []
 	for i in iterable:
 		result.append(i)
