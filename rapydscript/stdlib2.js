@@ -119,9 +119,13 @@ ValueError.prototype = new Error();
 ValueError.prototype.constructor = ValueError;
 str = function(elem) {
   if (typeof elem === "undefined") {elem = ""};
-  this._str = String(elem)
+  elem = new String(elem);
+  String.prototype.constructor.call(this, elem);
+  this._str = elem;
 };
 
+str.prototype = new String();
+str.prototype.constructor = str;
 str.prototype.strip = (function() {
   return new str(this._str.trim());
 });
@@ -136,7 +140,7 @@ str.prototype.join = (function(iterable) {
 });
 str.prototype.zfill = (function(size) {
   var s;
-  s = this;
+  s = this._str;
   while ((s.length < size)) {
     s = ("0" + s);
   }
@@ -145,21 +149,24 @@ str.prototype.zfill = (function(size) {
 });
 str.prototype.replace = (function(orig, sub, n) {
   var s;
+  s = this._str;
   if (n) {
-    s = this;
     var _$tmp1_end = n.length;
     for (n = 0; n < _$tmp1_end; n++) {
       s = String.prototype.replace.call(s, orig, sub);
     }
 
   } else {
-    s = String.prototype.replace.call(this, new RegExp(orig, "g"), sub);
+    s = String.prototype.replace.call(s, new RegExp(orig, "g"), sub);
   }
 
   return new str(s);
 });
 str.prototype.toString = (function() {
   return this._str;
+});
+str.prototype.toSource = (function() {
+  return (("\"" + this._str) + "\"");
 });
 str.prototype.valueOf = (function() {
   return this._str;

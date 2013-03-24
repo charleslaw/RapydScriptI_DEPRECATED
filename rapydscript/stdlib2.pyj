@@ -124,14 +124,16 @@ class ValueError(Error):
 ###########################################################
 # Python str object
 ###########################################################
-class str:
+class str(String):
 	"""
 	This emulates Python str in JavaScript. The extra hackery here with
 	toString() and valueOf() is needed because of poorly supported
 	inheritance with native JavaScript objects
 	"""
 	def __init__(self, elem=""):
-		JS("this._str = String(elem)")
+		elem = String(elem)
+		String.__init__(self, elem)
+		this._str = elem
 
 	def strip(self):
 		return str(self._str.trim())
@@ -146,22 +148,26 @@ class str:
 		return str(iterable.join(self._str))
 
 	def zfill(self, size):
-		s = self # create a copy
+		s = self._str # create a copy
 		while s.length < size:
 			s = '0' + s
 		return str(s)
 
 	def replace(self, orig, sub, n):
+		s = self._str
 		if n:
-			s = self
 			for n in range(len(n)):
 				s = String.replace(s, orig, sub)
 		else:
-			s = String.replace(self, RegExp(orig, 'g'), sub)
+			s = String.replace(s, RegExp(orig, 'g'), sub)
 		return str(s)
 
 	def toString(self):
 		return self._str
+
+	def toSource(self):
+		# this method is only needed by Firefox
+		return '"' + self._str + '"'
 
 	def valueOf(self):
 		return self._str
