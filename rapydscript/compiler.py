@@ -203,25 +203,28 @@ class State:
 imported_files = []
 def import_module(line, state):
 	tokens = line.split()
-	if not ((len(tokens) == 2 and tokens[0] == 'import') or \
-			(len(tokens) == 4 and tokens[0] == 'from' and tokens[2] == 'import')):
+	if len(tokens) == 2 and tokens[0] == 'import':
+		import_file = tokens[1]
+	elif len(tokens) == 4 and tokens[0] == 'from' and tokens[2] == 'import':
+		import_file = tokens[3]
+	else:
 		raise ImportError("Invalid import statement: %s" % line.strip())
 	
-	if tokens[1] not in imported_files:
+	if import_file not in imported_files:
 		try:
-			parse_file(tokens[1].replace('.', '/') +'.pyj', state.debug)
+			parse_file(import_file.replace('.', '/') +'.pyj', state.debug)
 		except IOError:
 			# couldn't find the file in local directory, check RapydScript lib directory
 			cur_dir = os.getcwd()
 			try:
 				# we have to rely on __file__, because cwd could be different if invoked by another script
 				os.chdir(os.path.dirname(__file__))
-				parse_file(tokens[1].replace('.', '/') +'.pyj', state.debug)
+				parse_file(import_file.replace('.', '/') +'.pyj', state.debug)
 			except IOError:
-				raise ImportError("Can't import %s, module doesn't exist" % tokens[1])
+				raise ImportError("Can't import %s, module doesn't exist" % import_file)
 			finally:
 				os.chdir(cur_dir)
-		imported_files.append(tokens[1])
+		imported_files.append(import_file)
 		
 def add_new_keyword(line):
 	#check to see if we need to plug in the 'new' keyword
