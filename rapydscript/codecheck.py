@@ -47,7 +47,10 @@ def verify_code(f, source, global_object_list, auto_correct=False):
 			#	b = a = <value>
 			#	a = b == c
 			#	a = [i+=1 for i in b if i%2==0]
-			objects = re.findall('([A-Za-z_$][A-Za-z0-9_$]*)[^=><!]*=[^=]', line)
+			# we'll strip everything before first quote since we know this is not valid code:
+			#	a = "string" = b = <value>
+			assignment_chunk = line.split("'")[0].split('"')[0]
+			objects = re.findall('([A-Za-z_$][A-Za-z0-9_$]*)[^=><!]*=[^=]', assignment_chunk)
 			for item in objects[:-1]:
 				global_objects.append(item.strip())
 		if global_objects:
