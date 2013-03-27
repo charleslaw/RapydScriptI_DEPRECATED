@@ -23,6 +23,12 @@ RapydScript allows to write your front-end in Python without the overhead that o
 Let's not waste any more time with the introductions, however. The best way to learn a new language/framework is to dive in.
 
 
+Community
+---------
+If you have questions, bug reports, or feature requests, feel free to post them on our mailing list:
+(<http://groups.google.com/group/rapydscript>)
+
+
 Installation
 ------------
 You can use RapydScript without installing it, from the same directory you unpack it to, or 'install' it, which will copy the files to your system path, making it accessible from anywhere (that way you don't have to be in RapydScript's directory to perform compilation).
