@@ -111,7 +111,7 @@ name         = iname:n ~iskeyword(n)       -> ['name', n]
 escaped_char = '\\' :x -> ('\\' + x).decode('string_escape')
 string4 :e = match_string(e) (escaped_char | ~(?(len(e) != 3) vspace | match_string(e)) anything)*:c match_string(e) -> ''.join(c)
 string3 = string4('"""') | string4("'''") | string4('"') | string4("'")
-string2 = (string3:s optspace -> s)+:s -> ''.join(s)
+string2 = string3:sa (optspace string3:s -> s)*:sb -> '%s%s' % (sa, ''.join(sb))
 rmodifiers = "i" -> 'i'
             |"m" -> 'm'
             |"s" -> 's'
