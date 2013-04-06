@@ -26,39 +26,38 @@ stmt = pass | global | nonlocal | continue | break | return | raise | while
 global = "global" mandspace innercsv('name'):names -> ['global', names]
 nonlocal = "nonlocal" mandspace innercsv('name'):names -> ['nonlocal', names]
 
-continue = "continue"              -> ['continue']
-break    = "break"                 -> ['break']
-del      = "del" mandspace get:x   -> ['del', x]
+continue = "continue"                 -> ['continue']
+break    = "break"                    -> ['break']
+del      = "del" mandspace primary:x  -> ['del', x]
 
 pass   = "pass"                    -> ['pass']
 return = "return" mandspace possibleunpackedtuple('expr'):expr optspace -> ['return', expr]
        | "return" optspace ~~(vspace | end) -> ['return']
 raise  = "raise" mandspace expr:e  -> ['raise', e]
 
-augassign = get:l optspace
+augassign = primary:l optspace
             ("+=" | "-=" | "*=" | "/=" | "//=" | "%=" | "^=" | "&=" | "|=" | "~=" | "<<=" | ">>="):op
             optspace expr:r
             -> ['augassign', op, l, r]
-assign = possibleunpackedtuple('get'):l optspace '=' optspace (rngop | possibleunpackedtuple('assign')):r optspace -> ['assign', l, r]
+assign = possibleunpackedtuple('primary'):l optspace '=' optspace (rngop | possibleunpackedtuple('assign')):r optspace -> ['assign', l, r]
        | expr
 expr = ifexpr
-     | innerifexpr
-innerifexpr = orop
+ifexpr = orop:t mandspace "if" mandspace orop:cond mandspace "else" mandspace ifexpr:f -> ['ifexpr', cond, t, f]
+       | orop
 orop  = orop:l optspace "or":op andop:r -> ['binop', "||", l, r]
       | andop
 andop = andop:l optspace "and":op notop:r -> ['binop', "&&", l, r]
       | notop
 notop = optspace "not":op mandspace notop:r -> ['unop', op, r]
       | cmpop
+comp_operator = ( "in"                 -> 'in'
+                | "not" mandspace "in" -> 'not in'
+                | "is" mandspace "not" -> 'is not'
+                | "is"                 -> 'is'
+                ):x mandspace -> x
+              | "<=" | ">=" | "<" | ">" | "!=" | "=="
+cmpop = bitor:l (optspace comp_operator:op optspace bitor:r -> [op, r])+:r -> ['cmpop', l, r]
       | bitor
-comparison = ( "in"                 -> 'in'
-             | "not" mandspace "in" -> 'not in'
-             | "is" mandspace "not" -> 'is not'
-             | "is"                 -> 'is'
-             ):x mandspace -> x
-           | "<=" | ">=" | "<" | ">" | "!=" | "=="
-cmpop = bitor:l (optspace comparison:op optspace bitor:r -> [op, r])+:r -> ['cmpop', l, r]
-
 bitor = bitor:l optspace '|':op bitxor:r -> ['binop', op, l, r]
       | bitxor
 bitxor = bitxor:l optspace '^':op bitand:r -> ['binop', op, l, r]
@@ -79,28 +78,32 @@ callable = optspace
          ( new
          | lambda
          | deflambda
-         | get
+         | primary
          )
 
 slice = expr?:start optspace ':' optspace expr?:end -> ['slice', start, end]
       | expr:e -> e
 
-get = get:obj optspace '.' optspace name:n           -> ['getattr', obj, n]
-    | get:obj optspace '[' !(self.enter_paren()) slice:s !(self.leave_paren()) ']' -> ['getitem', obj, s]
-    | get:obj optspace '(' csv('expr'):params ')'    -> ['call', obj, params]
-    | immediate
+primary = primary:obj optspace '.' optspace name:n           -> ['getattr', obj, n]
+    | primary:obj optspace '[' !(self.enter_paren()) slice:s !(self.leave_paren()) ']' -> ['getitem', obj, s]
+    | primary:obj optspace '(' csv('expr'):params ')'    -> ['call', obj, params]
+    | atom
 
-immediate = number
-          | rstring
-          | string
-          | list
+atom = literal | enclosure | name
+
+enclosure = list
           | tuple
           | dict
           | set
-          | name
           | '(' !(self.enter_paren()) expr:ix optspace ')' !(self.leave_paren()) -> ix
 
-new = "new" mandspace get:c -> ['new', c]
+
+literal = number
+        | rstring
+        | string
+
+
+new = "new" mandspace primary:c -> ['new', c]
 
 name_start   = letter | '$' | '_'
 name_rest    = name_start | digit
@@ -111,7 +114,7 @@ name         = iname:n ~iskeyword(n)       -> ['name', n]
 escaped_char = '\\' :x -> ('\\' + x).decode('string_escape')
 string4 :e = match_string(e) (escaped_char | ~(?(len(e) != 3) vspace | match_string(e)) anything)*:c match_string(e) -> ''.join(c)
 string3 = string4('"""') | string4("'''") | string4('"') | string4("'")
-string2 = (string3:s optspace -> s)+:s -> ''.join(s)
+string2 = string3:sa (optspace string3:s -> s)*:sb -> '%s%s' % (sa, ''.join(sb))
 rmodifiers = "i" -> 'i'
             |"m" -> 'm'
             |"s" -> 's'
@@ -139,8 +142,6 @@ set   = '{' csv('expr'):v       '}' -> ['set'] + v
 tupleexpr = expr
 dictexpr  = ( name:k | string:k ) optspace ':' optspace expr:v -> ['dictkv', k, v]
 
-ifexpr = innerifexpr:t mandspace "if" mandspace innerifexpr:cond mandspace "else" mandspace expr:f -> ['ifexpr', cond, t, f]
-
 commentlines = emptyline -> None
              | comment:c vspace -> c
 ifcond = mandspace expr:cond -> cond
@@ -152,7 +153,7 @@ else  = (commentlines)*:cmts indentation "else" optspace ':' block:body -> [cmts
 while = "while" ifcond:cond optspace ':' block:body -> ['while', cond, body]
 dowhile = "do:" block:body emptyline* indentation ".while" ifcond:cond -> ['dowhile', body, cond]
 
-for   = "for" mandspace possibleunpackedtuple('get'):var mandspace "in" mandspace (rngop | possibleunpackedtuple('expr')):data optspace ':' block:body -> ['for', var, data, body]
+for   = "for" mandspace possibleunpackedtuple('primary'):var mandspace "in" mandspace (rngop | possibleunpackedtuple('expr')):data optspace ':' block:body -> ['for', var, data, body]
 
 def   = "def" !(self.get_indent()):i mandspace !(self.indent_stack.append(i)) name:name optspace '(' csv('name'):args ')' optspace ':' block:body !(self.indent_stack.pop()) -> ['func', name, args, body]
 deflambda = "def" !(self.get_indent()):i ~~(hspace | '(') !(self.enter_deflambda(i)) optspace '(' csv('name'):args ')' optspace ':' block:body !(self.leave_deflambda()) -> ['func', None, args, body]
