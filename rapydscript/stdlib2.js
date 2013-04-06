@@ -76,7 +76,7 @@ reversed = function(arr) {
   return temp;
 };
 
-print = function() {
+_$rapyd$_print = function() {
   var args, output;
   args = [].slice.call(arguments, 0);
   output = JSON.stringify(args);

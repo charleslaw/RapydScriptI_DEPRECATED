@@ -85,7 +85,7 @@ def reversed(arr):
 	return temp
 
 # Python's print() function
-def print(*args):
+def _$rapyd$_print(*args):
 	output = str(args)
 	console.log(output.substr(1, output.length-2))	# strip brackets
 

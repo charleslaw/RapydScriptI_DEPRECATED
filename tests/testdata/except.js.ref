@@ -4,14 +4,14 @@ bad_list = null;
 try {
   bad_list.fake_call();
 } catch(_$rapyd$_Exception) {
-  print("Test 1: Got an exception");
+  _$rapyd$_print("Test 1: Got an exception");
 }
 
 try {
   bad_list.fake_call();
 } catch(_$rapyd$_Exception) {
   if (isinstance(_$rapyd$_Exception, TypeError)) {
-    print("Test 2: Got an exception");
+    _$rapyd$_print("Test 2: Got an exception");
   } else {
     throw _$rapyd$_Exception;
   }
@@ -22,7 +22,7 @@ try {
   bad_list.fake_call();
 } catch(_$rapyd$_Exception) {
   e = _$rapyd$_Exception;
-  print(("Test 3: Got an exception" + str(e)));
+  _$rapyd$_print(("Test 3: Got an exception" + str(e)));
 }
 
 try {
@@ -30,7 +30,7 @@ try {
 } catch(_$rapyd$_Exception) {
   if (isinstance(_$rapyd$_Exception, TypeError)) {
     e = _$rapyd$_Exception;
-    print(("Test 4: Got an exception" + str(e)));
+    _$rapyd$_print(("Test 4: Got an exception" + str(e)));
   } else {
     throw _$rapyd$_Exception;
   }
@@ -42,12 +42,12 @@ try {
 } catch(_$rapyd$_Exception) {
   if (isinstance(_$rapyd$_Exception, FakeError)) {
     b = _$rapyd$_Exception;
-    print(("Test 5: This is unexpected" + str(b)));
+    _$rapyd$_print(("Test 5: This is unexpected" + str(b)));
   } else if (isinstance(_$rapyd$_Exception, TypeError)) {
     e = _$rapyd$_Exception;
-    print(("Test 5: Got an exception" + str(e)));
+    _$rapyd$_print(("Test 5: Got an exception" + str(e)));
   } else {
-    print("Test 5: This is unexpected too");
+    _$rapyd$_print("Test 5: This is unexpected too");
   }
 
 }
@@ -56,12 +56,12 @@ try {
   bad_list.fake_call();
 } catch(_$rapyd$_Exception) {
   if (isinstance(_$rapyd$_Exception, FakeError)) {
-    print("Test 6: This is unexpected");
+    _$rapyd$_print("Test 6: This is unexpected");
   } else if (isinstance(_$rapyd$_Exception, TypeError)) {
-    print("Test 6: Got an exception");
+    _$rapyd$_print("Test 6: Got an exception");
   } else {
     e = _$rapyd$_Exception;
-    print(("Test 6: This is unexpected too" + str(e)));
+    _$rapyd$_print(("Test 6: This is unexpected too" + str(e)));
   }
 
 }
@@ -71,25 +71,25 @@ try {
 } catch(_$rapyd$_Exception) {
   if (isinstance(_$rapyd$_Exception, TestError)) {
     e = _$rapyd$_Exception;
-    print(("Test 7: unexpected error" + str(e)));
+    _$rapyd$_print(("Test 7: unexpected error" + str(e)));
   } else if (isinstance(_$rapyd$_Exception, TypeError)) {
     d = _$rapyd$_Exception;
-    print(("Test 7: Step 1" + str(e)));
+    _$rapyd$_print(("Test 7: Step 1" + str(e)));
     try {
       bad_list.fake_call2();
     } catch(_$rapyd$_Exception) {
       if (isinstance(_$rapyd$_Exception, NestException)) {
-        print("Test 7: unexpected error");
+        _$rapyd$_print("Test 7: unexpected error");
       } else {
-        print("Test 7: Step 2");
+        _$rapyd$_print("Test 7: Step 2");
         try {
           bad_list.another_fake_call();
         } catch(_$rapyd$_Exception) {
           if (isinstance(_$rapyd$_Exception, FakeException)) {
-            print("Test 7: unexpected error");
+            _$rapyd$_print("Test 7: unexpected error");
           } else {
             c = _$rapyd$_Exception;
-            print(("Test 7: Step 3" + str(c)));
+            _$rapyd$_print(("Test 7: Step 3" + str(c)));
           }
 
         }
@@ -99,7 +99,7 @@ try {
     }
 
   } else if (isinstance(_$rapyd$_Exception, FinalError)) {
-    print("Test 7: unexpected error");
+    _$rapyd$_print("Test 7: unexpected error");
   } else {
     throw _$rapyd$_Exception;
   }
@@ -115,14 +115,14 @@ ExceptClass.prototype.test_exceptions = (function() {
   try {
     bad_list.fake_call();
   } catch(_$rapyd$_Exception) {
-    print("Test 8: Got an exception");
+    _$rapyd$_print("Test 8: Got an exception");
   }
 
   try {
     bad_list.fake_call();
   } catch(_$rapyd$_Exception) {
     if (isinstance(_$rapyd$_Exception, TypeError)) {
-      print("Test 9: Got an exception");
+      _$rapyd$_print("Test 9: Got an exception");
     } else {
       throw _$rapyd$_Exception;
     }
@@ -133,7 +133,7 @@ ExceptClass.prototype.test_exceptions = (function() {
     bad_list.fake_call();
   } catch(_$rapyd$_Exception) {
     e = _$rapyd$_Exception;
-    print(("Test 10: Got an exception" + str(e)));
+    _$rapyd$_print(("Test 10: Got an exception" + str(e)));
   }
 
   try {
@@ -141,7 +141,7 @@ ExceptClass.prototype.test_exceptions = (function() {
   } catch(_$rapyd$_Exception) {
     if (isinstance(_$rapyd$_Exception, TypeError)) {
       e = _$rapyd$_Exception;
-      print(("Test 11: Got an exception" + str(e)));
+      _$rapyd$_print(("Test 11: Got an exception" + str(e)));
     } else {
       throw _$rapyd$_Exception;
     }
@@ -153,12 +153,12 @@ ExceptClass.prototype.test_exceptions = (function() {
   } catch(_$rapyd$_Exception) {
     if (isinstance(_$rapyd$_Exception, FakeError)) {
       b = _$rapyd$_Exception;
-      print(("Test 12: This is unexpected" + str(b)));
+      _$rapyd$_print(("Test 12: This is unexpected" + str(b)));
     } else if (isinstance(_$rapyd$_Exception, TypeError)) {
       e = _$rapyd$_Exception;
-      print(("Test 12: Got an exception" + str(e)));
+      _$rapyd$_print(("Test 12: Got an exception" + str(e)));
     } else {
-      print("Test 12: This is unexpected too");
+      _$rapyd$_print("Test 12: This is unexpected too");
     }
 
   }
@@ -167,12 +167,12 @@ ExceptClass.prototype.test_exceptions = (function() {
     bad_list.fake_call();
   } catch(_$rapyd$_Exception) {
     if (isinstance(_$rapyd$_Exception, FakeError)) {
-      print("Test 13: This is unexpected");
+      _$rapyd$_print("Test 13: This is unexpected");
     } else if (isinstance(_$rapyd$_Exception, TypeError)) {
-      print("Test 13: Got an exception");
+      _$rapyd$_print("Test 13: Got an exception");
     } else {
       e = _$rapyd$_Exception;
-      print(("Test 13: This is unexpected too" + str(e)));
+      _$rapyd$_print(("Test 13: This is unexpected too" + str(e)));
     }
 
   }
@@ -182,25 +182,25 @@ ExceptClass.prototype.test_exceptions = (function() {
   } catch(_$rapyd$_Exception) {
     if (isinstance(_$rapyd$_Exception, TestError)) {
       e = _$rapyd$_Exception;
-      print(("Test 14: unexpected error" + str(e)));
+      _$rapyd$_print(("Test 14: unexpected error" + str(e)));
     } else if (isinstance(_$rapyd$_Exception, TypeError)) {
       d = _$rapyd$_Exception;
-      print(("Test 14: Step 1" + str(e)));
+      _$rapyd$_print(("Test 14: Step 1" + str(e)));
       try {
         bad_list.fake_call2();
       } catch(_$rapyd$_Exception) {
         if (isinstance(_$rapyd$_Exception, NestException)) {
-          print("Test 14: unexpected error");
+          _$rapyd$_print("Test 14: unexpected error");
         } else {
-          print("Test 14: Step 2");
+          _$rapyd$_print("Test 14: Step 2");
           try {
             bad_list.another_fake_call();
           } catch(_$rapyd$_Exception) {
             if (isinstance(_$rapyd$_Exception, FakeException)) {
-              print("Test 14: unexpected error");
+              _$rapyd$_print("Test 14: unexpected error");
             } else {
               c = _$rapyd$_Exception;
-              print(("Test 14: Step 3" + str(c)));
+              _$rapyd$_print(("Test 14: Step 3" + str(c)));
             }
 
           }
@@ -219,31 +219,31 @@ ExceptClass.prototype.test_exceptions = (function() {
 try {
   bad_list.fake_call();
 } catch(_$rapyd$_Exception) {
-  print("Test 15: Got an exception");
+  _$rapyd$_print("Test 15: Got an exception");
 } finally {
-  print("Test 15: Finally");
+  _$rapyd$_print("Test 15: Finally");
 }
 
 try {
   bad_list.fake_call();
 } catch(_$rapyd$_Exception) {
   if (isinstance(_$rapyd$_Exception, TypeError)) {
-    print("Test 16: Got an exception");
+    _$rapyd$_print("Test 16: Got an exception");
   } else {
     throw _$rapyd$_Exception;
   }
 
 } finally {
-  print("Test 16: Finally");
+  _$rapyd$_print("Test 16: Finally");
 }
 
 try {
   bad_list.fake_call();
 } catch(_$rapyd$_Exception) {
   e = _$rapyd$_Exception;
-  print(("Test 17: Got an exception" + str(e)));
+  _$rapyd$_print(("Test 17: Got an exception" + str(e)));
 } finally {
-  print("Test 17: Finally");
+  _$rapyd$_print("Test 17: Finally");
 }
 
 try {
@@ -251,13 +251,13 @@ try {
 } catch(_$rapyd$_Exception) {
   if (isinstance(_$rapyd$_Exception, TypeError)) {
     e = _$rapyd$_Exception;
-    print(("Test 18: Got an exception" + str(e)));
+    _$rapyd$_print(("Test 18: Got an exception" + str(e)));
   } else {
     throw _$rapyd$_Exception;
   }
 
 } finally {
-  print("Test 18: Finally");
+  _$rapyd$_print("Test 18: Finally");
 }
 
 ExceptFinallyClass = function() {
@@ -269,31 +269,31 @@ ExceptFinallyClass.prototype.test_exceptions = (function() {
   try {
     bad_list.fake_call();
   } catch(_$rapyd$_Exception) {
-    print("Test 19: Got an exception");
+    _$rapyd$_print("Test 19: Got an exception");
   } finally {
-    print("Test 19: Finally");
+    _$rapyd$_print("Test 19: Finally");
   }
 
   try {
     bad_list.fake_call();
   } catch(_$rapyd$_Exception) {
     if (isinstance(_$rapyd$_Exception, TypeError)) {
-      print("Test 20: Got an exception");
+      _$rapyd$_print("Test 20: Got an exception");
     } else {
       throw _$rapyd$_Exception;
     }
 
   } finally {
-    print("Test 20: Finally");
+    _$rapyd$_print("Test 20: Finally");
   }
 
   try {
     bad_list.fake_call();
   } catch(_$rapyd$_Exception) {
     e = _$rapyd$_Exception;
-    print(("Test 21: Got an exception" + str(e)));
+    _$rapyd$_print(("Test 21: Got an exception" + str(e)));
   } finally {
-    print("Test 21: Finally");
+    _$rapyd$_print("Test 21: Finally");
   }
 
   try {
@@ -301,13 +301,13 @@ ExceptFinallyClass.prototype.test_exceptions = (function() {
   } catch(_$rapyd$_Exception) {
     if (isinstance(_$rapyd$_Exception, TypeError)) {
       e = _$rapyd$_Exception;
-      print(("Test 22: Got an exception" + str(e)));
+      _$rapyd$_print(("Test 22: Got an exception" + str(e)));
     } else {
       throw _$rapyd$_Exception;
     }
 
   } finally {
-    print("Test 22: Finally");
+    _$rapyd$_print("Test 22: Finally");
   }
 
   try {
@@ -315,32 +315,32 @@ ExceptFinallyClass.prototype.test_exceptions = (function() {
   } catch(_$rapyd$_Exception) {
     if (isinstance(_$rapyd$_Exception, FakeError)) {
       b = _$rapyd$_Exception;
-      print(("Test 23: This is unexpected" + str(b)));
+      _$rapyd$_print(("Test 23: This is unexpected" + str(b)));
     } else if (isinstance(_$rapyd$_Exception, TypeError)) {
       e = _$rapyd$_Exception;
-      print(("Test 23: Got an exception" + str(e)));
+      _$rapyd$_print(("Test 23: Got an exception" + str(e)));
     } else {
-      print("Test 23: This is unexpected too");
+      _$rapyd$_print("Test 23: This is unexpected too");
     }
 
   } finally {
-    print("Test 23: Finally");
+    _$rapyd$_print("Test 23: Finally");
   }
 
   try {
     bad_list.fake_call();
   } catch(_$rapyd$_Exception) {
     if (isinstance(_$rapyd$_Exception, FakeError)) {
-      print("Test 24: This is unexpected");
+      _$rapyd$_print("Test 24: This is unexpected");
     } else if (isinstance(_$rapyd$_Exception, TypeError)) {
-      print("Test 24: Got an exception");
+      _$rapyd$_print("Test 24: Got an exception");
     } else {
       e = _$rapyd$_Exception;
-      print(("Test 24: This is unexpected too" + str(e)));
+      _$rapyd$_print(("Test 24: This is unexpected too" + str(e)));
     }
 
   } finally {
-    print("Test 24: Finally");
+    _$rapyd$_print("Test 24: Finally");
   }
 
   try {
@@ -348,29 +348,29 @@ ExceptFinallyClass.prototype.test_exceptions = (function() {
   } catch(_$rapyd$_Exception) {
     if (isinstance(_$rapyd$_Exception, TestError)) {
       e = _$rapyd$_Exception;
-      print(("Test 25: unexpected error" + str(e)));
+      _$rapyd$_print(("Test 25: unexpected error" + str(e)));
     } else if (isinstance(_$rapyd$_Exception, TypeError)) {
       d = _$rapyd$_Exception;
-      print(("Test 25: Step 1" + str(e)));
+      _$rapyd$_print(("Test 25: Step 1" + str(e)));
       try {
         bad_list.fake_call2();
       } catch(_$rapyd$_Exception) {
         if (isinstance(_$rapyd$_Exception, NestException)) {
-          print("Test 25: unexpected error");
+          _$rapyd$_print("Test 25: unexpected error");
         } else {
-          print("Test 25: Step 2");
+          _$rapyd$_print("Test 25: Step 2");
           try {
             bad_list.another_fake_call();
           } catch(_$rapyd$_Exception) {
             if (isinstance(_$rapyd$_Exception, FakeException)) {
-              print("Test 25: unexpected error");
+              _$rapyd$_print("Test 25: unexpected error");
             } else {
               c = _$rapyd$_Exception;
-              print(("Test 25: Step 3" + str(c)));
+              _$rapyd$_print(("Test 25: Step 3" + str(c)));
             }
 
           } finally {
-            print("Test 25: Finally A");
+            _$rapyd$_print("Test 25: Finally A");
           }
 
         }
@@ -382,14 +382,14 @@ ExceptFinallyClass.prototype.test_exceptions = (function() {
     }
 
   } finally {
-    print("Test 25: Finally B");
+    _$rapyd$_print("Test 25: Finally B");
   }
 
 });
 try {
   bad_list.fake_call();
 } finally {
-  print("Finally");
+  _$rapyd$_print("Finally");
 }
 
 window.onload = (function() {

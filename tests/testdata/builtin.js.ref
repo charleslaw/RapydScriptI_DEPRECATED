@@ -23,12 +23,12 @@ var _$tmp2_len = _$tmp1_data.length;
 for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
   i = _$tmp1_data[_$tmp3_index];
 
-  print(i);
+  _$rapyd$_print(i);
 }
 
 var _$tmp4_end = d.length;
 for (i = 0; i < _$tmp4_end; i++) {
-  print(i);
+  _$rapyd$_print(i);
 }
 
 var _$tmp5_data = _$rapyd$_iter(enumerate(d));
@@ -38,7 +38,7 @@ for (var _$tmp7_index = 0; _$tmp7_index < _$tmp6_len; _$tmp7_index++) {
   i = _$rapyd$_tuple[0];
   j = _$rapyd$_tuple[1];
 
-  print(i, j);
+  _$rapyd$_print(i, j);
 }
 
 

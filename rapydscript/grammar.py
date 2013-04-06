@@ -83,6 +83,7 @@ class Translator(OMeta.makeGrammar(pyva_translator, {'p': p, 'json': json})):
         'bool': '!!',
         'tuple': 'list',
         'unicode': 'str',
+        'print': '_$rapyd$_print',
     }
 
     #class variable indicating whether comments are allowed or not
