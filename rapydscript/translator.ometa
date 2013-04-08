@@ -47,6 +47,7 @@ rstring   :rs :m   -> '/%s/%s' % (json.dumps(rs)[1:-1], ''.join(m))
 
 new  expr:c                  -> 'new %s' % c
 
+call ['name' 'print'] [expr*:args] -> '_$rapyd$_print(%s)' % ', '.join(args)
 call ['name' 'len'] [expr:obj] -> '%s.length' % obj
 call ['name' 'type'] [expr:obj] -> 'typeof(%s)' % obj
 call ['name' 'hasattr'] [expr:obj expr:attr] -> '(typeof %s[%s] != "undefined")' % (obj, attr)

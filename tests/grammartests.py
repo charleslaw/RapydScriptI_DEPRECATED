@@ -20,6 +20,16 @@ class PyvaTest(unittest.TestCase):
 
 
 class TestTuplePackingUnpacking(PyvaTest):
+    def test_print(self):
+        self.check("""
+            print('hi', 'my', 'test')
+            window.print('don','t', 'change', 'me')
+        """, """
+            _$rapyd$_print("hi", "my", "test");
+            window.print("don", "t", "change", "me");
+        """)
+
+
     def test_ternary_ifs(self):
         self.check("""
             answer = yes if test == alpha else no
