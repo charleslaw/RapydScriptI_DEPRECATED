@@ -75,13 +75,15 @@ stararg1 = function() {
 
 };
 
-startarg2 = function() {
+stararg2 = function() {
   var a, b, c;
   a = arguments[0];
   b = arguments[1];
   c = [].slice.call(arguments, 2);
   stararg1(a, b);
   stararg1.apply(this, [].concat(c));
+  stararg1.apply(this, [a, b].concat(c));
+  console.log.apply(console, [a].concat(c));
 };
 
 

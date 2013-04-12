@@ -50,6 +50,8 @@ def stararg1(*args):
 	for a in args:
 		print(a)
 
-def startarg2(a, b, *c):
+def stararg2(a, b, *c):
 	stararg1(a, b)
 	stararg1(*c)
+	stararg1(a, b, *c)
+	console.log(a, *c)
