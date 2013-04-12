@@ -800,7 +800,6 @@ def parse_file(file_name, debug=False):
 			line = line.replace('\r','')
 			if len(state.get_indent(line)): break
 
-		print len(state.get_indent(line)), repr(line)
 		input.seek(0)
 		if state.debug:
 			decor = '//////////////////////////////////////////////////////////////////////'
@@ -871,7 +870,6 @@ def parse_file(file_name, debug=False):
 		state.write_buffer(state.post_init_dump)
 		state.post_init_dump = ''
 
-	print state.file_buffer
 	try:
 		global_buffer += finalize_source(state.file_buffer, state.debug)
 		if state.debug:
