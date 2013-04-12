@@ -203,7 +203,7 @@ finally:
 class ExceptFinallyClass:
 	def __init__(self):
 		pass
-	
+
 	#Test the different ways of catching exceptions
 	def test_exceptions(self):
 		try:

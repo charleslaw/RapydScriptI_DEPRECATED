@@ -28,7 +28,7 @@ class Drawing:
 	Controls the currently displayed image, and handles undo/redo logic
 	"""
 	def __init__(self):
-		
+
 		# these are meant to be private
 		self._canvas = $('#perm-dwg').get(0)		# get actual DOM element
 		self._ctx = ctx = self._canvas.getContext('2d')
@@ -36,26 +36,26 @@ class Drawing:
 		self._redoStack = []
 		self._fillColor = None
 		self._strokeColor = None
-		
+
 		# and these are not exposed at all
 		$tmpCanvas = $('#temp-dwg')
 		tmpCanvas = $tmpCanvas.get(0)
 		tmpCtx = tmpCanvas.getContext('2d')
 		canvasWidth = tmpCanvas.width
 		canvasHeight = tmpCanvas.height
-		
+
 		dragging = False
 		points = []
 		selection = None
 		lastPt = [0, 0]
 		transparent_bg = True
 		main = self
-		
+
 		#################
 		# utility functions
 		#################
 		getXY = def(obj, event):
-			# +0.5 allows us to snap to the center of the pixel, preventing interpolation and 
+			# +0.5 allows us to snap to the center of the pixel, preventing interpolation and
 			# making our images more crisp
 			absolute = $(obj).offset()
 			return event.pageX - absolute.left, event.pageY - absolute.top
@@ -104,7 +104,7 @@ class Drawing:
 				tag = '#stroke'
 			else:
 				tag = '#fill'
-				
+
 			if color == 'transparent':
 				color = None
 				$(tag).css('background', '')
@@ -129,13 +129,13 @@ class Drawing:
 				offset += 4
 		self._clear = clear = def(context):
 			context.clearRect(0, 0, canvasWidth, canvasHeight)
-		
+
 		#################
 		# user input
-		#################	
+		#################
 		onMouseDown = def(event):
 			nonlocal dragging, points, lastPt, selection
-			
+
 			event.preventDefault()	# prevents change to mouse cursor
 			dragging = True
 			x, y = getXY(self, event)
@@ -169,7 +169,7 @@ class Drawing:
 				colorLayer = ctx.getImageData(0, 0, canvasWidth, canvasHeight)
 				data = colorLayer.data
 				startPixel = ctx.getImageData(x, y, 1, 1).data
-				
+
 				# convert swatch color to imageData (we're using canvas to avoid dealing with literal
 				# color names like 'aquamarine')
 				tmpCtx.save()
@@ -238,10 +238,10 @@ class Drawing:
 					clear(tmpCtx)
 					selection = None
 					points = [[x, y]]
-							
+
 		onMouseMove = def(event):
 			nonlocal lastPt
-		
+
 			if main._mode == LINE and len(points):
 				x, y = getXY(self, event)
 				clear(tmpCtx)
@@ -258,7 +258,7 @@ class Drawing:
 						tmpCtx.rect(points[0][X], points[0][Y], x-points[0][X], y-points[0][Y])
 					else:
 						ellipse(tmpCtx, points[0][X], points[0][Y], x-points[0][X], y-points[0][Y])
-						
+
 					if main._fillColor is not None:
 						tmpCtx.fill()
 					if main._brushColor is not None:
@@ -276,10 +276,10 @@ class Drawing:
 						y = points[1][Y]
 						tmpCtx.putImageData(selection, points[0][X], points[0][Y])
 					tmpCtx.strokeRect(points[0][X], points[0][Y], x-points[0][X], y-points[0][Y])
-		
+
 		onMouseUp = def(event):
 			nonlocal dragging, points, selection
-			
+
 			if main._mode-RECT in [RECT, ELLIPSE]:	# fix the JS 'in' bug
 				x, y = getXY(self, event)
 				ctx.beginPath()
@@ -290,7 +290,7 @@ class Drawing:
 					ctx.rect(points[0][X], points[0][Y], x-points[0][X], y-points[0][Y])
 				else:
 					ellipse(ctx, points[0][X], points[0][Y], x-points[0][X], y-points[0][Y])
-				
+
 				if main._fillColor is not None:
 					ctx.fill()
 				if main._brushColor is not None:
@@ -316,7 +316,7 @@ class Drawing:
 					tmpCtx.putImageData(selection, points[0][X], points[0][Y])
 					tmpCtx.strokeRect(points[0][X], points[0][Y], x-points[0][X], y-points[0][Y])
 					points.append([x, y])
-			
+
 			dragging = False
 			ctx.restore()
 			if (not selection or (x == points[0][X] and y == points[0][Y])) \
@@ -324,7 +324,7 @@ class Drawing:
 				points = []
 				clear(tmpCtx)
 				tmpCtx.restore()
-		
+
 		# to be used by selection manipulation filters
 		self._filter = def(callback):
 			nonlocal selection
@@ -342,7 +342,7 @@ class Drawing:
 				tmpCtx.strokeRect(points[0][X], points[0][Y], points[1][X]-points[0][X], points[1][Y]-points[0][Y])
 			else:
 				ctx.putImageData(pixels, 0, 0)
-		
+
 		$tmpCanvas.mousedown(onMouseDown)
 		$tmpCanvas.mousemove(onMouseMove)
 		$tmpCanvas.mouseup(onMouseUp)
@@ -350,70 +350,70 @@ class Drawing:
 			if dragging:
 				onMouseUp(event)
 		$tmpCanvas.mouseleave(onMouseLeave)
-		
+
 		self._ctx.lineJoin = tmpCtx.lineJoin = self._ctx.lineCap = tmpCtx.lineCap = 'round'
-	
+
 	def undo(self):
 		state = self._undoStack.pop()
 		if state:
 			self._redoStack.append(state)
 			self._ctx.putImageData(state, 0, 0)
-	
+
 	def redo(self):
 		state = self._redoStack.pop()
 		if state:
 			self._undoStack.append(state)
 			self._ctx.putImageData(state, 0, 0)
-	
+
 	# invert declared inside __init__() since it needs access to hidden 'selection' variable
-	
+
 	def setMode(self, mode):
 		self._mode = mode
-	
+
 	def setStroke(self, style):
 		self._brushColor = style
-	
+
 	def setFill(self, style):
 		self._fillColor = style
-	
+
 	def setWidth(self, value):
 		self._lineWidth = value
-	
+
 	def clear(self):
 		self._clear(self._ctx)
-	
+
 	def exportDwg(self):
 		return self._canvas.toDataURL()
-	
+
 	def invert(self):
 		invert = def(data, offset):
 			data[offset] = 255-data[offset]
 			data[offset+1] = 255-data[offset+1]
 			data[offset+2] = 255-data[offset+2]
 		self._filter(invert)
-	
+
 	def redFilter(self):
 		remove = def(data, offset):
 			data[offset] = 0
 		self._filter(remove)
-	
+
 	def greenFilter(self):
 		remove = def(data, offset):
 			data[offset+1] = 0
 		self._filter(remove)
-	
+
 	def blueFilter(self):
 		remove = def(data, offset):
 			data[offset+2] = 0
 		self._filter(remove)
-	
+
 	def darken(self):
 		darken = def(data, offset):
 			data[offset] /= 2
 			data[offset+1] /= 2
 			data[offset+2] /= 2
 		self._filter(darken)
-	
+
 	def lighten(self):
 		lighten = def(data, offset):
 			data[offset] = Math.min(data[offset] * 2, 255)

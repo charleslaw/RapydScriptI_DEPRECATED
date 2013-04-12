@@ -9,7 +9,7 @@ def warn(file_name, line_num, message, error_type = 'ERROR'):
 def warn2(warning, error_type = 'ERROR'):
 	print('*** %s: %s' % (error_type, warning))
 
-	
+
 def verify_code(f, source, global_object_list, auto_correct=False):
 	success = True
 
@@ -22,7 +22,7 @@ def verify_code(f, source, global_object_list, auto_correct=False):
 	for line in source:
 		line_num += 1
 		lstrip_line = line.lstrip()
-		
+
 		# check for consistent whitespace
 		if indent is None and line[0] == ' ' or line[0] == '\t':
 			indent = line[0] #remember spacing preference
@@ -34,7 +34,7 @@ def verify_code(f, source, global_object_list, auto_correct=False):
 		if pattern_defined and re.match(bad_pattern, line):
 			warn(f, line_num, 'File contains mixed indentation, please change all tabs to spaces or spaces to tabs.')
 			success = False
-	
+
 		# check for global object name collision (only def and class objects are checked)
 		global_objects = []
 		if line[0:4] == 'def ' or line[0:6] == 'class ':
@@ -60,7 +60,7 @@ def verify_code(f, source, global_object_list, auto_correct=False):
 					success = False
 				else:
 					global_object_list[global_object] = (f, line_num)
-		
+
 		# check for implicit 0 before period
 		if re.search('[^0-9]\.[0-9]', line):
 			warn(f, line_num, 'Implicit 0 for the interger portion of a decimal, compiler doesn\'t support those.')
@@ -80,8 +80,8 @@ def verify_code(f, source, global_object_list, auto_correct=False):
 				success = False
 	return success
 
-				
-				
+
+
 def make_strict(source):
 	#replace == and != with stricter === and !==
 	for line in source:

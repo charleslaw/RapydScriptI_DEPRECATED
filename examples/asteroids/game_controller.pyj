@@ -16,7 +16,7 @@
 """
 Controller
 
-The controller runs the game and modifies the Model. This required very few changes 
+The controller runs the game and modifies the Model. This required very few changes
 to port from Pyjs.
 """
 

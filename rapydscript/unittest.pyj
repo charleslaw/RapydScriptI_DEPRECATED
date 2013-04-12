@@ -4,7 +4,7 @@ def deepEqual(a, b):
 	"""
 	Equality comparison that works with all data types, returns true if structure and
 	contents of first object equal to those of second object
-	
+
 	Arguments:
 		a: first object
 		b: second object

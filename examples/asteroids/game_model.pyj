@@ -17,9 +17,9 @@
 """
 Model
 
-The model contains the classes representing the various game objects - the asteroid, ship 
-and shots. These are used to store all the state information on these different objects 
-as well as helping modify them. The original Pyjs code did not use any libraries so 
+The model contains the classes representing the various game objects - the asteroid, ship
+and shots. These are used to store all the state information on these different objects
+as well as helping modify them. The original Pyjs code did not use any libraries so
 porting over this code required almost no changes to the code.
 """
 

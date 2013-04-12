@@ -1,8 +1,8 @@
 """
 View
 
-The view contains the canvas and has all the logic for drawing the game state 
-on the screen. The original Pyjs code used multiple libraries here. Of the 3 
+The view contains the canvas and has all the logic for drawing the game state
+on the screen. The original Pyjs code used multiple libraries here. Of the 3
 files, this one required the most changes to port to RapydScript.
 """
 

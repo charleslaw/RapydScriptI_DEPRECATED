@@ -46,7 +46,7 @@ def terminates_inside_comment(line):
 	"""
 	single = find_all(line, "'", True)
 	double = find_all(line, '"', True)
-	
+
 	try:
 		while single[0] and double[0]:
 			if min(single[0], double[0]) == single[0]:
@@ -61,7 +61,7 @@ def terminates_inside_comment(line):
 
 class State:
 	def __init__(self, file_name, debug):
-	
+
 		# basic info about current state
 		self.debug = debug			# identify whether the output should include extra annotation for debugging purposes
 		self.indent = ''			# current indent offset (currently only used by class)
@@ -69,7 +69,7 @@ class State:
 		self.docstring = False		# true if multi-line string is not assigned to anything (used as a docstring)
 		self.comment_type = None	# if in string, identifies the quote type that started the string
 		self.comment_buffer = ''	# temporarily stores content of multiline comments
-		
+
 		# current class info
 		self.inclass = False		# True if we're currently inside a class definition
 		self.initdef = False		# True if code defines __init__ method explicitly
@@ -77,16 +77,16 @@ class State:
 		self.parent = None			# if in class, defines the class we inherited from
 		self.methods = []			# if in class, identifies member methods of this class that have been processed so far
 		self.post_init_dump = ''	# code to write into the buffer after __init__ definition
-		
+
 		# current function info
 		self.arg_dump = []			# contains code used to set optional arguments in case they're not passed in
 		self.function_indent = None	# indentation level of this particular function
 		self.post_function = []		# store 'to-do' logic to perform after function definition
-        
+
 		# current exception info
 		self.exception_stack = []	# current exception stack (used when processing try/except blocks)
 		self.comment_dump = []		# if in a exception block, save the comments for later processing/indentation fixing
-		
+
 		# current file statistics
 		self.basic_indent = ''		# basic indent marker used by the file (a sequence of whitespace characters)
 		self.file_buffer = ''		# parsed portion of the current file (after RapydScript logic, but before PyvaScript)
@@ -95,37 +95,37 @@ class State:
 		self.line_content = ''		# line content of the current line
 		self.multiline_start_num = -1	# line number where multiline content started, used with lines stitched via \
 		self.multiline_content = ''		# content of entire multi-line block after stitching \-lines together
-	
+
 	def get_indent(self, line):
 		indent = line[:len(line)-len(line.lstrip())].rstrip('\n') # in case of empty line, remove \n
 		if not self.basic_indent:
 			self.basic_indent = indent
 		return indent
-	
+
 	def get_args(self, line, isclass=True, isdef=True):
 		# get arguments and sets arg_dump as needed (for handling optional arguments)
 		args = line.split('(', 1)[1].rsplit(')', 1)[0].split(',')
 		for i in range(len(args)):
 			args[i] = args[i].strip()
 			if isdef and args[i].find('=') != -1:
-				assignment = args[i].split('=') 
+				assignment = args[i].split('=')
 				value = convert_keyword_to_js(assignment[1].strip())
 				args[i] = assignment[0].strip()
 				self.arg_dump.append('JS(\'if (typeof %s === "undefined") {%s = %s};\')\n' % (args[i], args[i], value))
-	
+
 		# remove "fake" arguments
 		args = filter(None, args)
-	
+
 		if isclass:
 			args.pop(0)
-	
+
 		return args
-	
+
 	def parse_fun(self, line, isclass=True):
 		method_name = line.split('(')[0]
 		method_args = self.get_args(line, isclass)
 		return method_name, method_args
-	
+
 	def get_arg_dump(self, line):
 		"""
 		Retrieves optional arguments for this function
@@ -137,7 +137,7 @@ class State:
 				output += indent+var #dump optional variable declarations
 			self.arg_dump = []
 		return output
-	
+
 	def reset(self, full_reset=False):
 		if not full_reset:
 			indent = self.indent
@@ -150,30 +150,30 @@ class State:
 			self.basic_indent = basic_indent
 			self.line_num = line_num
 			self.file_buffer = file_buffer
-	
+
 	def write_buffer(self, input):
 		self.file_buffer += input
-	
+
 	def update_incomment_state(self, line):
 		"""
-		Toggles the current program state to 'incomment' if it encounters 
+		Toggles the current program state to 'incomment' if it encounters
 		unmatched multi-line quote on the line (triple-" or triple-'). This
 		allows RapydScript preprocessor to ignore doc-strings and multi-line
 		strings, which could otherwise get mutilated or trigger a false error.
 		"""
-		
+
 		# helper method only relevant to this function
 		def check_for_valid_multiline_quote(comment_type, triggering_list, other_list, sub):
 			"""
 			Checks if this line starts a valid comment, and updates state accordingly
 			"""
-	
+
 			triggering_list.pop(0)
 			if not terminates_inside_comment(sub):
 				# valid quote (doesn't occur inside another quote), enter comment mode
 				self.comment_type = comment_type
 				self.incomment = not self.incomment
-	
+
 		# begin function
 		single = find_all(line, "'''")
 		double = find_all(line, '"""')
@@ -208,7 +208,7 @@ def import_module(line, state):
 		import_file = tokens[3]
 	else:
 		raise ImportError("Invalid import statement: %s" % line.strip())
-	
+
 	if import_file not in imported_files:
 		try:
 			parse_file(import_file.replace('.', '/') +'.pyj', state.debug)
@@ -224,14 +224,14 @@ def import_module(line, state):
 			finally:
 				os.chdir(cur_dir)
 		imported_files.append(import_file)
-		
+
 def add_new_keyword(line):
 	#check to see if we need to plug in the 'new' keyword
 	#if line.find('=') != -1:
 	#	obj_type = line[line.index('=')+1:].lstrip().split('(')[0]
 	#	if obj_type in class_list:
 	#		return line.replace('=', '= new ')
-	
+
 	# this regex version is more durable for arrays, etc., but I'm not completely convinced it's flawless
 	# yet so I will leave the old one in
 	# not every line containing a :/=/return will need this, but it's much better than running a regex on
@@ -255,7 +255,7 @@ def convert_list_comprehension(line):
 	"""
 	Replace list comprehension in a given line with equivalent logic using map() + filter()
 	combination from stdlib.
-	
+
 	this will be slightly inefficient for cases when calling a function on iterated element
 	due to creation of an extra function call, but the performance impact is negligible and
 	seems cleaner than introducing additional special cases here
@@ -292,7 +292,7 @@ def convert_list_comprehension(line):
 
 		#Build the line using the regex groups and the converted return code
 		line = '%s%s%s%s%s.filter(JS("function(%s){%s}"), self)%s%s' % \
-			(line_start, look_behind, filter_groups.group(1), 
+			(line_start, look_behind, filter_groups.group(1),
 			filter_groups.group(2), filter_groups.group(3),
 			filter_groups.group(1), return_code, look_ahead, line_end)
 
@@ -330,7 +330,7 @@ def to_star_args(args):
 	"""
 	if args:
 		star = args.pop().lstrip('*')
-		
+
 		# we can't just use str(), since every argument is already a string
 		arg_arr = '[%s]' % ', '.join([i for i in args])
 		return '%s.concat(%s)' % (arg_arr, star)
@@ -348,7 +348,7 @@ def invokes_method_from_another_class(line):
 
 def wrap_chained_call(line):
 	"""
-	This logic allows some non-Pythonic syntax in favor of JavaScript-like function usage (chaining, 
+	This logic allows some non-Pythonic syntax in favor of JavaScript-like function usage (chaining,
 	and calling anonymous function without assigning it)
 	"""
 	return 'JS("<<_rapydscript_bind_>>%s;")\n' % line.rstrip().replace('"', '\\"')
@@ -362,7 +362,7 @@ def bind_chained_calls(source):
 
 def print_exception_comments(state, exception_info, added_indent, test_equal=False):
 
-	source_indent = exception_info['source_indent']				
+	source_indent = exception_info['source_indent']
 	remove_inds = []
 	for j in xrange(len(state.comment_dump)):
 		comment = state.comment_dump[j]
@@ -398,10 +398,10 @@ def make_exception_updates(line, lstrip_line, state):
 	# Print exception info to the buffer
 	if exception_info:
 		exceptions = exception_info['exceptions']
-		
+
 		if 'printed' in exception_info and not exception_info['printed']:
 			exception_info['printed'] = True
-			
+
 			write_str = exception_info['if_block_indent']
 			if not exception_info['first_exception']:
 					write_str += 'el'
@@ -437,7 +437,7 @@ def make_exception_updates(line, lstrip_line, state):
 		# - current indent == exception indent AND isn't catching another exception in a try block
 		if (indent_size < state.exception_stack[i]['source_indent']) or \
 				(indent_size == state.exception_stack[i]['source_indent'] and not is_except_line):
-			
+
 			exited_exception = state.exception_stack.pop()
 			if exited_exception['exceptions']:
 				# if we were catching specific exceptions, throw any exceptions that were not caught
@@ -456,13 +456,13 @@ def make_exception_updates(line, lstrip_line, state):
 					added_indent = state.indent
 				else:
 					added_indent = ''
-				
+
 				print_exception_comments(state, exited_exception, added_indent,
 										test_equal=True)
 		else:
 			# did not exit the except block, so stop trying
 			break
-	
+
 	# Update the exception information and update the line with any neccesary added indents
 	line, state.exception_stack = process_exception_line(line, indent, indent_size, is_except_line,
 										state.exception_stack, exception_info)
@@ -474,16 +474,16 @@ def parse_file(file_name, debug=False):
 	# parse a single file into global namespace
 	global global_buffer
 	state = State(file_name, debug)
-	
-	# Each line goes through the following 5 stages. The order is important, we don't want to 
+
+	# Each line goes through the following 5 stages. The order is important, we don't want to
 	# start interpreting the line until we know all of its contents.
-	
+
 	# stage 0: standardize input and check if any processing is required
 	# stage 1: stitching multi-line logic and multi-line strings together (unifying lines)
 	# stage 2: split lines at semi-colons and inlined functions (separating lines)
 	# stage 3: strip empty and doc-string lines, perform any 'to-do' logic inferred from previous line
 	# stage 4: processing/interpreting the line
-	
+
 	# stage 2:
 	# split lines at semi-colons and inlined functions (separating lines)
 	# also triggers stage 3 when done
@@ -518,32 +518,32 @@ def parse_file(file_name, debug=False):
 				lstrip_sub_line = sub_line.lstrip()
 				if lstrip_sub_line:
 					final_lines.append(indent + lstrip_sub_line)
-		
+
 		# stages 3+ are performed inside stage3() logic, this is to allow function
-		# shorthands: 
+		# shorthands:
 		#	def(a, b): return a+b
 		#	def(a, b): a += b; return a
-		
+
 		# send 2nd group to stage 3
 		for line_chunk in final_lines:
 			stage3(line_chunk + '\n', state)
-		
+
 		# send the rest back to beginning of stage 2
 		# this will occur in case of multiple inline functions:
 		# func1(def(a, b): return a+b;, def(c, d): return c*d)
 		if pair and len(pair) > 2:
 			stage2('):'.join(pair[2:]), state)
-	
+
 	# stages 3+4:
 	# finalizes line processing
 	# stage 3: strip empty and doc-string lines, perform any 'to-do' logic inferred from previous line
 	# stage 4: processing/interpreting the line
 	def stage3(line, state):
 		global global_buffer
-	
+
 		# we can't simply pass in old lstrip_line since the line could have been split
 		lstrip_line = line.lstrip()
-	
+
 		# stage 3:
 		# add an extra indent if needed, perform post-function-definition logic
 		is_nonempty_line = len(lstrip_line) > 1 or \
@@ -553,17 +553,17 @@ def parse_file(file_name, debug=False):
 				state.write_buffer(post_line)
 			state.post_function = []
 			state.function_indent = None
-		
+
 		# Convert an except to the format accepted by PyvaScript
 		is_except_line = False
 		if lstrip_line.startswith('except') or \
 				lstrip_line.startswith('finally'):
 			is_except_line = True
-		
-		if is_except_line or (state.comment_dump or 
+
+		if is_except_line or (state.comment_dump or
 							  (state.exception_stack and is_nonempty_line)):
 			line, lstrip_line = make_exception_updates(line, lstrip_line, state)
-		
+
 		# stage 4:
 		if line.find('def') != -1 and line.find('def') < line.find(' and ') < line.find(':') and \
 				not lstrip_line.startswith('.while') and \
@@ -585,12 +585,12 @@ def parse_file(file_name, debug=False):
 			# class definition
 			# this is where we do our 'magic', creating 'bad' Python that PyvaScript naively translates
 			# into good JavaScript
-			
+
 			# if we were already processing another class, finalize it now
 			if state.post_init_dump:
 				state.write_buffer(state.post_init_dump)
 				state.post_init_dump = ''
-			
+
 			state.reset()
 			state.inclass = True
 			class_data = line[6:].split('(')
@@ -613,7 +613,7 @@ def parse_file(file_name, debug=False):
 				state.write_buffer(state.post_init_dump)
 				state.post_init_dump = ''
 			state.inclass = False
-			
+
 		# convert list comprehensions
 		# don't bother performing expensive regex unless the line actually has 'for' keyword in it
 		if line.find(' for ') != -1:
@@ -653,7 +653,7 @@ def parse_file(file_name, debug=False):
 					state.write_buffer(state.post_init_dump)
 					state.post_init_dump = ''
 				method_name, method_args = state.parse_fun(lstrip_line[4:])
-				
+
 				# handle *args for function declaration
 				post_declaration = []
 				if method_args and method_args[-1][0] == '*':
@@ -663,9 +663,9 @@ def parse_file(file_name, debug=False):
 						count += 1
 					post_declaration.append('%s = [].slice.call(arguments, %s)' % (method_args[-1][1:], count))
 					method_args = ''
-				
+
 				state.write_buffer('%s.prototype.%s = def%s' % (state.class_name, method_name, set_args(method_args)))
-				
+
 				# finalize *args logic, if any
 				for post_line in post_declaration:
 					state.write_buffer(state.get_indent(line) + post_line + '\n')
@@ -674,7 +674,7 @@ def parse_file(file_name, debug=False):
 				line = line[len(state.indent):] # dedent by 1 because we're inside a class
 				fun_def = re.split(r'\bdef\b', line)
 				fun_name, fun_args = state.parse_fun(fun_def[1], False)
-				
+
 				# handle *args for function declaration
 				post_declaration = []
 				if fun_args and fun_args[-1][0] == '*':
@@ -684,9 +684,9 @@ def parse_file(file_name, debug=False):
 						count += 1
 					post_declaration.append('%s = [].slice.call(arguments, %s)' % (fun_args[-1][1:], count))
 					fun_args = ''
-					
+
 				state.write_buffer(fun_def[0]+'def%s%s' % (fun_name, set_args(fun_args)))
-				
+
 				# finalize *args logic, if any
 				for post_line in post_declaration:
 					state.write_buffer(state.get_indent(line) + state.basic_indent + post_line + '\n')
@@ -694,7 +694,7 @@ def parse_file(file_name, debug=False):
 				# regular line
 				line = line[len(state.indent):] # dedent by 1 because we're inside a class
 				state.write_buffer(state.get_arg_dump(line))
-				
+
 				if line.find('.__init__') != -1:
 					line = line.replace('.__init__(', '.prototype.constructor.call(')
 				elif invokes_method_from_another_class(line):
@@ -703,7 +703,7 @@ def parse_file(file_name, debug=False):
 					parts = line.split('.')
 					parent_method = parts[1].split('(')[0]
 					parent_args = state.get_args(line, False)
-					
+
 					if parent_args[-1][0] == '*':
 						# handle *args
 						line = '%s%s.prototype.%s.apply(%s, %s)' % (\
@@ -747,11 +747,11 @@ def parse_file(file_name, debug=False):
 			if line.find('def') != -1 and re.search(r'\bdef\b', line):
 				# find() filters out the first 90% of the cases, and the expensive regex
 				# is only performed on the last few cases to keep the compiler fast
-				
+
 				# function definition, has to handle normal functions as well as anonymous ones
 				fun_def = re.split(r'\bdef\b', line)
 				fun_name, fun_args = state.parse_fun(fun_def[1], False)
-				
+
 				# handle *args for function declaration
 				post_declaration = []
 				if fun_args and fun_args[-1][0] == '*':
@@ -761,15 +761,15 @@ def parse_file(file_name, debug=False):
 						count += 1
 					post_declaration.append('%s = [].slice.call(arguments, %s)' % (fun_args[-1][1:], count))
 					fun_args = ''
-					
+
 				state.write_buffer(fun_def[0]+'def%s%s' % (fun_name, set_args(fun_args)))
-				
+
 				# finalize *args logic, if any
 				for post_line in post_declaration:
 					state.write_buffer(state.get_indent(line) + state.basic_indent + post_line + '\n')
 			else:
 				# regular line
-				
+
 				# the first check is a quick naive check, making sure that there is a * char
 				# between parentheses
 				# the second check is a regex designed to filter out the remaining 1% of false
@@ -783,7 +783,7 @@ def parse_file(file_name, debug=False):
 					else:
 						obj = 'this'
 					line = re.sub('\(.*\)' , '.apply(%s, %s)' % (obj, args), line)
-				
+
 				state.write_buffer(state.get_arg_dump(line))
 				state.write_buffer(line)
 
@@ -811,10 +811,10 @@ def parse_file(file_name, debug=False):
 			state.line_content = line
 
 			# stages 0+1 are performed in the loop itself, since they're not recursive like later stages
-			
+
 			# stage 0: standardize input and check if any processing is required
 			# stage 1: stitching multi-line logic and multi-line strings together (unifying lines)
-			
+
 			# stage 0:
 			# standardize input and check if any processing is required
 			# convert DOS to UNIX format (handles files written in Windows)
@@ -842,7 +842,7 @@ def parse_file(file_name, debug=False):
 				state.write_buffer(state.comment_buffer)
 				state.comment_buffer = ''
 			state.docstring = False
-			
+
 			# stage 1:
 			# stitch together lines ending with \
 			if not state.multiline_content:
@@ -862,9 +862,9 @@ def parse_file(file_name, debug=False):
 				# finished stitching
 				line = state.multiline_content + line
 				state.multiline_content = ''
-				
+
 			stage2(line, state)
-	
+
 	# end of file, write any unwritten code to buffer
 	if state.post_init_dump:
 		state.write_buffer(state.post_init_dump)
