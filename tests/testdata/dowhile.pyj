@@ -1,34 +1,34 @@
 
 # test a regular do-while
 do:
-    a = 1
+	a = 1
 .while(a is True)
 
 # test a non-standard do-while
 # NOTE: This might not be supported in the future
 
 do:
-    a = 1
+	a = 1
 .while a is False
 
 
 # redo tests inside a function
 def fun():
-    do:
-        a = 1
-    .while(a is not True)
-    do:
-        a = 1
-    .while a is False
+	do:
+		a = 1
+	.while(a is not True)
+	do:
+		a = 1
+	.while a is False
 
 # redo the tests inside a class method
 class A:
-    def fun(self):
-        do:
-            a = 1
-        .while(a == True)
-        do:
-            a = 1
-        .while a != False
+	def fun(self):
+		do:
+			a = 1
+		.while(a == True)
+		do:
+			a = 1
+		.while a != False
 
 

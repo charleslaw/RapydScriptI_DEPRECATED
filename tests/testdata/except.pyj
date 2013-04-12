@@ -1,303 +1,295 @@
 bad_list = None
 
-
-
 #Test the different ways of catching exceptions
 try:
-    #comments1a1
-    bad_list.fake_call()
-    #comments1a2
+	#comments1a1
+	bad_list.fake_call()
+	#comments1a2
 except:
-    #comments1b1
-    print('Test 1: Got an exception')
-    #comments1b2
+	#comments1b1
+	print('Test 1: Got an exception')
+	#comments1b2
 
 #comments
 try:
-    #comments2a1
-    bad_list.fake_call()
-    #comments2a2
+	#comments2a1
+	bad_list.fake_call()
+	#comments2a2
 except TypeError:
-    #comments2b1
-    print('Test 2: Got an exception')
-    #comments2b2
+	#comments2b1
+	print('Test 2: Got an exception')
+	#comments2b2
 
 #comments
 try:
-    #comments3a1
-    bad_list.fake_call()
-    #comments3a2
+	#comments3a1
+	bad_list.fake_call()
+	#comments3a2
 except as e:
-    #comments3b1
-    print('Test 3: Got an exception' + str(e))
-    #comments3b2
+	#comments3b1
+	print('Test 3: Got an exception' + str(e))
+	#comments3b2
 
 #comments
 try:
-    #comments4a1
-    bad_list.fake_call()
-    #comments4a2
+	#comments4a1
+	bad_list.fake_call()
+	#comments4a2
 except TypeError as e:
-    #comments4b1
-    print('Test 4: Got an exception' + str(e))
-    #comments4b2
-
-
+	#comments4b1
+	print('Test 4: Got an exception' + str(e))
+	#comments4b2
 
 #Multiple catches
 try:
-    bad_list.fake_call()
+	bad_list.fake_call()
 except FakeError as b:
-    print('Test 5: This is unexpected' + str(b))
+	print('Test 5: This is unexpected' + str(b))
 except TypeError as e:
-    print('Test 5: Got an exception' + str(e))
+	print('Test 5: Got an exception' + str(e))
 except:
-    print('Test 5: This is unexpected too')
+	print('Test 5: This is unexpected too')
 
 try:
-    bad_list.fake_call()
+	bad_list.fake_call()
 except FakeError:
-    print('Test 6: This is unexpected')
+	print('Test 6: This is unexpected')
 except TypeError:
-    print('Test 6: Got an exception')
+	print('Test 6: Got an exception')
 except as e:
-    print('Test 6: This is unexpected too' + str(e))
-
-
+	print('Test 6: This is unexpected too' + str(e))
 
 #Have multiple layers of exceptions
 try:
-    bad_list.fake_call()
+	bad_list.fake_call()
 except TestError as e:
-    print("Test 7: unexpected error" + str(e))
+	print("Test 7: unexpected error" + str(e))
 except TypeError as d:
-    print("Test 7: Step 1" + str(e))
-    try:
-        bad_list.fake_call2()
-    except NestException:
-        print("Test 7: unexpected error")
-    except:
-        print("Test 7: Step 2")
-        try:
-            bad_list.another_fake_call()
-        except FakeException:
-            print("Test 7: unexpected error")
-        except as c:
-            print("Test 7: Step 3" + str(c))
+	print("Test 7: Step 1" + str(e))
+	try:
+		bad_list.fake_call2()
+	except NestException:
+		print("Test 7: unexpected error")
+	except:
+		print("Test 7: Step 2")
+		try:
+			bad_list.another_fake_call()
+		except FakeException:
+			print("Test 7: unexpected error")
+		except as c:
+			print("Test 7: Step 3" + str(c))
 except FinalError:
-    print("Test 7: unexpected error")
-
-
+	print("Test 7: unexpected error")
 
 #Redo the tests inside of a class
 class ExceptClass:
-    def __init__(self):
-        pass
-    
-    #Test the different ways of catching exceptions
-    def test_exceptions(self):
-        #c0
-        try:
-            #c01a
-            bad_list.fake_call()
-            #c01b
-        except:
-            #c02a
-            print('Test 8: Got an exception')
-            #c02b
-        
-        #c1
-        try:
-            #c11a
-            bad_list.fake_call()
-            #c11b
-        except TypeError:
-            #c12a
-            print('Test 9: Got an exception')
-            #c12a
-        
-        #c2
-        try:
-            #c21a
-            bad_list.fake_call()
-            #c21b
-        except as e:
-            #c22a
-            print('Test 10: Got an exception' + str(e))
-            #c22b
-        
-        #c3
-        try:
-            #c31a
-            bad_list.fake_call()
-            #c31b
-        except TypeError as e:
-            #c32a
-            print('Test 11: Got an exception' + str(e))
-            #c32b
-        
-        #Multiple catches
-        try:
-            bad_list.fake_call()
-        except FakeError as b:
-            print('Test 12: This is unexpected' + str(b))
-        except TypeError as e:
-            print('Test 12: Got an exception' + str(e))
-        except:
-            print('Test 12: This is unexpected too')
-        
-        try:
-            bad_list.fake_call()
-        except FakeError:
-            print('Test 13: This is unexpected')
-        except TypeError:
-            print('Test 13: Got an exception')
-        except as e:
-            print('Test 13: This is unexpected too' + str(e))
-        
-        #Have multiple layers of exceptions
-        try:
-            bad_list.fake_call()
-        except TestError as e:
-            print("Test 14: unexpected error" + str(e))
-        except TypeError as d:
-            print("Test 14: Step 1" + str(e))
-            try:
-                bad_list.fake_call2()
-            except NestException:
-                print("Test 14: unexpected error")
-            except:
-                print("Test 14: Step 2")
-                try:
-                    bad_list.another_fake_call()
-                except FakeException:
-                    print("Test 14: unexpected error")
-                except as c:
-                    print("Test 14: Step 3" + str(c))
-            #findme
+	def __init__(self):
+		pass
+
+	#Test the different ways of catching exceptions
+	def test_exceptions(self):
+		#c0
+		try:
+			#c01a
+			bad_list.fake_call()
+			#c01b
+		except:
+			#c02a
+			print('Test 8: Got an exception')
+			#c02b
+
+		#c1
+		try:
+			#c11a
+			bad_list.fake_call()
+			#c11b
+		except TypeError:
+			#c12a
+			print('Test 9: Got an exception')
+			#c12a
+
+		#c2
+		try:
+			#c21a
+			bad_list.fake_call()
+			#c21b
+		except as e:
+			#c22a
+			print('Test 10: Got an exception' + str(e))
+			#c22b
+
+		#c3
+		try:
+			#c31a
+			bad_list.fake_call()
+			#c31b
+		except TypeError as e:
+			#c32a
+			print('Test 11: Got an exception' + str(e))
+			#c32b
+
+		#Multiple catches
+		try:
+			bad_list.fake_call()
+		except FakeError as b:
+			print('Test 12: This is unexpected' + str(b))
+		except TypeError as e:
+			print('Test 12: Got an exception' + str(e))
+		except:
+			print('Test 12: This is unexpected too')
+
+		try:
+			bad_list.fake_call()
+		except FakeError:
+			print('Test 13: This is unexpected')
+		except TypeError:
+			print('Test 13: Got an exception')
+		except as e:
+			print('Test 13: This is unexpected too' + str(e))
+
+		#Have multiple layers of exceptions
+		try:
+			bad_list.fake_call()
+		except TestError as e:
+			print("Test 14: unexpected error" + str(e))
+		except TypeError as d:
+			print("Test 14: Step 1" + str(e))
+			try:
+				bad_list.fake_call2()
+			except NestException:
+				print("Test 14: unexpected error")
+			except:
+				print("Test 14: Step 2")
+				try:
+					bad_list.another_fake_call()
+				except FakeException:
+					print("Test 14: unexpected error")
+				except as c:
+					print("Test 14: Step 3" + str(c))
+			#findme
 
 
 
 #Test the different ways of catching exceptions with finally blocks
 try:
-    bad_list.fake_call()
+	bad_list.fake_call()
 except:
-    print('Test 15: Got an exception')
+	print('Test 15: Got an exception')
 finally:
-    print('Test 15: Finally')
+	print('Test 15: Finally')
 
 try:
-    bad_list.fake_call()
+	bad_list.fake_call()
 except TypeError:
-    print('Test 16: Got an exception')
+	print('Test 16: Got an exception')
 finally:
-    print('Test 16: Finally')
+	print('Test 16: Finally')
 
 try:
-    bad_list.fake_call()
+	bad_list.fake_call()
 except as e:
-    print('Test 17: Got an exception' + str(e))
+	print('Test 17: Got an exception' + str(e))
 finally:
-    print('Test 17: Finally')
+	print('Test 17: Finally')
 
 try:
-    bad_list.fake_call()
+	bad_list.fake_call()
 except TypeError as e:
-    print('Test 18: Got an exception' + str(e))
+	print('Test 18: Got an exception' + str(e))
 finally:
-    print('Test 18: Finally')
+	print('Test 18: Finally')
 
 #Redo the tests inside of a class
 class ExceptFinallyClass:
-    def __init__(self):
-        pass
-    
-    #Test the different ways of catching exceptions
-    def test_exceptions(self):
-        try:
-            bad_list.fake_call()
-        except:
-            print('Test 19: Got an exception')
-        finally:
-            print('Test 19: Finally')
-        
-        try:
-            bad_list.fake_call()
-        except TypeError:
-            print('Test 20: Got an exception')
-        finally:
-            print('Test 20: Finally')
-        
-        try:
-            bad_list.fake_call()
-        except as e:
-            print('Test 21: Got an exception' + str(e))
-        finally:
-            print('Test 21: Finally')
-        
-        try:
-            bad_list.fake_call()
-        except TypeError as e:
-            print('Test 22: Got an exception' + str(e))
-        finally:
-            print('Test 22: Finally')
-        
-        #Multiple catches
-        try:
-            bad_list.fake_call()
-        except FakeError as b:
-            print('Test 23: This is unexpected' + str(b))
-        except TypeError as e:
-            print('Test 23: Got an exception' + str(e))
-        except:
-            print('Test 23: This is unexpected too')
-        finally:
-            print('Test 23: Finally')
-        
-        try:
-            bad_list.fake_call()
-        except FakeError:
-            print('Test 24: This is unexpected')
-        except TypeError:
-            print('Test 24: Got an exception')
-        except as e:
-            print('Test 24: This is unexpected too' + str(e))
-        finally:
-            print('Test 24: Finally')
-        
-        #Have multiple layers of exceptions
-        try:
-            bad_list.fake_call()
-        except TestError as e:
-            print("Test 25: unexpected error" + str(e))
-        except TypeError as d:
-            print("Test 25: Step 1" + str(e))
-            try:
-                bad_list.fake_call2()
-            except NestException:
-                print("Test 25: unexpected error")
-            except:
-                print("Test 25: Step 2")
-                try:
-                    bad_list.another_fake_call()
-                except FakeException:
-                    print("Test 25: unexpected error")
-                except as c:
-                    print("Test 25: Step 3" + str(c))
-                finally:
-                    print('Test 25: Finally A')
-        finally:
-            print('Test 25: Finally B')
+	def __init__(self):
+		pass
+	
+	#Test the different ways of catching exceptions
+	def test_exceptions(self):
+		try:
+			bad_list.fake_call()
+		except:
+			print('Test 19: Got an exception')
+		finally:
+			print('Test 19: Finally')
+
+		try:
+			bad_list.fake_call()
+		except TypeError:
+			print('Test 20: Got an exception')
+		finally:
+			print('Test 20: Finally')
+
+		try:
+			bad_list.fake_call()
+		except as e:
+			print('Test 21: Got an exception' + str(e))
+		finally:
+			print('Test 21: Finally')
+
+		try:
+			bad_list.fake_call()
+		except TypeError as e:
+			print('Test 22: Got an exception' + str(e))
+		finally:
+			print('Test 22: Finally')
+
+		#Multiple catches
+		try:
+			bad_list.fake_call()
+		except FakeError as b:
+			print('Test 23: This is unexpected' + str(b))
+		except TypeError as e:
+			print('Test 23: Got an exception' + str(e))
+		except:
+			print('Test 23: This is unexpected too')
+		finally:
+			print('Test 23: Finally')
+
+		try:
+			bad_list.fake_call()
+		except FakeError:
+			print('Test 24: This is unexpected')
+		except TypeError:
+			print('Test 24: Got an exception')
+		except as e:
+			print('Test 24: This is unexpected too' + str(e))
+		finally:
+			print('Test 24: Finally')
+
+		#Have multiple layers of exceptions
+		try:
+			bad_list.fake_call()
+		except TestError as e:
+			print("Test 25: unexpected error" + str(e))
+		except TypeError as d:
+			print("Test 25: Step 1" + str(e))
+			try:
+				bad_list.fake_call2()
+			except NestException:
+				print("Test 25: unexpected error")
+			except:
+				print("Test 25: Step 2")
+				try:
+					bad_list.another_fake_call()
+				except FakeException:
+					print("Test 25: unexpected error")
+				except as c:
+					print("Test 25: Step 3" + str(c))
+				finally:
+					print('Test 25: Finally A')
+		finally:
+			print('Test 25: Finally B')
 
 
 # Simple try finally test
 try:
-    bad_list.fake_call()
+	bad_list.fake_call()
 finally:
-    print('Finally')
+	print('Finally')
 
-        
+
 window.onload = def():
-    a = ExceptClass()
-    a.test_exceptions()     
-    
+	a = ExceptClass()
+	a.test_exceptions()
+
