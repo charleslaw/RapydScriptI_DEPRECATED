@@ -778,8 +778,8 @@ def parse_file(file_name, debug=False):
 				if line.find('(') < line.find('*') < line.find(')') \
 				and re.match(r'^[^\'"]*(([\'"])[^\'"]*\2)*[^\'"]*[,(]\s*\*.*[A-Za-z$_][A-Za-z0-9$_]*\s*\)', line):
 					args = to_star_args(state.get_args(line, False, False))
-					if function.find('.') != -1:
-						obj = function.rsplit('.', 1)[0].split('[')[0]
+					if line.find('.') != -1:
+						obj = line.rsplit('.', 1)[0].split('[')[0]
 					else:
 						obj = 'this'
 					line = re.sub('\(.*\)' , '.apply(%s, %s)' % (obj, args), line)

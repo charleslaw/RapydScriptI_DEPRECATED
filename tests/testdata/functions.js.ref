@@ -62,5 +62,27 @@ math_ops = {
     return [(((-b) + r) / d), (((-b) - r) / d)];
   })
 };
+stararg1 = function() {
+  var a, args;
+  args = [].slice.call(arguments, 0);
+  var _$tmp1_data = _$rapyd$_iter(args);
+  var _$tmp2_len = _$tmp1_data.length;
+  for (var _$tmp3_index = 0; _$tmp3_index < _$tmp2_len; _$tmp3_index++) {
+    a = _$tmp1_data[_$tmp3_index];
+
+    _$rapyd$_print(a);
+  }
+
+};
+
+startarg2 = function() {
+  var a, b, c;
+  a = arguments[0];
+  b = arguments[1];
+  c = [].slice.call(arguments, 2);
+  stararg1(a, b);
+  stararg1.apply(this, [].concat(c));
+};
+
 
 }());
