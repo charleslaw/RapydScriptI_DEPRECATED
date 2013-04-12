@@ -20,6 +20,34 @@ class PyvaTest(unittest.TestCase):
 
 
 class TestTuplePackingUnpacking(PyvaTest):
+    def test_print(self):
+        self.check("""
+            print('hi', 'my', 'test')
+            window.print('don','t', 'change', 'me')
+        """, """
+            _$rapyd$_print("hi", "my", "test");
+            window.print("don", "t", "change", "me");
+        """)
+
+
+    def test_ternary_ifs(self):
+        self.check("""
+            answer = yes if test == alpha else no
+            answer = yes if test == alpha else 'No'
+            answer = 'Yes' if test == alpha else 'No'
+            answer = yes if test == 'alpha' else 'No'
+            answer = yes if 'test' == alpha else 'No'
+            answer = yes if 'alpha' == test else 'No'
+        """, """
+            answer = ((test == alpha) ? yes : no);
+            answer = ((test == alpha) ? yes : "No");
+            answer = ((test == alpha) ? "Yes" : "No");
+            answer = ((test == "alpha") ? yes : "No");
+            answer = (("test" == alpha) ? yes : "No");
+            answer = (("alpha" == test) ? yes : "No");
+        """)
+
+
     def test_return_normal_not_packed(self):
         self.check("""
             def():
