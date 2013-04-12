@@ -72,7 +72,6 @@ class State:
 		
 		# current class info
 		self.inclass = False		# True if we're currently inside a class definition
-		self.need_indent = False	# Used by class to trigger logic that sets correct indentation level
 		self.initdef = False		# True if code defines __init__ method explicitly
 		self.class_name = None		# if in class, defines the class name
 		self.parent = None			# if in class, defines the class we inherited from
@@ -582,9 +581,6 @@ def parse_file(file_name, debug=False):
 				global_buffer += '//Encountered import statement in %s: %s\n' % (file_name, line)
 			import_module(line, state)
 			return
-		if state.need_indent:
-			state.indent = state.basic_indent
-			state.need_indent = False
 		if line[:6] == 'class ':
 			# class definition
 			# this is where we do our 'magic', creating 'bad' Python that PyvaScript naively translates
@@ -610,7 +606,7 @@ def parse_file(file_name, debug=False):
 				new_prefix = 'new '
 				state.post_init_dump += '%s.prototype = %s%s()\n' % (state.class_name, new_prefix, state.parent)
 			class_list.append(state.class_name)
-			state.need_indent = True # don't set the indent yet, it might not be available if this is the first line
+			state.indent = state.basic_indent
 		elif line[0] not in (' ', '\t', '\n'):
 			#line starts with a non-space character
 			if state.post_init_dump:
@@ -796,7 +792,15 @@ def parse_file(file_name, debug=False):
 		# check for easy to spot errors/quirks we require
 		if not verify_code(file_name, input, global_object_list):
 			sys.exit()
-	
+
+		# find correct indent first, to avoid special cases if 'magic'
+		# needs to be isnerted into output before indent is found
+		input.seek(0)
+		for line in input:
+			line = line.replace('\r','')
+			if len(state.get_indent(line)): break
+
+		print len(state.get_indent(line)), repr(line)
 		input.seek(0)
 		if state.debug:
 			decor = '//////////////////////////////////////////////////////////////////////'
@@ -867,6 +871,7 @@ def parse_file(file_name, debug=False):
 		state.write_buffer(state.post_init_dump)
 		state.post_init_dump = ''
 
+	print state.file_buffer
 	try:
 		global_buffer += finalize_source(state.file_buffer, state.debug)
 		if state.debug:
