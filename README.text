@@ -1,5 +1,7 @@
 # RapydScript Documentation
 
+**NOTE:** There is a newer version of this compiler available that's written in JavaScript and runs via node.js. You can get it here: <https://github.com/atsepkov/RapydScript>
+
 Recent Changes that Could Cause Slight Incompatibility with Older Code
 ----------------------------------------------------------------------
 - `new` keyword should no longer be used with native JavaScript objects (Image, RegExp, Error, etc.)
