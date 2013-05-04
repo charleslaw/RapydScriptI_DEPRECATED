@@ -1,6 +1,8 @@
 # RapydScript Documentation
 
-**NOTE:** There is a newer version of this compiler available that's written in JavaScript and runs via node.js. You can get it here: <https://github.com/atsepkov/RapydScript>
+**NOTE:** There is a newer version of this compiler available that's written in JavaScript and runs via node.js. You can get it on bitbucket or github:
+<https://bitbucket.org/pyjeon/rapydscript>
+<https://github.com/atsepkov/RapydScript>
 
 Recent Changes that Could Cause Slight Incompatibility with Older Code
 ----------------------------------------------------------------------
